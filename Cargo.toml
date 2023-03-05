@@ -1,0 +1,21 @@
+[package]
+name = "mepeyew"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+raw-window-handle = "0.5.0"
+
+#  Vulkan
+gpu-allocator = "0.21.0"
+ash = "0.37.0"
+spirv-reflect = "0.2.3"
+
+[target.'cfg(any(target_os = "macos", target_os = "ios"))'.dependencies]
+raw-window-metal = "0.3"
+
+[[example]]
+name = "hello_triangle"
+
+[dev-dependencies]
+winit = "0.28.1"
