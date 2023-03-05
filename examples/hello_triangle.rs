@@ -40,7 +40,7 @@ fn main() {
     ];
 
     #[rustfmt::skip]
-    let mut index_data: Vec<IndexBufferElement> = vec![
+    let index_data: Vec<IndexBufferElement> = vec![
         0, 1, 2
     ];
 
