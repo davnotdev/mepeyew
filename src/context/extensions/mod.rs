@@ -1,4 +1,5 @@
 pub mod gpu_power_level;
+pub mod memory_flush;
 pub mod surface;
 
 use super::*;
@@ -13,6 +14,7 @@ pub enum Extension {
     FlightFramesCount(usize),
     GpuPowerLevel(gpu_power_level::GpuPowerLevel),
     NativeDebug,
+    MemoryFlush,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -21,6 +23,7 @@ pub enum ExtensionType {
     FlightFramesCount,
     GpuPowerLevel,
     NativeDebug,
+    MemoryFlush,
 }
 
 impl Extension {
@@ -30,6 +33,7 @@ impl Extension {
             Self::FlightFramesCount(_) => ExtensionType::FlightFramesCount,
             Self::GpuPowerLevel(_) => ExtensionType::GpuPowerLevel,
             Self::NativeDebug => ExtensionType::NativeDebug,
+            Self::MemoryFlush => ExtensionType::MemoryFlush,
         }
     }
 }

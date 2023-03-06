@@ -124,8 +124,6 @@ impl VkCore {
                 }
             });
 
-            eprintln!("{} {:?}", score, props.device_type);
-
             score
         }
 
@@ -135,14 +133,6 @@ impl VkCore {
                 // score_gpu(a_props, a_mem_props).cmp(&score_gpu(b_props, b_mem_props))
                 score_gpu(b_props, b_mem_props).cmp(&score_gpu(a_props, a_mem_props))
             },
-        );
-
-        eprintln!(
-            "{:?}",
-            physical_devs
-                .iter()
-                .map(|p| p.1.device_type)
-                .collect::<Vec<_>>()
         );
 
         fn try_find_with_type(
@@ -279,7 +269,7 @@ impl Drop for VkCore {
     }
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Clone, Copy)]
 struct QueueFamilies {
     pub graphics: u32,
     pub compute: u32,

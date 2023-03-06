@@ -97,6 +97,9 @@ impl VkContext {
         patches
             .into_iter()
             .for_each(|(patch_idx, patch_new)| self.compiled_passes[patch_idx] = patch_new);
+
+        //  Prevent Crashing from Excessive VRAM Use
+        self.flush_memory();
         Ok(())
     }
 }

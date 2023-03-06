@@ -188,6 +188,16 @@ impl VkContext {
             surface_ext: ManuallyDrop::new(surface_ext),
         })
     }
+
+    pub fn flush_memory(&mut self) {
+        unsafe {
+            self.core.dev.device_wait_idle().unwrap();
+        };
+        self.drop_queue
+            .lock()
+            .unwrap()
+            .idle_flush(&self.core.dev, &mut self.alloc);
+    }
 }
 
 impl Drop for VkContext {
@@ -205,12 +215,9 @@ impl Drop for VkContext {
             let _compiled_passes = ManuallyDrop::take(&mut self.compiled_passes);
         }
 
-        let drop_queue = Arc::get_mut(&mut self.drop_queue)
+        Arc::get_mut(&mut self.drop_queue)
             .expect("vulkan resources are out whilst VkContext is being dropped");
-        drop_queue
-            .get_mut()
-            .unwrap()
-            .idle_flush(&self.core.dev, &mut self.alloc);
+        self.flush_memory();
 
         unsafe {
             let _alloc = ManuallyDrop::take(&mut self.alloc);
