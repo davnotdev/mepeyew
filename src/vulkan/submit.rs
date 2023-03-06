@@ -98,8 +98,11 @@ impl VkContext {
                     vk::Fence::null(),
                 ) {
                     Err(vk::Result::ERROR_OUT_OF_DATE_KHR) => {
-                        todo!("resize");
-                        //  return Ok(());
+                        self.surface_extension_set_surface_size(
+                            surface.swapchain.extent.width as usize,
+                            surface.swapchain.extent.height as usize,
+                        )?;
+                        return Ok(());
                     }
                     Err(e) => Err(gpu_api_err!("vulkan aquire image {}", e))?,
                     Ok(ret) => ret,
@@ -333,7 +336,10 @@ impl VkContext {
                         .queue_present(self.core.graphics_queue, &present_create)
                     {
                         Err(vk::Result::ERROR_OUT_OF_DATE_KHR) => {
-                            todo!("resize")
+                            self.surface_extension_set_surface_size(
+                                surface.swapchain.extent.width as usize,
+                                surface.swapchain.extent.height as usize,
+                            )?;
                         }
                         Err(e) => Err(gpu_api_err!("vulkan queue present {}", e))?,
                         _ => {}
