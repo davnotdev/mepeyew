@@ -1,10 +1,11 @@
 use super::context::{
-    BufferStorageType, CompiledPassId, ImageId, ImageUsage, IndexBufferElement, IndexBufferId,
-    Pass, PassInputLoadOpColorType, PassInputLoadOpDepthStencilType, PassInputType, PassStep,
-    ProgramId, ShaderSet, ShaderType, Submit, VertexBufferElement, VertexBufferId,
+    self, BufferStorageType, CompiledPassId, Extension, ExtensionType, ImageId, ImageUsage,
+    IndexBufferElement, IndexBufferId, Pass, PassInputLoadOpColorType,
+    PassInputLoadOpDepthStencilType, PassInputType, PassStep, ProgramId, ShaderSet, ShaderType,
+    Submit, VertexBufferElement, VertexBufferId,
 };
 use super::error::{gpu_api_err, GResult, GpuError};
-use ash::{vk, Entry, *};
+use ash::{extensions as vk_extensions, vk, Entry, *};
 use gpu_allocator::{
     vulkan::{Allocation, AllocationCreateDesc, Allocator, AllocatorCreateDesc},
     MemoryLocation,
@@ -24,12 +25,12 @@ use pass::VkCompiledPass;
 use program::VkProgram;
 use shader::VkShader;
 use submit::VkSubmitData;
-use swapchain::VkSwapchain;
-use vkcore::{new_fence, new_semaphore, VkCore};
+use vkcore::{new_fence, new_semaphore, VkCore, VkCoreConfiguration, VkCoreGpuPreference};
 
 mod buffer;
 mod debug;
 mod drop;
+mod extensions;
 mod frame;
 mod framebuffer;
 mod image;
@@ -37,8 +38,6 @@ mod pass;
 mod program;
 mod shader;
 mod submit;
-mod surface;
-mod swapchain;
 mod vkcore;
 
 pub type VkDropQueueRef = Arc<Mutex<VkDropQueue>>;
@@ -53,7 +52,8 @@ pub struct VkContext {
     compiled_passes: ManuallyDrop<Vec<VkCompiledPass>>,
     submit: ManuallyDrop<VkSubmitData>,
     alloc: ManuallyDrop<Allocator>,
-    swapchain: ManuallyDrop<VkSwapchain>,
+
+    surface_ext: ManuallyDrop<Option<extensions::VkSurfaceExt>>,
 
     drop_queue: ManuallyDrop<VkDropQueueRef>,
 
@@ -61,14 +61,67 @@ pub struct VkContext {
 }
 
 impl VkContext {
-    pub fn new(
-        display: &RawDisplayHandle,
-        window: &RawWindowHandle,
-        w: u32,
-        h: u32,
-    ) -> GResult<Self> {
-        let core = VkCore::new(display, window)?;
+    pub fn new(extensions: &[Extension]) -> GResult<Self> {
+        let supported_extensions = extensions::supported_extensions();
+        let unsupported_extensions = extensions
+            .iter()
+            .filter_map(|ext| {
+                let ty = ext.get_type();
+                (!supported_extensions.contains(&ty)).then_some(ty)
+            })
+            .collect::<Vec<_>>();
+        if !unsupported_extensions.is_empty() {
+            Err(gpu_api_err!(
+                "vulkan these extensions not supported: {:?}",
+                unsupported_extensions
+            ))?;
+        }
 
+        //  Core Config from Extensions
+        let gpu_preference = extensions
+            .iter()
+            .find_map(|ext| {
+                if let &Extension::GpuPowerLevel(power_level) = &ext {
+                    Some(match power_level {
+                        context::extensions::gpu_power_level::GpuPowerLevel::PreferDiscrete => {
+                            VkCoreGpuPreference::Discrete
+                        }
+                        context::extensions::gpu_power_level::GpuPowerLevel::PreferIntegrated => {
+                            VkCoreGpuPreference::Integrated
+                        }
+                    })
+                } else {
+                    None
+                }
+            })
+            .unwrap_or(VkCoreGpuPreference::Discrete);
+        let use_debug = extensions
+            .iter()
+            .find_map(|ext| {
+                if let Extension::NativeDebug = ext {
+                    Some(true)
+                } else {
+                    None
+                }
+            })
+            .unwrap_or(false);
+        let use_surface = extensions
+            .iter()
+            .find_map(|ext| {
+                if let Extension::Surface(_) = ext {
+                    Some(true)
+                } else {
+                    None
+                }
+            })
+            .unwrap_or(false);
+        let core_config = VkCoreConfiguration {
+            gpu_preference,
+            use_debug,
+            use_surface,
+        };
+
+        let core = VkCore::new(core_config)?;
         let drop_queue = Arc::new(Mutex::new(VkDropQueue::new()));
 
         let alloc = Allocator::new(&AllocatorCreateDesc {
@@ -81,11 +134,34 @@ impl VkContext {
         })
         .map_err(|e| gpu_api_err!("vulkan gpu_allocator {}", e))?;
 
-        let swapchain = VkSwapchain::new(&core, w, h, &drop_queue)?;
+        //  Surface Extension
+        let surface_ext = extensions.iter().find_map(|ext| {
+            if let &Extension::Surface(surface) = &ext {
+                Some(extensions::VkSurfaceExt::new(&core, &drop_queue, surface))
+            } else {
+                None
+            }
+        });
+        let surface_ext = if let Some(r) = surface_ext {
+            Some(r?)
+        } else {
+            None
+        };
 
-        //  TODO EXT: Configure frames in flight.
-        let frame = VkFrame::new(2);
+        //  Frames in Flight Extension
+        let inflight_frame_count = extensions
+            .iter()
+            .find_map(|ext| {
+                if let &Extension::FlightFramesCount(count) = ext {
+                    Some(count)
+                } else {
+                    None
+                }
+            })
+            .unwrap_or(2);
+        let frame = VkFrame::new(inflight_frame_count);
 
+        //  Context State
         let submit = VkSubmitData::new(&core.dev, &frame, core.graphics_command_pool, &drop_queue)?;
 
         let shaders = ManuallyDrop::new(vec![]);
@@ -94,12 +170,11 @@ impl VkContext {
         let images = ManuallyDrop::new(vec![]);
         let compiled_passes = ManuallyDrop::new(vec![]);
 
-        let context = VkContext {
+        Ok(VkContext {
             core,
             frame,
 
             alloc: ManuallyDrop::new(alloc),
-            swapchain: ManuallyDrop::new(swapchain),
             submit: ManuallyDrop::new(submit),
 
             drop_queue: ManuallyDrop::new(drop_queue),
@@ -109,8 +184,9 @@ impl VkContext {
             ibos,
             images,
             compiled_passes,
-        };
-        Ok(context)
+
+            surface_ext: ManuallyDrop::new(surface_ext),
+        })
     }
 }
 
@@ -120,7 +196,7 @@ impl Drop for VkContext {
             self.core.dev.device_wait_idle().unwrap();
 
             let _submit = ManuallyDrop::take(&mut self.submit);
-            let _swapchain = ManuallyDrop::take(&mut self.swapchain);
+            let _surface_ext = ManuallyDrop::take(&mut self.surface_ext);
 
             let _programs = ManuallyDrop::take(&mut self.programs);
             let _vbos = ManuallyDrop::take(&mut self.vbos);

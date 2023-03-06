@@ -3,6 +3,8 @@ use super::*;
 pub struct VkSurface {
     pub surface: vk::SurfaceKHR,
     pub surface_ext: ash::extensions::khr::Surface,
+
+    drop_queue_ref: VkDropQueueRef,
 }
 
 impl VkSurface {
@@ -11,6 +13,7 @@ impl VkSurface {
         instance: &ash::Instance,
         display: &RawDisplayHandle,
         window: &RawWindowHandle,
+        drop_queue_ref: &VkDropQueueRef,
     ) -> GResult<Self> {
         let surface_ext = ash::extensions::khr::Surface::new(entry, instance);
         let surface = if cfg!(target_os = "macos") {
@@ -29,25 +32,23 @@ impl VkSurface {
         Ok(VkSurface {
             surface,
             surface_ext,
+
+            drop_queue_ref: Arc::clone(drop_queue_ref),
         })
     }
+}
 
-    pub fn get_additional_extensions() -> &'static [&'static str] {
-        &[
-            #[cfg(target_os = "macos")]
-            "VK_EXT_metal_surface",
-            #[cfg(all(target_family = "unix", not(target_os = "macos")))]
-            "VK_KHR_xlib_surface",
-            #[cfg(all(target_family = "unix", not(target_os = "macos")))]
-            "VK_KHR_wayland_surface",
-            #[cfg(target_family = "windows")]
-            "VK_KHR_win32_surface",
-            "VK_KHR_surface",
-        ]
-    }
+impl Drop for VkSurface {
+    fn drop(&mut self) {
+        let surface_ext = self.surface_ext.clone();
+        let surface = self.surface;
 
-    pub unsafe fn destroy(&mut self) {
-        self.surface_ext.destroy_surface(self.surface, None);
+        self.drop_queue_ref
+            .lock()
+            .unwrap()
+            .push(Box::new(move |_, _| unsafe {
+                surface_ext.destroy_surface(surface, None);
+            }))
     }
 }
 

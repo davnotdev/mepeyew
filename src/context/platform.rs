@@ -16,19 +16,18 @@ fn platform_prefered() -> Vec<Api> {
 }
 
 impl Context {
-    pub fn new(
-        display: &RawDisplayHandle,
-        window: &RawWindowHandle,
-        w: u32,
-        h: u32,
-    ) -> Result<Self, Vec<GpuError>>
+    pub fn new(extensions: &[(Api, &[Extension])]) -> Result<Self, Vec<GpuError>>
     where
         Self: Sized,
     {
         let mut fails = vec![];
         for api in platform_prefered() {
+            let api_extensions = extensions
+                .iter()
+                .find_map(|(eapi, extensions)| (api == *eapi).then_some(*extensions))
+                .unwrap_or(&[]);
             match api {
-                Api::Vulkan => match VkContext::new(display, window, w, h) {
+                Api::Vulkan => match VkContext::new(api_extensions) {
                     Ok(context) => return Ok(Context::Vulkan(context)),
                     Err(fail) => fails.push(fail),
                 },

@@ -22,21 +22,31 @@ pub struct PassInput {
     pub(crate) output_image: ImageId,
 }
 
-//  `output_attachment` is always index 0 if set.
+//  `surface_attachment` is always index 0 if set.
 #[derive(Default)]
 pub struct Pass {
     pub(crate) steps: Vec<PassStep>,
     pub(crate) inputs: Vec<PassInput>,
-    pub(crate) output_attachment: bool,
+    pub(crate) surface_attachment: bool,
+    pub(crate) render_width: usize,
+    pub(crate) render_height: usize,
 }
 
 impl Pass {
-    pub fn new(output_attachment: Option<PassInputLoadOpColorType>) -> Self {
-        let mut pass = Pass::default();
-        if let Some(output_attachment_load_op) = output_attachment {
-            pass.output_attachment = true;
+    pub fn new(
+        render_width: usize,
+        render_height: usize,
+        surface_attachment_load_op: Option<PassInputLoadOpColorType>,
+    ) -> Self {
+        let mut pass = Pass {
+            render_width,
+            render_height,
+            ..Default::default()
+        };
+        if let Some(surface_attachment_load_op) = surface_attachment_load_op {
+            pass.surface_attachment = true;
             pass.inputs.push(PassInput {
-                ty: PassInputType::Color(output_attachment_load_op),
+                ty: PassInputType::Color(surface_attachment_load_op),
                 local_attachment_idx: 0,
                 //  Will be ignored.
                 output_image: ImageId(0),
@@ -55,7 +65,7 @@ impl Pass {
         &mut self.steps[dep.id()]
     }
 
-    pub fn get_output_attachment(&self) -> PassLocalAttachment {
+    pub fn get_surface_local_attachment(&self) -> PassLocalAttachment {
         PassLocalAttachment::from_id(0)
     }
 

@@ -2,13 +2,13 @@ use super::*;
 use std::ffi::CStr;
 
 pub struct VkDebug {
-    debug_ext: extensions::ext::DebugUtils,
+    debug_ext: vk_extensions::ext::DebugUtils,
     debug: vk::DebugUtilsMessengerEXT,
 }
 
 impl VkDebug {
     pub fn new(entry: &Entry, instance: &Instance) -> GResult<Self> {
-        let debug_ext = extensions::ext::DebugUtils::new(entry, instance);
+        let debug_ext = vk_extensions::ext::DebugUtils::new(entry, instance);
         let debug_create = Self::get_debug_create();
         unsafe { debug_ext.create_debug_utils_messenger(&debug_create, None) }
             .map_err(|e| gpu_api_err!("vulkan debug init {}", e))
@@ -33,7 +33,7 @@ impl VkDebug {
     }
 
     pub const fn get_additional_extensions() -> [&'static CStr; 1] {
-        [extensions::ext::DebugUtils::name()]
+        [vk_extensions::ext::DebugUtils::name()]
     }
 
     pub const fn get_additional_layers() -> &'static [&'static str] {

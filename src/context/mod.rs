@@ -1,7 +1,8 @@
 use super::error::*;
-use raw_window_handle::{RawDisplayHandle, RawWindowHandle};
 
 use super::vulkan::*;
+
+pub mod extensions;
 
 mod buffer;
 mod image;
@@ -52,6 +53,7 @@ def_id_ty!(PassStepDependency);
 def_id_ty!(PassLocalAttachment);
 def_id_ty!(CompiledPassId);
 
+#[derive(Clone, Copy, PartialEq, Eq)]
 pub enum Api {
     Vulkan,
 }
@@ -61,6 +63,7 @@ pub enum Context {
 }
 
 pub use buffer::{BufferStorageType, IndexBufferElement, VertexBufferElement};
+pub use extensions::{Extension, ExtensionType};
 pub use image::ImageUsage;
 pub use pass::{
     Pass, PassInput, PassInputLoadOpColorType, PassInputLoadOpDepthStencilType, PassInputType,

@@ -14,12 +14,18 @@ fn main() {
     //  --- Begin Setup Code ---
     //
 
-    let mut context = Context::new(
-        &window.raw_display_handle(),
-        &window.raw_window_handle(),
-        1024,
-        640,
-    )
+    let mut context = Context::new(&[(
+        Api::Vulkan,
+        &[
+            Extension::NativeDebug,
+            Extension::Surface(surface::SurfaceConfiguration {
+                width: 640,
+                height: 480,
+                display: window.raw_display_handle(),
+                window: window.raw_window_handle(),
+            }),
+        ],
+    )])
     .unwrap();
 
     let vs = include_bytes!("shaders/hello_triangle/vs.spv");
@@ -51,8 +57,8 @@ fn main() {
         .new_index_buffer(&index_data, BufferStorageType::Dynamic)
         .unwrap();
 
-    let mut pass = Pass::new(Some(PassInputLoadOpColorType::Clear));
-    let output_attachment = pass.get_output_attachment();
+    let mut pass = Pass::new(640, 480, Some(PassInputLoadOpColorType::Clear));
+    let output_attachment = pass.get_surface_local_attachment();
     {
         let pass_step = pass.add_step();
         pass_step

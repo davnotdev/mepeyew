@@ -3,7 +3,7 @@ use super::*;
 pub struct VkSwapchain {
     pub format: vk::Format,
     pub extent: vk::Extent2D,
-    pub swapchain_ext: extensions::khr::Swapchain,
+    pub swapchain_ext: vk_extensions::khr::Swapchain,
     pub swapchain: vk::SwapchainKHR,
     pub swapchain_image_views: Vec<vk::ImageView>,
 
@@ -11,11 +11,17 @@ pub struct VkSwapchain {
 }
 
 impl VkSwapchain {
-    pub fn new(core: &VkCore, w: u32, h: u32, drop_queue_ref: &VkDropQueueRef) -> GResult<Self> {
+    pub fn new(
+        core: &VkCore,
+        surface: &VkSurface,
+        w: u32,
+        h: u32,
+        drop_queue_ref: &VkDropQueueRef,
+    ) -> GResult<Self> {
         let (Ok(surface_capablitites), Ok(surface_formats), Ok(surface_present_modes)) = (unsafe {(
-                core.surface.surface_ext.get_physical_device_surface_capabilities(core.physical_dev, core.surface.surface),
-                core.surface.surface_ext.get_physical_device_surface_formats(core.physical_dev, core.surface.surface),
-                core.surface.surface_ext.get_physical_device_surface_present_modes(core.physical_dev, core.surface.surface),
+                surface.surface_ext.get_physical_device_surface_capabilities(core.physical_dev, surface.surface),
+                surface.surface_ext.get_physical_device_surface_formats(core.physical_dev, surface.surface),
+                surface.surface_ext.get_physical_device_surface_present_modes(core.physical_dev, surface.surface),
                 )}) else {
                 Err(gpu_api_err!("vulkan gpu query"))?
             };
@@ -54,9 +60,9 @@ impl VkSwapchain {
         .unwrap();
 
         //  Create the Swapchain
-        let swapchain_ext = extensions::khr::Swapchain::new(&core.instance, &core.dev);
+        let swapchain_ext = vk_extensions::khr::Swapchain::new(&core.instance, &core.dev);
         let swapchain_create = vk::SwapchainCreateInfoKHR::builder()
-            .surface(core.surface.surface)
+            .surface(surface.surface)
             .image_extent(extent)
             .present_mode(present)
             .image_format(format.format)

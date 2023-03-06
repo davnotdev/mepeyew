@@ -1,10 +1,9 @@
-use super::{debug::VkDebug, surface::VkSurface, *};
+use super::{debug::VkDebug, *};
 use std::ffi::CString;
 
 pub struct VkCore {
     pub instance: Instance,
 
-    pub surface: VkSurface,
     pub physical_dev: vk::PhysicalDevice,
     pub dev: Device,
 
@@ -14,12 +13,26 @@ pub struct VkCore {
     pub graphics_command_pool: vk::CommandPool,
     pub compute_command_pool: vk::CommandPool,
 
-    pub debug: VkDebug,
+    pub debug: Option<VkDebug>,
     pub entry: Entry,
 }
 
+//  TODO IMPL: Implement Gpu Preference.
+pub enum VkCoreGpuPreference {
+    Discrete,
+    Integrated,
+}
+
+pub struct VkCoreConfiguration {
+    pub gpu_preference: VkCoreGpuPreference,
+    pub use_debug: bool,
+    pub use_surface: bool,
+}
+
 impl VkCore {
-    pub fn new(display: &RawDisplayHandle, window: &RawWindowHandle) -> GResult<Self> {
+    pub fn new(
+        config: VkCoreConfiguration,
+    ) -> GResult<Self> {
         let Ok(entry) = (unsafe {Entry::load()}) else {
             Err(gpu_api_err!("vulkan not found"))?
         };
@@ -29,19 +42,25 @@ impl VkCore {
         let mut layers_owned = vec![];
 
         //  ## Debug
-        VkDebug::get_additional_extensions()
-            .into_iter()
-            .for_each(|ext| {
-                instance_extensions_owned.push(CString::new(ext.to_str().unwrap()).unwrap())
-            });
-        VkDebug::get_additional_layers()
-            .iter()
-            .for_each(|&layer| layers_owned.push(CString::new(layer).unwrap()));
+        if config.use_debug {
+            VkDebug::get_additional_extensions()
+                .into_iter()
+                .for_each(|ext| {
+                    instance_extensions_owned.push(CString::new(ext.to_str().unwrap()).unwrap())
+                });
+            VkDebug::get_additional_layers()
+                .iter()
+                .for_each(|&layer| layers_owned.push(CString::new(layer).unwrap()));
+        }
 
-        //  ## Surface
-        VkSurface::get_additional_extensions()
-            .iter()
-            .for_each(|ext| instance_extensions_owned.push(CString::new(ext.to_string()).unwrap()));
+        //  ## Surface Extension
+        if config.use_surface {
+            extensions::VkSurfaceExt::get_additional_instance_extensions()
+                .iter()
+                .for_each(|ext| {
+                    instance_extensions_owned.push(CString::new(ext.to_string()).unwrap())
+                });
+        }
 
         //  ## Rust to C ffi friendly strings
         let instance_extensions = instance_extensions_owned
@@ -64,10 +83,11 @@ impl VkCore {
             };
 
         //  # Make Debug
-        let debug = VkDebug::new(&entry, &instance)?;
-
-        //  # Make Surface
-        let surface = VkSurface::new(&entry, &instance, display, window)?;
+        let debug = if config.use_debug {
+            Some(VkDebug::new(&entry, &instance)?)
+        } else {
+            None
+        };
 
         //  # Get Physical Device and Queue Families
         let physical_devs = unsafe { instance.enumerate_physical_devices() }
@@ -77,7 +97,7 @@ impl VkCore {
         let Some((physical_dev, queue_families)) = physical_devs
             .iter()
             .find_map(|&physical_dev| {
-                QueueFamilies::new(&instance, &physical_dev, &surface)
+                QueueFamilies::new(&instance, &physical_dev)
                     .map(|queue_family| (physical_dev, queue_family))
             }) else {
             Err(gpu_api_err!("vulkan gpu(s) not suitable"))?
@@ -85,7 +105,8 @@ impl VkCore {
 
         //  # Make Device
         let features = vk::PhysicalDeviceFeatures::default();
-        let dev_extensions_owned = vec![extensions::khr::Swapchain::name()];
+        let dev_extensions_owned =
+            vec![extensions::VkSurfaceExt::get_additional_device_extension()];
         let dev_extensions: Vec<*const i8> =
             dev_extensions_owned.iter().map(|s| s.as_ptr()).collect();
 
@@ -140,7 +161,6 @@ impl VkCore {
 
         Ok(VkCore {
             instance,
-            surface,
             physical_dev,
             dev,
             debug,
@@ -161,9 +181,12 @@ impl Drop for VkCore {
             self.dev
                 .destroy_command_pool(self.compute_command_pool, None);
 
-            self.surface.destroy();
             self.dev.destroy_device(None);
-            self.debug.destory();
+
+            if let Some(debug) = &mut self.debug {
+                debug.destory();
+            }
+
             self.instance.destroy_instance(None);
         }
     }
@@ -175,11 +198,7 @@ struct QueueFamilies {
 }
 
 impl QueueFamilies {
-    pub fn new(
-        instance: &Instance,
-        physical_dev: &vk::PhysicalDevice,
-        _surface: &VkSurface,
-    ) -> Option<Self> {
+    pub fn new(instance: &Instance, physical_dev: &vk::PhysicalDevice) -> Option<Self> {
         let queue_families =
             unsafe { instance.get_physical_device_queue_family_properties(*physical_dev) };
 

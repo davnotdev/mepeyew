@@ -7,27 +7,29 @@ pub struct VkCompiledPass {
     pub steps: Vec<PassStep>,
     pub attachment_count: usize,
     pub should_present: bool,
+    pub render_extent: vk::Extent2D,
 
     drop_queue_ref: VkDropQueueRef,
 }
 
 impl VkContext {
     pub fn compile_pass(&mut self, pass: &Pass) -> GResult<CompiledPassId> {
-        let swapchain_width = self.swapchain.extent.width;
-        let swapchain_height = self.swapchain.extent.height;
-        let swapchain_format = self.swapchain.format;
-
         //  Create render pass.
-        let render_pass = new_render_pass(self, pass, swapchain_format)?;
+        let render_pass = new_render_pass(self, pass)?;
 
         //  Patch framebuffers.
         let framebuffer = new_framebuffer(
             self,
             pass,
             render_pass,
-            swapchain_width as usize,
-            swapchain_height as usize,
+            pass.render_width,
+            pass.render_height,
         )?;
+
+        let render_extent = vk::Extent2D::builder()
+            .width(pass.render_width as u32)
+            .height(pass.render_height as u32)
+            .build();
 
         //  Create one pipeline per subpass.
         let pipelines = pass
@@ -46,7 +48,7 @@ impl VkContext {
                 program.new_graphics_pipeline(
                     &self.core.dev,
                     render_pass,
-                    self.swapchain.extent,
+                    render_extent,
                     subpass_idx,
                 )
             })
@@ -59,7 +61,8 @@ impl VkContext {
             steps: pass.steps.clone(),
             framebuffer,
             attachment_count: pass.inputs.len(),
-            should_present: pass.output_attachment,
+            should_present: pass.surface_attachment,
+            render_extent,
 
             drop_queue_ref: Arc::clone(&self.drop_queue),
         };
@@ -80,7 +83,7 @@ fn new_framebuffer(
         .inputs
         .iter()
         .filter_map(|input| {
-            if pass.output_attachment && input.local_attachment_idx == 0 {
+            if pass.surface_attachment && input.local_attachment_idx == 0 {
                 None
             } else {
                 Some(input.output_image)
@@ -94,27 +97,28 @@ fn new_framebuffer(
         &images,
         width,
         height,
-        pass.output_attachment,
+        pass.surface_attachment,
     )
 }
 
-fn new_render_pass(
-    ctx: &VkContext,
-    pass: &Pass,
-    swapchain_format: vk::Format,
-) -> GResult<vk::RenderPass> {
+fn new_render_pass(ctx: &VkContext, pass: &Pass) -> GResult<vk::RenderPass> {
+    let swapchain_format = ctx
+        .surface_ext
+        .as_ref()
+        .map(|surface_ext| surface_ext.swapchain.format);
+
     //  Use the attachment index order used by pass's local attachment indices.
-    //  Remember to be careful because `output_attachment` should be attachment index 0.
+    //  Remember to be careful because `surface_attachment` should be attachment index 0.
     let pass_input_attachments = pass
         .inputs
         .iter()
         .map(|input| {
-            (
+            Ok((
                 vk::AttachmentDescription::builder()
                     .format(match input.ty {
                         PassInputType::Color(_) => {
-                            if input.local_attachment_idx == 0 {
-                                swapchain_format
+                            if input.local_attachment_idx == 0 && pass.surface_attachment {
+                                swapchain_format.ok_or(gpu_api_err!("vulkan tried to use surface attachment without surface extension"))?
                             } else {
                                 VK_COLOR_ATTACHMENT_FORMAT
                             }
@@ -138,7 +142,7 @@ fn new_render_pass(
                     .initial_layout(vk::ImageLayout::UNDEFINED)
                     .final_layout(match input.ty {
                         PassInputType::Color(_) => {
-                            if input.local_attachment_idx == 0 {
+                            if input.local_attachment_idx == 0 && pass.surface_attachment {
                                 vk::ImageLayout::PRESENT_SRC_KHR
                             } else {
                                 vk::ImageLayout::COLOR_ATTACHMENT_OPTIMAL
@@ -154,9 +158,9 @@ fn new_render_pass(
                         PassInputType::Depth(_) => vk::ImageLayout::DEPTH_ATTACHMENT_OPTIMAL,
                     })
                     .build(),
-            )
+            ))
         })
-        .collect::<Vec<_>>();
+        .collect::<GResult<Vec<_>>>()?;
 
     //  These values must outlive subpasses.
     let mut each_total_input_attachments = vec![];

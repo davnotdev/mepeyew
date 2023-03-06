@@ -16,6 +16,11 @@ impl VkFramebuffer {
     ) -> GResult<VkFramebuffer> {
         Ok(if use_swapchain {
             let framebuffers = context
+                .surface_ext
+                .as_ref()
+                .ok_or(gpu_api_err!(
+                    "vulkan tried to create surface framebuffer without surface extension"
+                ))?
                 .swapchain
                 .swapchain_image_views
                 .iter()

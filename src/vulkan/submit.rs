@@ -90,9 +90,9 @@ impl VkContext {
 
         //  TODO FIX: Replace unwraps.
         unsafe {
-            let (swapchain_image_index, _suboptimal) =
-                match self.swapchain.swapchain_ext.acquire_next_image(
-                    self.swapchain.swapchain,
+            let (swapchain_image_index, _suboptimal) = if let Some(surface) = &*self.surface_ext {
+                match surface.swapchain.swapchain_ext.acquire_next_image(
+                    surface.swapchain.swapchain,
                     std::u64::MAX,
                     image_aquire_semaphore,
                     vk::Fence::null(),
@@ -103,7 +103,10 @@ impl VkContext {
                     }
                     Err(e) => Err(gpu_api_err!("vulkan aquire image {}", e))?,
                     Ok(ret) => ret,
-                };
+                }
+            } else {
+                (0, false)
+            };
 
             self.core
                 .dev
@@ -195,7 +198,7 @@ impl VkContext {
                     .clear_values(&clear_values)
                     .render_area(vk::Rect2D {
                         offset: vk::Offset2D { x: 0, y: 0 },
-                        extent: self.swapchain.extent,
+                        extent: pass.render_extent,
                     })
                     .framebuffer(
                         pass.framebuffer
@@ -296,7 +299,8 @@ impl VkContext {
             let should_present = submit.passes.iter().any(|pass| {
                 let pass = &self.compiled_passes[pass.pass.id()];
                 pass.should_present
-            });
+            }) /* && self.surface_ext.is_some() */;
+            //  Purposely don't check for surface_ext.
 
             if should_present {
                 submit_signal_semaphores.push(render_semaphore);
@@ -316,23 +320,29 @@ impl VkContext {
             self.frame.advance_frame();
 
             if should_present {
-                let present_create = vk::PresentInfoKHR::builder()
-                    .wait_semaphores(&[render_semaphore])
-                    .swapchains(&[self.swapchain.swapchain])
-                    .image_indices(&[swapchain_image_index])
-                    .build();
+                if let Some(surface) = &*self.surface_ext {
+                    let present_create = vk::PresentInfoKHR::builder()
+                        .wait_semaphores(&[render_semaphore])
+                        .swapchains(&[surface.swapchain.swapchain])
+                        .image_indices(&[swapchain_image_index])
+                        .build();
 
-                match self
-                    .swapchain
-                    .swapchain_ext
-                    .queue_present(self.core.graphics_queue, &present_create)
-                {
-                    Err(vk::Result::ERROR_OUT_OF_DATE_KHR) => {
-                        todo!("resize")
-                    }
-                    Err(e) => Err(gpu_api_err!("vulkan queue present {}", e))?,
-                    _ => {}
-                };
+                    match surface
+                        .swapchain
+                        .swapchain_ext
+                        .queue_present(self.core.graphics_queue, &present_create)
+                    {
+                        Err(vk::Result::ERROR_OUT_OF_DATE_KHR) => {
+                            todo!("resize")
+                        }
+                        Err(e) => Err(gpu_api_err!("vulkan queue present {}", e))?,
+                        _ => {}
+                    };
+                } else {
+                    Err(gpu_api_err!(
+                        "vulkan tried to render to surface without surface extension"
+                    ))?;
+                }
             }
         }
 
