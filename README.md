@@ -21,8 +21,6 @@ retaining the power and control of APIs like Vulkan.
 > This project is a work in progress!
 
 - Documentation
-- Headless Rendering
-- Advanced Configurations
 - Shader Attachments
 - Textures
 - Compute
