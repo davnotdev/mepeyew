@@ -8,6 +8,7 @@ pub fn supported_extensions() -> &'static [ExtensionType] {
     &[
         ExtensionType::Surface,
         ExtensionType::FlightFramesCount,
+        ExtensionType::GpuPowerLevel,
         ExtensionType::NativeDebug,
     ]
 }

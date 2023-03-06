@@ -68,9 +68,9 @@ impl VkContext {
         height: usize,
     ) -> GResult<()> {
         //  Resize Surface.
-        let old_surface = unsafe { ManuallyDrop::take(&mut self.surface_ext) }.ok_or(gpu_api_err!(
-            "vulkan tried to resize surface without surface extension"
-        ))?;
+        let old_surface = unsafe { ManuallyDrop::take(&mut self.surface_ext) }.ok_or(
+            gpu_api_err!("vulkan tried to resize surface without surface extension"),
+        )?;
         let mut config = old_surface.original_surface_config;
         config.width = width;
         config.height = height;

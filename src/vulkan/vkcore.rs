@@ -17,7 +17,6 @@ pub struct VkCore {
     pub entry: Entry,
 }
 
-//  TODO IMPL: Implement Gpu Preference.
 pub enum VkCoreGpuPreference {
     Discrete,
     Integrated,
@@ -30,9 +29,7 @@ pub struct VkCoreConfiguration {
 }
 
 impl VkCore {
-    pub fn new(
-        config: VkCoreConfiguration,
-    ) -> GResult<Self> {
+    pub fn new(config: VkCoreConfiguration) -> GResult<Self> {
         let Ok(entry) = (unsafe {Entry::load()}) else {
             Err(gpu_api_err!("vulkan not found"))?
         };
@@ -90,16 +87,106 @@ impl VkCore {
         };
 
         //  # Get Physical Device and Queue Families
-        let physical_devs = unsafe { instance.enumerate_physical_devices() }
-            .map_err(|e| gpu_api_err!("vulkan gpu(s) not found {}", e))?;
-
-        //  TODO OPT: Chose the proper GPU.
-        let Some((physical_dev, queue_families)) = physical_devs
-            .iter()
-            .find_map(|&physical_dev| {
+        let mut physical_devs = unsafe { instance.enumerate_physical_devices() }
+            .map_err(|e| gpu_api_err!("vulkan gpu(s) not found {}", e))?
+            .into_iter()
+            .filter_map(|physical_dev| {
                 QueueFamilies::new(&instance, &physical_dev)
-                    .map(|queue_family| (physical_dev, queue_family))
-            }) else {
+                    .map(|queue_families| (physical_dev, queue_families))
+            })
+            .map(|(physical_dev, queue_families)| {
+                (
+                    physical_dev,
+                    unsafe { instance.get_physical_device_properties(physical_dev) },
+                    unsafe { instance.get_physical_device_memory_properties(physical_dev) },
+                    queue_families,
+                )
+            })
+            .collect::<Vec<_>>();
+
+        fn score_gpu(
+            props: &vk::PhysicalDeviceProperties,
+            mem_props: &vk::PhysicalDeviceMemoryProperties,
+        ) -> usize {
+            //  Discrete or Integrated or neither?
+            let score = match props.device_type {
+                vk::PhysicalDeviceType::DISCRETE_GPU => 9999999999999,
+                vk::PhysicalDeviceType::INTEGRATED_GPU => 99999999,
+                _ => 0usize,
+            };
+
+            //  Who has the most memory?
+            let score = mem_props.memory_heaps.iter().fold(score, |acc, heap| {
+                if heap.flags.contains(vk::MemoryHeapFlags::DEVICE_LOCAL) {
+                    acc + heap.size as usize
+                } else {
+                    acc
+                }
+            });
+
+            eprintln!("{} {:?}", score, props.device_type);
+
+            score
+        }
+
+        physical_devs.sort_by(
+            |(_, a_props, a_mem_props, _), (_, b_props, b_mem_props, _)| {
+                //  Maybe I don't understand `sort_by`, but shouldn't this be `a.cmp(b)`?
+                // score_gpu(a_props, a_mem_props).cmp(&score_gpu(b_props, b_mem_props))
+                score_gpu(b_props, b_mem_props).cmp(&score_gpu(a_props, a_mem_props))
+            },
+        );
+
+        eprintln!(
+            "{:?}",
+            physical_devs
+                .iter()
+                .map(|p| p.1.device_type)
+                .collect::<Vec<_>>()
+        );
+
+        fn try_find_with_type(
+            physical_devs: &[(
+                vk::PhysicalDevice,
+                vk::PhysicalDeviceProperties,
+                vk::PhysicalDeviceMemoryProperties,
+                QueueFamilies,
+            )],
+            ty: vk::PhysicalDeviceType,
+        ) -> Option<(vk::PhysicalDevice, QueueFamilies)> {
+            physical_devs
+                .iter()
+                .find_map(|&(physical_dev, props, _, queue_families)| {
+                    (props.device_type == ty).then_some((physical_dev, queue_families))
+                })
+        }
+
+        let mut physical_dev = None;
+
+        match config.gpu_preference {
+            VkCoreGpuPreference::Discrete => {
+                if physical_dev.is_none() {
+                    physical_dev =
+                        try_find_with_type(&physical_devs, vk::PhysicalDeviceType::DISCRETE_GPU);
+                }
+            }
+            VkCoreGpuPreference::Integrated => {}
+        };
+
+        [
+            vk::PhysicalDeviceType::INTEGRATED_GPU,
+            vk::PhysicalDeviceType::VIRTUAL_GPU,
+            vk::PhysicalDeviceType::CPU,
+            vk::PhysicalDeviceType::OTHER,
+        ]
+        .into_iter()
+        .for_each(|ty| {
+            if physical_dev.is_none() {
+                physical_dev = try_find_with_type(&physical_devs, ty);
+            }
+        });
+
+        let Some((physical_dev, queue_families)) = physical_dev else {
             Err(gpu_api_err!("vulkan gpu(s) not suitable"))?
         };
 
@@ -192,6 +279,7 @@ impl Drop for VkCore {
     }
 }
 
+#[derive(Debug, Clone, Copy)]
 struct QueueFamilies {
     pub graphics: u32,
     pub compute: u32,
