@@ -1,20 +1,24 @@
 use super::*;
 
+#[derive(Clone)]
 pub enum PassInputType {
     Color(PassInputLoadOpColorType),
     Depth(PassInputLoadOpDepthStencilType),
 }
 
+#[derive(Clone)]
 pub enum PassInputLoadOpColorType {
     Load,
     Clear,
 }
 
+#[derive(Clone)]
 pub enum PassInputLoadOpDepthStencilType {
     Load,
     Clear,
 }
 
+#[derive(Clone)]
 pub struct PassInput {
     pub(crate) ty: PassInputType,
     //  Could technically be replaced with `.iter().enumerate()`.
@@ -23,11 +27,12 @@ pub struct PassInput {
 }
 
 //  `surface_attachment` is always index 0 if set.
-#[derive(Default)]
+#[derive(Default, Clone)]
 pub struct Pass {
     pub(crate) steps: Vec<PassStep>,
     pub(crate) inputs: Vec<PassInput>,
     pub(crate) surface_attachment: bool,
+    pub(crate) depends_on_surface_size: bool,
     pub(crate) render_width: usize,
     pub(crate) render_height: usize,
 }
@@ -36,11 +41,13 @@ impl Pass {
     pub fn new(
         render_width: usize,
         render_height: usize,
+        depends_on_surface_size: Option<()>,
         surface_attachment_load_op: Option<PassInputLoadOpColorType>,
     ) -> Self {
         let mut pass = Pass {
             render_width,
             render_height,
+            depends_on_surface_size: depends_on_surface_size.is_some(),
             ..Default::default()
         };
         if let Some(surface_attachment_load_op) = surface_attachment_load_op {

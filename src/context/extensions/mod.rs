@@ -1,6 +1,8 @@
 pub mod gpu_power_level;
 pub mod surface;
 
+use super::*;
+
 //  TODO EXT: List of future extensions:
 //  - Named Buffers
 //  - ForceSPIRV

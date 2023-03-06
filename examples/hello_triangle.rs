@@ -57,7 +57,7 @@ fn main() {
         .new_index_buffer(&index_data, BufferStorageType::Dynamic)
         .unwrap();
 
-    let mut pass = Pass::new(640, 480, Some(PassInputLoadOpColorType::Clear));
+    let mut pass = Pass::new(640, 480, Some(()), Some(PassInputLoadOpColorType::Clear));
     let output_attachment = pass.get_surface_local_attachment();
     {
         let pass_step = pass.add_step();
@@ -82,6 +82,14 @@ fn main() {
                 event: WindowEvent::CloseRequested,
                 window_id,
             } if window_id == window.id() => *control_flow = ControlFlow::Exit,
+            Event::WindowEvent {
+                event: WindowEvent::Resized(size),
+                window_id,
+            } if window_id == window.id() => {
+                context
+                    .surface_extension_set_surface_size(size.width as usize, size.height as usize)
+                    .unwrap();
+            }
             Event::RedrawRequested(_) => {
                 //
                 //  --- Begin Render Code ---

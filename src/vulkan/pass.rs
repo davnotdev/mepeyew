@@ -4,22 +4,26 @@ pub struct VkCompiledPass {
     pub render_pass: vk::RenderPass,
     pub pipelines: Vec<vk::Pipeline>,
     pub framebuffer: VkFramebuffer,
+    pub render_extent: vk::Extent2D,
+
+    pub original_pass: Pass,
+    //  Although these fields are derived from pass, let's still keep these.
+    //  I believe that this should help with readability. (?)
     pub steps: Vec<PassStep>,
     pub attachment_count: usize,
     pub should_present: bool,
-    pub render_extent: vk::Extent2D,
 
     drop_queue_ref: VkDropQueueRef,
 }
 
-impl VkContext {
-    pub fn compile_pass(&mut self, pass: &Pass) -> GResult<CompiledPassId> {
+impl VkCompiledPass {
+    pub fn new(context: &VkContext, pass: &Pass) -> GResult<Self> {
         //  Create render pass.
-        let render_pass = new_render_pass(self, pass)?;
+        let render_pass = new_render_pass(context, pass)?;
 
         //  Patch framebuffers.
         let framebuffer = new_framebuffer(
-            self,
+            context,
             pass,
             render_pass,
             pass.render_width,
@@ -37,7 +41,7 @@ impl VkContext {
             .iter()
             .enumerate()
             .map(|(subpass_idx, step)| {
-                let program = self
+                let program = context
                     .programs
                     .get(
                         step.program
@@ -46,7 +50,7 @@ impl VkContext {
                     )
                     .unwrap();
                 program.new_graphics_pipeline(
-                    &self.core.dev,
+                    &context.core.dev,
                     render_pass,
                     render_extent,
                     subpass_idx,
@@ -55,19 +59,26 @@ impl VkContext {
             .collect::<GResult<Vec<_>>>()?;
 
         //  Done!
-        let compiled_pass = VkCompiledPass {
+        Ok(VkCompiledPass {
             render_pass,
             pipelines,
-            steps: pass.steps.clone(),
             framebuffer,
-            attachment_count: pass.inputs.len(),
-            should_present: pass.surface_attachment,
             render_extent,
 
-            drop_queue_ref: Arc::clone(&self.drop_queue),
-        };
-        self.compiled_passes.push(compiled_pass);
+            original_pass: pass.clone(),
+            steps: pass.steps.clone(),
+            attachment_count: pass.inputs.len(),
+            should_present: pass.surface_attachment,
 
+            drop_queue_ref: Arc::clone(&context.drop_queue),
+        })
+    }
+}
+
+impl VkContext {
+    pub fn compile_pass(&mut self, pass: &Pass) -> GResult<CompiledPassId> {
+        let compiled_pass = VkCompiledPass::new(self, pass)?;
+        self.compiled_passes.push(compiled_pass);
         Ok(CompiledPassId::from_id(self.compiled_passes.len() - 1))
     }
 }

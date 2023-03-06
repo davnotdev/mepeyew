@@ -136,8 +136,8 @@ impl VkContext {
 
         //  Surface Extension
         let surface_ext = extensions.iter().find_map(|ext| {
-            if let &Extension::Surface(surface) = &ext {
-                Some(extensions::VkSurfaceExt::new(&core, &drop_queue, surface))
+            if let Extension::Surface(surface) = &ext {
+                Some(extensions::VkSurfaceExt::new(&core, &drop_queue, *surface))
             } else {
                 None
             }
