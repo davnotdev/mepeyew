@@ -25,8 +25,15 @@ impl<'a> ShaderSet<'a> {
     }
 }
 
+#[derive(Default)]
+pub struct NewProgramExt {}
+
 impl Context {
-    pub fn new_program(&mut self, shaders: &ShaderSet) -> GResult<ProgramId> {
+    pub fn new_program(
+        &mut self,
+        shaders: &ShaderSet,
+        _ext: Option<NewProgramExt>,
+    ) -> GResult<ProgramId> {
         match self {
             Context::Vulkan(vk) => vk.new_program(shaders),
         }

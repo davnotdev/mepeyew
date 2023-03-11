@@ -118,8 +118,11 @@ impl<'transfer> Submit<'transfer> {
     }
 }
 
+#[derive(Default)]
+pub struct SubmitExt {}
+
 impl Context {
-    pub fn submit(&mut self, submit: Submit) -> GResult<()> {
+    pub fn submit(&mut self, submit: Submit, _ext: Option<SubmitExt>) -> GResult<()> {
         match self {
             Self::Vulkan(vk) => vk.submit(submit),
         }

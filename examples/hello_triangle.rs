@@ -32,10 +32,10 @@ fn main() {
     let fs = include_bytes!("shaders/hello_triangle/fs.spv");
 
     let program = context
-        .new_program(&ShaderSet::shaders(&[
-            (ShaderType::Vertex, vs),
-            (ShaderType::Fragment, fs),
-        ]))
+        .new_program(
+            &ShaderSet::shaders(&[(ShaderType::Vertex, vs), (ShaderType::Fragment, fs)]),
+            None,
+        )
         .unwrap();
 
     #[rustfmt::skip]
@@ -51,13 +51,21 @@ fn main() {
     ];
 
     let vbo = context
-        .new_vertex_buffer(&vertex_data, BufferStorageType::Static)
+        .new_vertex_buffer(&vertex_data, BufferStorageType::Static, None)
         .unwrap();
     let ibo = context
-        .new_index_buffer(&index_data, BufferStorageType::Dynamic)
+        .new_index_buffer(&index_data, BufferStorageType::Dynamic, None)
         .unwrap();
 
-    let mut pass = Pass::new(640, 480, Some(()), Some(PassInputLoadOpColorType::Clear));
+    let mut pass = Pass::new(
+        640,
+        480,
+        Some(NewPassExt {
+            depends_on_surface_size: Some(()),
+            surface_attachment_load_op: Some(PassInputLoadOpColorType::Clear),
+            ..Default::default()
+        }),
+    );
     let output_attachment = pass.get_surface_local_attachment();
     {
         let pass_step = pass.add_step();
@@ -68,7 +76,7 @@ fn main() {
             .add_write_color(output_attachment);
     }
 
-    let compiled_pass = context.compile_pass(&pass).unwrap();
+    let compiled_pass = context.compile_pass(&pass, None).unwrap();
 
     //
     //  --- End Setup Code ---
@@ -116,7 +124,7 @@ fn main() {
                 }
 
                 submit.pass(pass_submit);
-                context.submit(submit).unwrap();
+                context.submit(submit, None).unwrap();
 
                 //
                 //  --- End Render Code ---

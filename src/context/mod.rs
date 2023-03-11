@@ -62,12 +62,18 @@ pub enum Context {
     Vulkan(VkContext),
 }
 
-pub use buffer::{BufferStorageType, IndexBufferElement, VertexBufferElement};
+pub use buffer::{
+    BufferStorageType, IndexBufferElement, NewIndexBufferExt, NewVertexBufferExt,
+    VertexBufferElement,
+};
 pub use extensions::{Extension, ExtensionType};
-pub use image::ImageUsage;
+pub use image::{ImageUsage, NewImageExt};
 pub use pass::{
-    Pass, PassInput, PassInputLoadOpColorType, PassInputLoadOpDepthStencilType, PassInputType,
+    NewPassExt, Pass, PassInput, PassInputLoadOpColorType, PassInputLoadOpDepthStencilType,
+    PassInputType,
 };
 pub use pass_step::PassStep;
-pub use program::{ShaderSet, ShaderType};
-pub use submit::{ClearColor, ClearDepthStencil, Draw, PassSubmitData, StepSubmitData, Submit};
+pub use program::{NewProgramExt, ShaderSet, ShaderType};
+pub use submit::{
+    ClearColor, ClearDepthStencil, Draw, PassSubmitData, StepSubmitData, Submit, SubmitExt,
+};

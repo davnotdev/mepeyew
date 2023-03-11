@@ -37,20 +37,23 @@ pub struct Pass {
     pub(crate) render_height: usize,
 }
 
+#[derive(Default)]
+pub struct NewPassExt {
+    pub depends_on_surface_size: Option<()>,
+    pub surface_attachment_load_op: Option<PassInputLoadOpColorType>,
+}
+
 impl Pass {
-    pub fn new(
-        render_width: usize,
-        render_height: usize,
-        depends_on_surface_size: Option<()>,
-        surface_attachment_load_op: Option<PassInputLoadOpColorType>,
-    ) -> Self {
+    pub fn new(render_width: usize, render_height: usize, ext: Option<NewPassExt>) -> Self {
+        let ext = ext.unwrap_or_default();
+
         let mut pass = Pass {
             render_width,
             render_height,
-            depends_on_surface_size: depends_on_surface_size.is_some(),
+            depends_on_surface_size: ext.depends_on_surface_size.is_some(),
             ..Default::default()
         };
-        if let Some(surface_attachment_load_op) = surface_attachment_load_op {
+        if let Some(surface_attachment_load_op) = ext.surface_attachment_load_op {
             pass.surface_attachment = true;
             pass.inputs.push(PassInput {
                 ty: PassInputType::Color(surface_attachment_load_op),
@@ -102,8 +105,15 @@ impl Pass {
     }
 }
 
+#[derive(Default)]
+pub struct CompilePassExt {}
+
 impl Context {
-    pub fn compile_pass(&mut self, pass: &Pass) -> GResult<CompiledPassId> {
+    pub fn compile_pass(
+        &mut self,
+        pass: &Pass,
+        _ext: Option<CompilePassExt>,
+    ) -> GResult<CompiledPassId> {
         match self {
             Self::Vulkan(vk) => vk.compile_pass(pass),
         }
