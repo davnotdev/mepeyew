@@ -15,6 +15,7 @@ use raw_window_handle::{RawDisplayHandle, RawWindowHandle};
 use std::{
     mem::ManuallyDrop,
     sync::{Arc, Mutex},
+    collections::HashSet,
 };
 
 use buffer::{VkIndexBuffer, VkVertexBuffer};
@@ -54,7 +55,7 @@ pub struct VkContext {
     submit: ManuallyDrop<VkSubmitData>,
     alloc: ManuallyDrop<Allocator>,
 
-    enabled_extensions: Vec<ExtensionType>,
+    enabled_extensions: HashSet<ExtensionType>,
     surface_ext: ManuallyDrop<Option<extensions::VkSurfaceExt>>,
 
     drop_queue: ManuallyDrop<VkDropQueueRef>,
@@ -69,6 +70,7 @@ impl VkContext {
             .iter()
             .map(|ext| ext.get_type())
             .partition(|ty| supported_extensions.contains(ty));
+        let enabled_extensions = enabled_extensions.into_iter().collect::<HashSet<_>>();
         if !unsupported_extensions.is_empty() {
             Err(gpu_api_err!(
                 "vulkan these extensions not supported: {:?}",
