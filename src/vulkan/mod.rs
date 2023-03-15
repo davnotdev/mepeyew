@@ -3,7 +3,7 @@ use super::context::{
     ImageUsage, IndexBufferElement, IndexBufferId, NewImageExt, NewIndexBufferExt, NewProgramExt,
     NewVertexBufferExt, Pass, PassInputLoadOpColorType, PassInputLoadOpDepthStencilType,
     PassInputType, PassStep, ProgramId, ShaderSet, ShaderType, Submit, SubmitExt,
-    VertexBufferElement, VertexBufferId,
+    VertexBufferElement, VertexBufferId, VertexBufferInput, VertexInputArgStride,
 };
 use super::error::{gpu_api_err, GResult, GpuError};
 use ash::{extensions as vk_extensions, vk, Entry, *};
@@ -13,9 +13,9 @@ use gpu_allocator::{
 };
 use raw_window_handle::{RawDisplayHandle, RawWindowHandle};
 use std::{
+    collections::HashSet,
     mem::ManuallyDrop,
     sync::{Arc, Mutex},
-    collections::HashSet,
 };
 
 use buffer::{VkIndexBuffer, VkVertexBuffer};

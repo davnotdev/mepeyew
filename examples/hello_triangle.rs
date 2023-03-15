@@ -31,9 +31,16 @@ fn main() {
     let vs = include_bytes!("shaders/hello_triangle/vs.spv");
     let fs = include_bytes!("shaders/hello_triangle/fs.spv");
 
+    let vertex_inputs = VertexBufferInput {
+        args: vec![VertexInputArgStride(3)],
+    };
+
     let program = context
         .new_program(
-            &ShaderSet::shaders(&[(ShaderType::Vertex, vs), (ShaderType::Fragment, fs)]),
+            &ShaderSet::shaders(&[
+                (ShaderType::Vertex(vertex_inputs), vs),
+                (ShaderType::Fragment, fs),
+            ]),
             None,
         )
         .unwrap();

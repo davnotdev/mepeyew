@@ -13,7 +13,7 @@ use super::*;
 
 #[derive(Clone)]
 pub enum ShaderType {
-    Vertex,
+    Vertex(VertexBufferInput),
     Fragment,
 }
 

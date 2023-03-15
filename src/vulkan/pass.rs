@@ -259,7 +259,7 @@ fn new_render_pass(ctx: &VkContext, pass: &Pass) -> GResult<vk::RenderPass> {
                             .dst_subpass(subpass_idx as u32)
                             .src_stage_mask(vk::PipelineStageFlags::COLOR_ATTACHMENT_OUTPUT)
                             .dst_stage_mask(match shader_stage_usage {
-                                ShaderType::Vertex => vk::PipelineStageFlags::VERTEX_SHADER,
+                                ShaderType::Vertex(_) => vk::PipelineStageFlags::VERTEX_SHADER,
                                 ShaderType::Fragment => vk::PipelineStageFlags::VERTEX_SHADER,
                             })
                             .src_access_mask(vk::AccessFlags::COLOR_ATTACHMENT_WRITE)
@@ -277,7 +277,7 @@ fn new_render_pass(ctx: &VkContext, pass: &Pass) -> GResult<vk::RenderPass> {
                                     | vk::PipelineStageFlags::LATE_FRAGMENT_TESTS,
                             )
                             .dst_stage_mask(match shader_stage_usage {
-                                ShaderType::Vertex => vk::PipelineStageFlags::VERTEX_SHADER,
+                                ShaderType::Vertex(_) => vk::PipelineStageFlags::VERTEX_SHADER,
                                 ShaderType::Fragment => vk::PipelineStageFlags::VERTEX_SHADER,
                             })
                             .src_access_mask(vk::AccessFlags::DEPTH_STENCIL_ATTACHMENT_WRITE)

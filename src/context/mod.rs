@@ -15,10 +15,6 @@ mod platform;
 mod program;
 mod submit;
 
-// mod sequence;
-// mod pass;
-// mod submit;
-
 macro_rules! def_id_ty {
     ($NAME: ident) => {
         impl $NAME {
@@ -71,7 +67,7 @@ pub enum Context {
 
 pub use buffer::{
     BufferStorageType, IndexBufferElement, NewIndexBufferExt, NewVertexBufferExt,
-    VertexBufferElement,
+    VertexBufferElement, VertexBufferInput, VertexInputArgStride,
 };
 pub use extensions::{Extension, ExtensionType};
 pub use image::{ImageUsage, NewImageExt};

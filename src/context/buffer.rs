@@ -1,5 +1,13 @@
 use super::*;
 
+#[derive(Debug, Clone, Copy)]
+pub struct VertexInputArgStride(pub usize);
+
+#[derive(Debug, Clone)]
+pub struct VertexBufferInput {
+    pub args: Vec<VertexInputArgStride>,
+}
+
 #[derive(Clone, Copy, PartialEq, Eq)]
 pub enum BufferStorageType {
     Static,

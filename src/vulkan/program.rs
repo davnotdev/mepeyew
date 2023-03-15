@@ -10,13 +10,7 @@ impl VkContext {
         let shaders = shaders
             .0
             .iter()
-            .map(|(ty, src)| {
-                let shader_ty = match ty {
-                    ShaderType::Vertex => vk::ShaderStageFlags::VERTEX,
-                    ShaderType::Fragment => vk::ShaderStageFlags::FRAGMENT,
-                };
-                VkShader::new(&self.core.dev, &self.drop_queue, shader_ty, src)
-            })
+            .map(|(ty, src)| VkShader::new(&self.core.dev, &self.drop_queue, ty, src))
             .collect::<GResult<Vec<_>>>()?;
 
         let program = VkProgram {
@@ -56,8 +50,13 @@ impl VkProgram {
         let (attributes, bindings) = self
             .shaders
             .iter()
-            .find(|shader| shader.shader_stage == vk::ShaderStageFlags::VERTEX)
-            .map(|vert_shader| vert_shader.get_inputs())
+            .find_map(|shader| {
+                if let ShaderType::Vertex(vertex_inputs) = &shader.shader_ty {
+                    Some(VkShader::get_vertex_inputs(vertex_inputs))
+                } else {
+                    None
+                }
+            })
             .unwrap_or_else(|| (vec![], vk::VertexInputBindingDescription::default()));
         let vertex_input_state_create = vk::PipelineVertexInputStateCreateInfo::builder()
             .vertex_binding_descriptions(&[bindings])
@@ -142,7 +141,10 @@ impl VkProgram {
             .map(|shader| {
                 vk::PipelineShaderStageCreateInfo::builder()
                     .name(&entry_point)
-                    .stage(shader.shader_stage)
+                    .stage(match shader.shader_ty {
+                        ShaderType::Vertex(_) => vk::ShaderStageFlags::VERTEX,
+                        ShaderType::Fragment => vk::ShaderStageFlags::FRAGMENT,
+                    })
                     .module(shader.module)
                     .build()
             })

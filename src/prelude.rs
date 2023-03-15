@@ -3,4 +3,5 @@ pub use super::context::{
     NewImageExt, NewIndexBufferExt, NewPassExt, NewProgramExt, NewVertexBufferExt, Pass,
     PassInputLoadOpColorType, PassInputLoadOpDepthStencilType, PassStep, PassSubmitData, ProgramId,
     ShaderSet, ShaderType, StepSubmitData, Submit, SubmitExt, VertexBufferElement, VertexBufferId,
+    VertexBufferInput, VertexInputArgStride,
 };
