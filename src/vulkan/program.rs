@@ -2,7 +2,11 @@ use super::*;
 use std::ffi::CString;
 
 impl VkContext {
-    pub fn new_program(&mut self, shaders: &ShaderSet) -> GResult<ProgramId> {
+    pub fn new_program(
+        &mut self,
+        shaders: &ShaderSet,
+        _ext: Option<NewProgramExt>,
+    ) -> GResult<ProgramId> {
         let shaders = shaders
             .0
             .iter()

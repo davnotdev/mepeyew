@@ -82,7 +82,7 @@ impl Drop for VkSubmitData {
 }
 
 impl VkContext {
-    pub fn submit(&mut self, submit: Submit) -> GResult<()> {
+    pub fn submit(&mut self, submit: Submit, _ext: Option<SubmitExt>) -> GResult<()> {
         let frame_fence = *self.submit.frame_fence.get(&self.frame);
         let render_semaphore = *self.submit.render_semaphore.get(&self.frame);
         let image_aquire_semaphore = *self.submit.image_aquire_semaphore.get(&self.frame);

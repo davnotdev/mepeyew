@@ -1,5 +1,7 @@
 pub mod gpu_power_level;
 pub mod memory_flush;
+
+#[cfg(feature = "surface_extension")]
 pub mod surface;
 
 use super::*;
@@ -10,30 +12,33 @@ use super::*;
 //  - Raytracing
 
 pub enum Extension {
-    Surface(surface::SurfaceConfiguration),
     FlightFramesCount(usize),
     GpuPowerLevel(gpu_power_level::GpuPowerLevel),
     NativeDebug,
     MemoryFlush,
+    #[cfg(feature = "surface_extension")]
+    Surface(surface::SurfaceConfiguration),
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ExtensionType {
-    Surface,
     FlightFramesCount,
     GpuPowerLevel,
     NativeDebug,
     MemoryFlush,
+    #[cfg(feature = "surface_extension")]
+    Surface,
 }
 
 impl Extension {
     pub fn get_type(&self) -> ExtensionType {
         match self {
-            Self::Surface(_) => ExtensionType::Surface,
             Self::FlightFramesCount(_) => ExtensionType::FlightFramesCount,
             Self::GpuPowerLevel(_) => ExtensionType::GpuPowerLevel,
             Self::NativeDebug => ExtensionType::NativeDebug,
             Self::MemoryFlush => ExtensionType::MemoryFlush,
+            #[cfg(feature = "surface_extension")]
+            Self::Surface(_) => ExtensionType::Surface,
         }
     }
 }
@@ -45,6 +50,11 @@ impl Context {
         }
     }
 
+    #[cfg(feature = "assert_extensions")]
+    fn assert_extension_enabled(&self, ty: ExtensionType) {
+        assert!(self.extension_is_enabled(ty))
+    }
+    #[cfg(not(feature = "assert_extensions"))]
     fn assert_extension_enabled(&self, ty: ExtensionType) {
         assert!(self.extension_is_enabled(ty))
     }

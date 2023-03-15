@@ -32,10 +32,10 @@ impl Context {
     pub fn new_program(
         &mut self,
         shaders: &ShaderSet,
-        _ext: Option<NewProgramExt>,
+        ext: Option<NewProgramExt>,
     ) -> GResult<ProgramId> {
         match self {
-            Context::Vulkan(vk) => vk.new_program(shaders),
+            Context::Vulkan(vk) => vk.new_program(shaders, ext),
         }
     }
 }

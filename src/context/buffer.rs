@@ -19,10 +19,10 @@ impl Context {
         &mut self,
         data: &[VertexBufferElement],
         storage_type: BufferStorageType,
-        _ext: Option<NewVertexBufferExt>,
+        ext: Option<NewVertexBufferExt>,
     ) -> GResult<VertexBufferId> {
         match self {
-            Self::Vulkan(vk) => vk.new_vertex_buffer(data, storage_type),
+            Self::Vulkan(vk) => vk.new_vertex_buffer(data, storage_type, ext),
         }
     }
 
@@ -30,10 +30,10 @@ impl Context {
         &mut self,
         data: &[IndexBufferElement],
         storage_type: BufferStorageType,
-        _ext: Option<NewIndexBufferExt>,
+        ext: Option<NewIndexBufferExt>,
     ) -> GResult<IndexBufferId> {
         match self {
-            Self::Vulkan(vk) => vk.new_index_buffer(data, storage_type),
+            Self::Vulkan(vk) => vk.new_index_buffer(data, storage_type, ext),
         }
     }
 }

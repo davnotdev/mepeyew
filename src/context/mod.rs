@@ -1,5 +1,8 @@
 use super::error::*;
 
+#[allow(unused_imports)]
+use super::mock::*;
+#[cfg(feature = "vulkan")]
 use super::vulkan::*;
 
 pub mod extensions;
@@ -55,11 +58,15 @@ def_id_ty!(CompiledPassId);
 
 #[derive(Clone, Copy, PartialEq, Eq)]
 pub enum Api {
+    #[cfg(feature = "vulkan")]
     Vulkan,
 }
 
 pub enum Context {
+    #[cfg(feature = "vulkan")]
     Vulkan(VkContext),
+    #[cfg(not(feature = "vulkan"))]
+    Vulkan(MockContext),
 }
 
 pub use buffer::{
@@ -69,8 +76,8 @@ pub use buffer::{
 pub use extensions::{Extension, ExtensionType};
 pub use image::{ImageUsage, NewImageExt};
 pub use pass::{
-    NewPassExt, Pass, PassAttachment, PassInputLoadOpColorType, PassInputLoadOpDepthStencilType,
-    PassInputType,
+    CompilePassExt, NewPassExt, Pass, PassAttachment, PassInputLoadOpColorType,
+    PassInputLoadOpDepthStencilType, PassInputType,
 };
 pub use pass_step::PassStep;
 pub use program::{NewProgramExt, ShaderSet, ShaderType};

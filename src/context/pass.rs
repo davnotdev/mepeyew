@@ -112,10 +112,10 @@ impl Context {
     pub fn compile_pass(
         &mut self,
         pass: &Pass,
-        _ext: Option<CompilePassExt>,
+        ext: Option<CompilePassExt>,
     ) -> GResult<CompiledPassId> {
         match self {
-            Self::Vulkan(vk) => vk.compile_pass(pass),
+            Self::Vulkan(vk) => vk.compile_pass(pass, ext),
         }
     }
 }

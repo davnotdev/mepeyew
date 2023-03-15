@@ -10,6 +10,7 @@ impl VkContext {
         width: usize,
         height: usize,
         usage: ImageUsage,
+        _ext: NewImageExt,
     ) -> GResult<ImageId> {
         let image = match usage {
             ImageUsage::ColorAttachment => VkImage::new(

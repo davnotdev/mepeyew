@@ -14,10 +14,10 @@ impl Context {
         width: usize,
         height: usize,
         usage: ImageUsage,
-        _ext: NewImageExt,
+        ext: NewImageExt,
     ) -> GResult<ImageId> {
         match self {
-            Self::Vulkan(vk) => vk.new_image(width, height, usage),
+            Self::Vulkan(vk) => vk.new_image(width, height, usage, ext),
         }
     }
 }

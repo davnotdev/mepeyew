@@ -1,8 +1,9 @@
 use super::context::{
-    self, BufferStorageType, CompiledPassId, Extension, ExtensionType, ImageId, ImageUsage,
-    IndexBufferElement, IndexBufferId, Pass, PassInputLoadOpColorType,
-    PassInputLoadOpDepthStencilType, PassInputType, PassStep, ProgramId, ShaderSet, ShaderType,
-    Submit, VertexBufferElement, VertexBufferId,
+    self, BufferStorageType, CompilePassExt, CompiledPassId, Extension, ExtensionType, ImageId,
+    ImageUsage, IndexBufferElement, IndexBufferId, NewImageExt, NewIndexBufferExt, NewProgramExt,
+    NewVertexBufferExt, Pass, PassInputLoadOpColorType, PassInputLoadOpDepthStencilType,
+    PassInputType, PassStep, ProgramId, ShaderSet, ShaderType, Submit, SubmitExt,
+    VertexBufferElement, VertexBufferId,
 };
 use super::error::{gpu_api_err, GResult, GpuError};
 use ash::{extensions as vk_extensions, vk, Entry, *};

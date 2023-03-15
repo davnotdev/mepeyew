@@ -12,6 +12,7 @@ impl VkContext {
         &mut self,
         data: &[VertexBufferElement],
         storage_type: BufferStorageType,
+        _ext: Option<NewVertexBufferExt>,
     ) -> GResult<VertexBufferId> {
         let (buf, staging) =
             self.new_generic_buffer(data, storage_type, vk::BufferUsageFlags::VERTEX_BUFFER)?;
@@ -27,6 +28,7 @@ impl VkContext {
         &mut self,
         data: &[IndexBufferElement],
         storage_type: BufferStorageType,
+        _ext: Option<NewIndexBufferExt>,
     ) -> GResult<IndexBufferId> {
         let (buf, staging) =
             self.new_generic_buffer(data, storage_type, vk::BufferUsageFlags::INDEX_BUFFER)?;

@@ -76,7 +76,11 @@ impl VkCompiledPass {
 }
 
 impl VkContext {
-    pub fn compile_pass(&mut self, pass: &Pass) -> GResult<CompiledPassId> {
+    pub fn compile_pass(
+        &mut self,
+        pass: &Pass,
+        _ext: Option<CompilePassExt>,
+    ) -> GResult<CompiledPassId> {
         let compiled_pass = VkCompiledPass::new(self, pass)?;
         self.compiled_passes.push(compiled_pass);
         Ok(CompiledPassId::from_id(self.compiled_passes.len() - 1))

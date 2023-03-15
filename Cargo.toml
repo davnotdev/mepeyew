@@ -3,19 +3,32 @@ name = "mepeyew"
 version = "0.1.0"
 edition = "2021"
 
-[dependencies]
-raw-window-handle = "0.5.0"
 
-#  Vulkan
-gpu-allocator = "0.21.0"
-ash = "0.37.0"
-spirv-reflect = "0.2.3"
-
-[target.'cfg(any(target_os = "macos", target_os = "ios"))'.dependencies]
-raw-window-metal = "0.3"
+[features]
+default = [
+    "vulkan",
+    "assert_extensions",
+    "surface_extension",
+]
+vulkan = ["dep:ash", "dep:gpu-allocator", "dep:spirv-reflect", "dep:raw-window-metal"]
+assert_extensions = []
+surface_extension = ["dep:raw-window-handle"]
 
 [[example]]
 name = "hello_triangle"
 
 [dev-dependencies]
 winit = "0.28.1"
+
+[dependencies]
+#  vulkan
+ash = { version = "0.37.0", optional = true }
+gpu-allocator = { version = "0.21.0", optional = true }
+spirv-reflect = { version = "0.2.3", optional = true }
+
+#  surface_extension
+raw-window-handle = { version = "0.5.0", optional = true }
+
+[target.'cfg(any(target_os = "macos", target_os = "ios"))'.dependencies]
+#  vulkan
+raw-window-metal = { version = "0.3", optional = true }
