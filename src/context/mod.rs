@@ -69,7 +69,7 @@ pub use buffer::{
 pub use extensions::{Extension, ExtensionType};
 pub use image::{ImageUsage, NewImageExt};
 pub use pass::{
-    NewPassExt, Pass, PassInput, PassInputLoadOpColorType, PassInputLoadOpDepthStencilType,
+    NewPassExt, Pass, PassAttachment, PassInputLoadOpColorType, PassInputLoadOpDepthStencilType,
     PassInputType,
 };
 pub use pass_step::PassStep;

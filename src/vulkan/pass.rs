@@ -67,7 +67,7 @@ impl VkCompiledPass {
 
             original_pass: pass.clone(),
             steps: pass.steps.clone(),
-            attachment_count: pass.inputs.len(),
+            attachment_count: pass.attachments.len(),
             should_present: pass.surface_attachment,
 
             drop_queue_ref: Arc::clone(&context.drop_queue),
@@ -91,13 +91,13 @@ fn new_framebuffer(
     height: usize,
 ) -> GResult<VkFramebuffer> {
     let images = pass
-        .inputs
+        .attachments
         .iter()
-        .filter_map(|input| {
-            if pass.surface_attachment && input.local_attachment_idx == 0 {
+        .filter_map(|attachment| {
+            if pass.surface_attachment && attachment.local_attachment_idx == 0 {
                 None
             } else {
-                Some(input.output_image)
+                Some(attachment.output_image)
             }
         })
         .collect::<Vec<_>>();
@@ -121,14 +121,14 @@ fn new_render_pass(ctx: &VkContext, pass: &Pass) -> GResult<vk::RenderPass> {
     //  Use the attachment index order used by pass's local attachment indices.
     //  Remember to be careful because `surface_attachment` should be attachment index 0.
     let pass_input_attachments = pass
-        .inputs
+        .attachments
         .iter()
-        .map(|input| {
+        .map(|attachment| {
             Ok((
                 vk::AttachmentDescription::builder()
-                    .format(match input.ty {
+                    .format(match attachment.ty {
                         PassInputType::Color(_) => {
-                            if input.local_attachment_idx == 0 && pass.surface_attachment {
+                            if attachment.local_attachment_idx == 0 && pass.surface_attachment {
                                 swapchain_format.ok_or(gpu_api_err!("vulkan tried to use surface attachment without surface extension"))?
                             } else {
                                 VK_COLOR_ATTACHMENT_FORMAT
@@ -137,7 +137,7 @@ fn new_render_pass(ctx: &VkContext, pass: &Pass) -> GResult<vk::RenderPass> {
                         PassInputType::Depth(_) => VK_DEPTH_ATTACHMENT_FORMAT,
                     })
                     .samples(vk::SampleCountFlags::TYPE_1)
-                    .load_op(match &input.ty {
+                    .load_op(match &attachment.ty {
                         PassInputType::Color(load_op) => match load_op {
                             PassInputLoadOpColorType::Load => vk::AttachmentLoadOp::LOAD,
                             PassInputLoadOpColorType::Clear => vk::AttachmentLoadOp::CLEAR,
@@ -151,9 +151,9 @@ fn new_render_pass(ctx: &VkContext, pass: &Pass) -> GResult<vk::RenderPass> {
                     .stencil_load_op(vk::AttachmentLoadOp::DONT_CARE)
                     .stencil_store_op(vk::AttachmentStoreOp::DONT_CARE)
                     .initial_layout(vk::ImageLayout::UNDEFINED)
-                    .final_layout(match input.ty {
+                    .final_layout(match attachment.ty {
                         PassInputType::Color(_) => {
-                            if input.local_attachment_idx == 0 && pass.surface_attachment {
+                            if attachment.local_attachment_idx == 0 && pass.surface_attachment {
                                 vk::ImageLayout::PRESENT_SRC_KHR
                             } else {
                                 vk::ImageLayout::COLOR_ATTACHMENT_OPTIMAL
@@ -163,8 +163,8 @@ fn new_render_pass(ctx: &VkContext, pass: &Pass) -> GResult<vk::RenderPass> {
                     })
                     .build(),
                 vk::AttachmentReference::builder()
-                    .attachment(input.local_attachment_idx as u32)
-                    .layout(match input.ty {
+                    .attachment(attachment.local_attachment_idx as u32)
+                    .layout(match attachment.ty {
                         PassInputType::Color(_) => vk::ImageLayout::COLOR_ATTACHMENT_OPTIMAL,
                         PassInputType::Depth(_) => vk::ImageLayout::DEPTH_ATTACHMENT_OPTIMAL,
                     })

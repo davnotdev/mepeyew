@@ -19,7 +19,7 @@ pub enum PassInputLoadOpDepthStencilType {
 }
 
 #[derive(Clone)]
-pub struct PassInput {
+pub struct PassAttachment {
     pub(crate) ty: PassInputType,
     //  Could technically be replaced with `.iter().enumerate()`.
     pub(crate) local_attachment_idx: usize,
@@ -30,7 +30,7 @@ pub struct PassInput {
 #[derive(Default, Clone)]
 pub struct Pass {
     pub(crate) steps: Vec<PassStep>,
-    pub(crate) inputs: Vec<PassInput>,
+    pub(crate) attachments: Vec<PassAttachment>,
     pub(crate) surface_attachment: bool,
     pub(crate) depends_on_surface_size: bool,
     pub(crate) render_width: usize,
@@ -55,7 +55,7 @@ impl Pass {
         };
         if let Some(surface_attachment_load_op) = ext.surface_attachment_load_op {
             pass.surface_attachment = true;
-            pass.inputs.push(PassInput {
+            pass.attachments.push(PassAttachment {
                 ty: PassInputType::Color(surface_attachment_load_op),
                 local_attachment_idx: 0,
                 //  Will be ignored.
@@ -96,12 +96,12 @@ impl Pass {
     }
 
     fn add_attachment(&mut self, image: ImageId, ty: PassInputType) -> PassLocalAttachment {
-        self.inputs.push(PassInput {
+        self.attachments.push(PassAttachment {
             ty,
             output_image: image,
-            local_attachment_idx: self.inputs.len(),
+            local_attachment_idx: self.attachments.len(),
         });
-        PassLocalAttachment::from_id(self.inputs.len() - 1)
+        PassLocalAttachment::from_id(self.attachments.len() - 1)
     }
 }
 
