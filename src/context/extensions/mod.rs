@@ -37,3 +37,15 @@ impl Extension {
         }
     }
 }
+
+impl Context {
+    pub fn extension_is_enabled(&self, ty: ExtensionType) -> bool {
+        match self {
+            Self::Vulkan(vk) => vk.extension_is_enabled(ty),
+        }
+    }
+
+    fn assert_extension_enabled(&self, ty: ExtensionType) {
+        assert!(self.extension_is_enabled(ty))
+    }
+}

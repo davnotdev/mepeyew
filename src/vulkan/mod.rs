@@ -53,6 +53,7 @@ pub struct VkContext {
     submit: ManuallyDrop<VkSubmitData>,
     alloc: ManuallyDrop<Allocator>,
 
+    enabled_extensions: Vec<ExtensionType>,
     surface_ext: ManuallyDrop<Option<extensions::VkSurfaceExt>>,
 
     drop_queue: ManuallyDrop<VkDropQueueRef>,
@@ -63,13 +64,10 @@ pub struct VkContext {
 impl VkContext {
     pub fn new(extensions: &[Extension]) -> GResult<Self> {
         let supported_extensions = extensions::supported_extensions();
-        let unsupported_extensions = extensions
+        let (enabled_extensions, unsupported_extensions): (Vec<_>, Vec<_>) = extensions
             .iter()
-            .filter_map(|ext| {
-                let ty = ext.get_type();
-                (!supported_extensions.contains(&ty)).then_some(ty)
-            })
-            .collect::<Vec<_>>();
+            .map(|ext| ext.get_type())
+            .partition(|ty| supported_extensions.contains(ty));
         if !unsupported_extensions.is_empty() {
             Err(gpu_api_err!(
                 "vulkan these extensions not supported: {:?}",
@@ -185,6 +183,7 @@ impl VkContext {
             images,
             compiled_passes,
 
+            enabled_extensions,
             surface_ext: ManuallyDrop::new(surface_ext),
         })
     }
