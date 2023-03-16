@@ -1,6 +1,8 @@
 pub mod gpu_power_level;
 pub mod memory_flush;
 
+#[cfg(feature = "shader_reflection_extension")]
+pub mod shader_reflection;
 #[cfg(feature = "surface_extension")]
 pub mod surface;
 
@@ -18,6 +20,8 @@ pub enum Extension {
     MemoryFlush,
     #[cfg(feature = "surface_extension")]
     Surface(surface::SurfaceConfiguration),
+    #[cfg(feature = "shader_reflection_extension")]
+    ShaderReflection,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -28,6 +32,8 @@ pub enum ExtensionType {
     MemoryFlush,
     #[cfg(feature = "surface_extension")]
     Surface,
+    #[cfg(feature = "shader_reflection_extension")]
+    ShaderReflection,
 }
 
 impl Extension {
@@ -39,6 +45,8 @@ impl Extension {
             Self::MemoryFlush => ExtensionType::MemoryFlush,
             #[cfg(feature = "surface_extension")]
             Self::Surface(_) => ExtensionType::Surface,
+            #[cfg(feature = "shader_reflection_extension")]
+            Self::ShaderReflection => ExtensionType::ShaderReflection,
         }
     }
 }

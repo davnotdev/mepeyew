@@ -1,4 +1,5 @@
 mod memory_flush;
+mod shader_reflection;
 mod surface_ext;
 
 use super::*;
@@ -12,6 +13,7 @@ pub fn supported_extensions() -> &'static [ExtensionType] {
         ExtensionType::GpuPowerLevel,
         ExtensionType::NativeDebug,
         ExtensionType::MemoryFlush,
+        ExtensionType::ShaderReflection,
     ]
 }
 

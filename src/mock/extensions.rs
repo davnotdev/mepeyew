@@ -18,4 +18,13 @@ impl MockContext {
     ) -> GResult<()> {
         unimplemented!("No backend chosen")
     }
+
+    #[cfg(feature = "shader_reflection_extension")]
+    pub fn shader_reflection_extension_reflect(
+        &self,
+        _code: &[u8],
+        _hint: context_extensions::shader_reflection::ReflectionShaderTypeHint,
+    ) -> GResult<ShaderType> {
+        unimplemented!("No backend chosen")
+    }
 }

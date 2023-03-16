@@ -1,10 +1,10 @@
 mod extensions;
 
 use super::context::{
-    BufferStorageType, CompilePassExt, CompiledPassId, Extension, ExtensionType, ImageId,
-    ImageUsage, IndexBufferElement, IndexBufferId, NewImageExt, NewIndexBufferExt, NewProgramExt,
-    NewVertexBufferExt, Pass, ProgramId, ShaderSet, Submit, SubmitExt, VertexBufferElement,
-    VertexBufferId,
+    extensions as context_extensions, BufferStorageType, CompilePassExt, CompiledPassId, Extension,
+    ExtensionType, ImageId, ImageUsage, IndexBufferElement, IndexBufferId, NewImageExt,
+    NewIndexBufferExt, NewProgramExt, NewVertexBufferExt, Pass, ProgramId, ShaderSet, ShaderType,
+    Submit, SubmitExt, VertexBufferElement, VertexBufferId,
 };
 use super::error::GResult;
 
