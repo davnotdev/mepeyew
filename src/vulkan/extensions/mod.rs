@@ -1,10 +1,10 @@
 mod memory_flush;
 mod shader_reflection;
-mod surface_ext;
+mod surface;
 
 use super::*;
 
-pub use surface_ext::VkSurfaceExt;
+pub use surface::VkSurfaceExt;
 
 pub fn supported_extensions() -> &'static [ExtensionType] {
     &[
