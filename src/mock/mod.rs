@@ -3,8 +3,9 @@ mod extensions;
 use super::context::{
     extensions as context_extensions, BufferStorageType, CompilePassExt, CompiledPassId, Extension,
     ExtensionType, ImageId, ImageUsage, IndexBufferElement, IndexBufferId, NewImageExt,
-    NewIndexBufferExt, NewProgramExt, NewVertexBufferExt, Pass, ProgramId, ShaderSet, ShaderType,
-    Submit, SubmitExt, VertexBufferElement, VertexBufferId,
+    NewIndexBufferExt, NewProgramExt, NewUniformBufferExt, NewVertexBufferExt, Pass, ProgramId,
+    ShaderSet, ShaderUniform, Submit, SubmitExt, UniformBufferId, VertexBufferElement,
+    VertexBufferId,
 };
 use super::error::GResult;
 
@@ -37,6 +38,14 @@ impl MockContext {
         unimplemented!("No backend chosen")
     }
 
+    pub fn new_uniform_buffer<T: Copy>(
+        &mut self,
+        _data: &[T],
+        _ext: Option<NewUniformBufferExt>,
+    ) -> GResult<UniformBufferId> {
+        unimplemented!("No backend chosen")
+    }
+
     pub fn new_image(
         &mut self,
         _width: usize,
@@ -58,6 +67,7 @@ impl MockContext {
     pub fn new_program(
         &mut self,
         _shaders: &ShaderSet,
+        _uniforms: &[ShaderUniform],
         _ext: Option<NewProgramExt>,
     ) -> GResult<ProgramId> {
         unimplemented!("No backend chosen")
