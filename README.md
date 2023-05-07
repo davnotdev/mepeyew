@@ -16,12 +16,14 @@ retaining the power and control of APIs like Vulkan.
 
 > See the examples!
 
-## To Be Done
+## Road Map
 
 > This project is a work in progress!
 
-- Documentation
-- Shader Attachments
-- Textures
-- Compute
-- Other API support
+- [x] Basic Uniforms
+- [ ] Textures
+- [ ] Shader Attachments
+- [ ] Documentation
+- [ ] v0.1 Release!
+- [ ] Compute
+- [ ] Other API support

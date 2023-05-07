@@ -83,6 +83,7 @@ pub struct Submit<'transfer> {
     pub(crate) passes: Vec<PassSubmitData>,
     pub(crate) vbo_transfers: Vec<(VertexBufferId, &'transfer [VertexBufferElement])>,
     pub(crate) ibo_transfers: Vec<(IndexBufferId, &'transfer [IndexBufferElement])>,
+    pub(crate) ubo_transfers: Vec<(UniformBufferId, &'transfer [u8])>,
 }
 
 impl<'transfer> Submit<'transfer> {
@@ -91,6 +92,7 @@ impl<'transfer> Submit<'transfer> {
             passes: vec![],
             vbo_transfers: vec![],
             ibo_transfers: vec![],
+            ubo_transfers: vec![],
         }
     }
 
@@ -114,6 +116,21 @@ impl<'transfer> Submit<'transfer> {
         data: &'transfer [IndexBufferElement],
     ) -> &mut Self {
         self.ibo_transfers.push((ibo, data));
+        self
+    }
+
+    pub fn transfer_into_uniform_buffer<T: Copy>(
+        &mut self,
+        ubo: UniformBufferId,
+        data: &'transfer [T],
+    ) -> &mut Self {
+        let untyped_slice = unsafe {
+            std::slice::from_raw_parts(
+                data.as_ptr() as *const u8,
+                data.len() * std::mem::size_of::<T>(),
+            )
+        };
+        self.ubo_transfers.push((ubo, untyped_slice));
         self
     }
 }

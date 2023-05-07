@@ -1,15 +1,25 @@
 use super::*;
 
-// pub enum GpuUniformSet {
-//     Fast,
-//     MidFast,
-//     MidSlow,
-//     Slow,
-// }
+#[repr(u8)]
+#[derive(Clone, Copy)]
+pub enum ShaderUniformFrequencyHint {
+    High = 0,
+    Mid = 1,
+    Low = 2,
+    Static = 3,
+}
 
-// pub enum GpuUniformType {
-//     Buffer,
-// }
+#[derive(Clone, Copy)]
+pub enum ShaderUniformType {
+    UniformBuffer(UniformBufferId),
+}
+
+#[derive(Clone)]
+pub struct ShaderUniform {
+    pub ty: ShaderUniformType,
+    pub binding: usize,
+    pub frequency: ShaderUniformFrequencyHint,
+}
 
 #[derive(Clone)]
 pub enum ShaderType {
@@ -32,10 +42,11 @@ impl Context {
     pub fn new_program(
         &mut self,
         shaders: &ShaderSet,
+        uniforms: &[ShaderUniform],
         ext: Option<NewProgramExt>,
     ) -> GResult<ProgramId> {
         match self {
-            Context::Vulkan(vk) => vk.new_program(shaders, ext),
+            Context::Vulkan(vk) => vk.new_program(shaders, uniforms, ext),
         }
     }
 }

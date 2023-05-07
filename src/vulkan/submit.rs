@@ -147,6 +147,11 @@ impl VkContext {
                     .unwrap();
             });
 
+            submit.ubo_transfers.iter().for_each(|(ubo, data)| {
+                let ubo = self.ubos.get_mut(ubo.id()).unwrap();
+                ubo.cmd_transfer(data).unwrap();
+            });
+
             //  Read somewhere that this is actually unneccessary.
             let graphics_memory_barrier = vk::MemoryBarrier::builder()
                 .src_access_mask(vk::AccessFlags::HOST_WRITE)
@@ -257,6 +262,18 @@ impl VkContext {
                         graphics_command_buffer,
                         vk::PipelineBindPoint::GRAPHICS,
                         pass.pipelines[step_idx],
+                    );
+
+                    //  Descriptor Sets
+                    //  TODO OPT: Maybe don't do this.
+                    let program = self.programs.get(step.program.unwrap().id()).unwrap();
+                    self.core.dev.cmd_bind_descriptor_sets(
+                        graphics_command_buffer,
+                        vk::PipelineBindPoint::GRAPHICS,
+                        program.layout,
+                        0,
+                        &program.descriptors.descriptor_sets,
+                        &[],
                     );
 
                     //  Draw

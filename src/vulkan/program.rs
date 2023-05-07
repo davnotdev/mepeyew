@@ -5,6 +5,7 @@ impl VkContext {
     pub fn new_program(
         &mut self,
         shaders: &ShaderSet,
+        uniforms: &[ShaderUniform],
         _ext: Option<NewProgramExt>,
     ) -> GResult<ProgramId> {
         let shaders = shaders
@@ -13,9 +14,12 @@ impl VkContext {
             .map(|(ty, src)| VkShader::new(&self.core.dev, &self.drop_queue, ty, src))
             .collect::<GResult<Vec<_>>>()?;
 
+        let descriptors = VkDescriptors::new(self, uniforms)?;
+
         let program = VkProgram {
-            layout: new_pipeline_layout(&self.core.dev)?,
+            layout: new_pipeline_layout(&self.core.dev, &descriptors.descriptor_set_layouts)?,
             shaders,
+            descriptors,
             drop_queue: Arc::clone(&self.drop_queue),
         };
         self.programs.push(program);
@@ -24,14 +28,20 @@ impl VkContext {
     }
 }
 
-fn new_pipeline_layout(dev: &Device) -> GResult<vk::PipelineLayout> {
-    let pipeline_layout_create = vk::PipelineLayoutCreateInfo::builder().build();
+fn new_pipeline_layout(
+    dev: &Device,
+    descriptor_set_layouts: &[vk::DescriptorSetLayout],
+) -> GResult<vk::PipelineLayout> {
+    let pipeline_layout_create = vk::PipelineLayoutCreateInfo::builder()
+        .set_layouts(descriptor_set_layouts)
+        .build();
     unsafe { dev.create_pipeline_layout(&pipeline_layout_create, None) }
         .map_err(|e| gpu_api_err!("vulkan pipeline layout {}", e))
 }
 
 pub struct VkProgram {
-    layout: vk::PipelineLayout,
+    pub descriptors: VkDescriptors,
+    pub layout: vk::PipelineLayout,
     shaders: Vec<VkShader>,
 
     drop_queue: VkDropQueueRef,

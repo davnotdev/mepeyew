@@ -21,6 +21,8 @@ pub type IndexBufferElement = u32;
 pub struct NewVertexBufferExt {}
 #[derive(Default)]
 pub struct NewIndexBufferExt {}
+#[derive(Default)]
+pub struct NewUniformBufferExt {}
 
 impl Context {
     pub fn new_vertex_buffer(
@@ -42,6 +44,16 @@ impl Context {
     ) -> GResult<IndexBufferId> {
         match self {
             Self::Vulkan(vk) => vk.new_index_buffer(data, storage_type, ext),
+        }
+    }
+
+    pub fn new_uniform_buffer<T: Copy>(
+        &mut self,
+        data: &[T],
+        ext: Option<NewUniformBufferExt>,
+    ) -> GResult<UniformBufferId> {
+        match self {
+            Self::Vulkan(vk) => vk.new_uniform_buffer::<T>(data, ext),
         }
     }
 }

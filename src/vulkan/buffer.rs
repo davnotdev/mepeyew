@@ -14,8 +14,12 @@ impl VkContext {
         storage_type: BufferStorageType,
         _ext: Option<NewVertexBufferExt>,
     ) -> GResult<VertexBufferId> {
-        let (buf, staging) =
-            self.new_generic_buffer(data, storage_type, vk::BufferUsageFlags::VERTEX_BUFFER)?;
+        let (buf, staging) = self.new_generic_buffer(
+            data,
+            storage_type,
+            vk::BufferUsageFlags::VERTEX_BUFFER,
+            vk::BufferUsageFlags::empty(),
+        )?;
         let vbo = VkVertexBuffer {
             buffer: buf,
             staging,
@@ -30,14 +34,35 @@ impl VkContext {
         storage_type: BufferStorageType,
         _ext: Option<NewIndexBufferExt>,
     ) -> GResult<IndexBufferId> {
-        let (buf, staging) =
-            self.new_generic_buffer(data, storage_type, vk::BufferUsageFlags::INDEX_BUFFER)?;
+        let (buf, staging) = self.new_generic_buffer(
+            data,
+            storage_type,
+            vk::BufferUsageFlags::INDEX_BUFFER,
+            vk::BufferUsageFlags::empty(),
+        )?;
         let ibo = VkIndexBuffer {
             buffer: buf,
             staging,
         };
         self.ibos.push(ibo);
         Ok(IndexBufferId::from_id(self.ibos.len() - 1))
+    }
+
+    pub fn new_uniform_buffer<T>(
+        &mut self,
+        data: &[T],
+        _ext: Option<NewUniformBufferExt>,
+    ) -> GResult<UniformBufferId> {
+        let (mut buf, staging) = self.new_generic_buffer(
+            data,
+            BufferStorageType::Dynamic,
+            vk::BufferUsageFlags::UNIFORM_BUFFER,
+            vk::BufferUsageFlags::empty(),
+        )?;
+        buf.mapped_ptr = staging.as_ref().unwrap().mapped_ptr;
+        let ubo = VkUniformBuffer { buffer: buf };
+        self.ubos.push(ubo);
+        Ok(UniformBufferId::from_id(self.ubos.len() - 1))
     }
 }
 
@@ -51,6 +76,10 @@ pub struct VkVertexBuffer {
 pub struct VkIndexBuffer {
     pub buffer: VkBuffer,
     staging: Option<VkBuffer>,
+}
+
+pub struct VkUniformBuffer {
+    pub buffer: VkBuffer,
 }
 
 impl VkVertexBuffer {
@@ -91,6 +120,13 @@ impl VkIndexBuffer {
     }
 }
 
+impl VkUniformBuffer {
+    pub fn cmd_transfer<T>(&mut self, data: &[T]) -> GResult<()> {
+        self.buffer
+            .map_copy_data(data.as_ptr() as *const u8, data.len())
+    }
+}
+
 fn cmd_transfer_generic<T>(
     dev: &Device,
     cmd_buf: vk::CommandBuffer,
@@ -99,6 +135,9 @@ fn cmd_transfer_generic<T>(
     data: &[T],
 ) -> GResult<()> {
     let buf_size = std::mem::size_of::<T>() * data.len();
+    if buf_size > buffer.size {
+        Err(gpu_api_err!("vulkan cannot transfer, data too large"))?
+    }
     staging.map_copy_data(data.as_ptr() as *const u8, buf_size)?;
     VkBuffer::cmd_upload_copy_data(staging, buffer, dev, cmd_buf);
     Ok(())
@@ -110,19 +149,16 @@ impl VkContext {
         data: &[T],
         storage_type: BufferStorageType,
         additional_buffer_usage: vk::BufferUsageFlags,
+        additional_staging_buffer_usage: vk::BufferUsageFlags,
     ) -> GResult<(VkBuffer, Option<VkBuffer>)> {
         let buf_size = std::mem::size_of::<T>() * data.len();
 
-        match storage_type {
-            BufferStorageType::Static => {}
-            BufferStorageType::Dynamic => {}
-        };
         let mut staging = VkBuffer::new(
             &self.core.dev,
             &self.drop_queue,
             &mut self.alloc,
             buf_size,
-            vk::BufferUsageFlags::TRANSFER_SRC,
+            vk::BufferUsageFlags::TRANSFER_SRC | additional_staging_buffer_usage,
             MemoryLocation::CpuToGpu,
         )?;
         staging.map_copy_data(data.as_ptr() as *const u8, buf_size)?;

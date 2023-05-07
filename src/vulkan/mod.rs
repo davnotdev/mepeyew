@@ -1,9 +1,10 @@
 use super::context::{
     self, BufferStorageType, CompilePassExt, CompiledPassId, Extension, ExtensionType, ImageId,
     ImageUsage, IndexBufferElement, IndexBufferId, NewImageExt, NewIndexBufferExt, NewProgramExt,
-    NewVertexBufferExt, Pass, PassInputLoadOpColorType, PassInputLoadOpDepthStencilType,
-    PassInputType, PassStep, ProgramId, ShaderSet, ShaderType, Submit, SubmitExt,
-    VertexBufferElement, VertexBufferId, VertexBufferInput, VertexInputArgStride,
+    NewUniformBufferExt, NewVertexBufferExt, Pass, PassInputLoadOpColorType,
+    PassInputLoadOpDepthStencilType, PassInputType, PassStep, ProgramId, ShaderSet, ShaderType,
+    ShaderUniform, ShaderUniformType, Submit, SubmitExt, UniformBufferId, VertexBufferElement,
+    VertexBufferId, VertexBufferInput, VertexInputArgStride,
 };
 use super::error::{gpu_api_err, GResult, GpuError};
 use ash::{extensions as vk_extensions, vk, Entry, *};
@@ -18,7 +19,8 @@ use std::{
     sync::{Arc, Mutex},
 };
 
-use buffer::{VkIndexBuffer, VkVertexBuffer};
+use buffer::{VkIndexBuffer, VkUniformBuffer, VkVertexBuffer};
+use descriptor::VkDescriptors;
 use drop::VkDropQueue;
 use frame::{VkFrame, VkFrameDependent};
 use framebuffer::VkFramebuffer;
@@ -31,6 +33,7 @@ use vkcore::{new_fence, new_semaphore, VkCore, VkCoreConfiguration, VkCoreGpuPre
 
 mod buffer;
 mod debug;
+mod descriptor;
 mod drop;
 mod extensions;
 mod frame;
@@ -50,6 +53,7 @@ pub struct VkContext {
     programs: ManuallyDrop<Vec<VkProgram>>,
     vbos: ManuallyDrop<Vec<VkVertexBuffer>>,
     ibos: ManuallyDrop<Vec<VkIndexBuffer>>,
+    ubos: ManuallyDrop<Vec<VkUniformBuffer>>,
     images: ManuallyDrop<Vec<VkImage>>,
     compiled_passes: ManuallyDrop<Vec<VkCompiledPass>>,
     submit: ManuallyDrop<VkSubmitData>,
@@ -168,6 +172,7 @@ impl VkContext {
         let shaders = ManuallyDrop::new(vec![]);
         let vbos = ManuallyDrop::new(vec![]);
         let ibos = ManuallyDrop::new(vec![]);
+        let ubos = ManuallyDrop::new(vec![]);
         let images = ManuallyDrop::new(vec![]);
         let compiled_passes = ManuallyDrop::new(vec![]);
 
@@ -183,6 +188,7 @@ impl VkContext {
             programs: shaders,
             vbos,
             ibos,
+            ubos,
             images,
             compiled_passes,
 
@@ -213,6 +219,7 @@ impl Drop for VkContext {
             let _programs = ManuallyDrop::take(&mut self.programs);
             let _vbos = ManuallyDrop::take(&mut self.vbos);
             let _ibos = ManuallyDrop::take(&mut self.ibos);
+            let _ubos = ManuallyDrop::take(&mut self.ubos);
             let _images = ManuallyDrop::take(&mut self.images);
             let _compiled_passes = ManuallyDrop::take(&mut self.compiled_passes);
         }

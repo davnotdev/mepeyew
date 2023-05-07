@@ -34,6 +34,8 @@ pub struct VertexBufferId(usize);
 #[derive(Debug, Clone, Copy, Hash, PartialEq, Eq)]
 pub struct IndexBufferId(usize);
 #[derive(Debug, Clone, Copy, Hash, PartialEq, Eq)]
+pub struct UniformBufferId(usize);
+#[derive(Debug, Clone, Copy, Hash, PartialEq, Eq)]
 pub struct ProgramId(usize);
 #[derive(Debug, Clone, Copy, Hash, PartialEq, Eq)]
 pub struct ImageId(usize);
@@ -46,6 +48,7 @@ pub struct CompiledPassId(usize);
 
 def_id_ty!(VertexBufferId);
 def_id_ty!(IndexBufferId);
+def_id_ty!(UniformBufferId);
 def_id_ty!(ProgramId);
 def_id_ty!(ImageId);
 def_id_ty!(PassStepDependency);
@@ -66,8 +69,8 @@ pub enum Context {
 }
 
 pub use buffer::{
-    BufferStorageType, IndexBufferElement, NewIndexBufferExt, NewVertexBufferExt,
-    VertexBufferElement, VertexBufferInput, VertexInputArgStride,
+    BufferStorageType, IndexBufferElement, NewIndexBufferExt, NewUniformBufferExt,
+    NewVertexBufferExt, VertexBufferElement, VertexBufferInput, VertexInputArgStride,
 };
 pub use extensions::{Extension, ExtensionType};
 pub use image::{ImageUsage, NewImageExt};
@@ -76,7 +79,10 @@ pub use pass::{
     PassInputLoadOpDepthStencilType, PassInputType,
 };
 pub use pass_step::PassStep;
-pub use program::{NewProgramExt, ShaderSet, ShaderType};
+pub use program::{
+    NewProgramExt, ShaderSet, ShaderType, ShaderUniform, ShaderUniformFrequencyHint,
+    ShaderUniformType,
+};
 pub use submit::{
     ClearColor, ClearDepthStencil, Draw, PassSubmitData, StepSubmitData, Submit, SubmitExt,
 };

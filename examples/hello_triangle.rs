@@ -48,6 +48,7 @@ fn main() {
     let program = context
         .new_program(
             &ShaderSet::shaders(&[(vs_reflect, vs), (fs_reflect, fs)]),
+            &[],
             None,
         )
         .unwrap();
