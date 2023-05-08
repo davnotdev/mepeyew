@@ -49,7 +49,7 @@ impl Context {
 
     pub fn new_uniform_buffer<T: Copy>(
         &mut self,
-        data: &[T],
+        data: &T,
         ext: Option<NewUniformBufferExt>,
     ) -> GResult<UniformBufferId> {
         match self {

@@ -122,13 +122,10 @@ impl<'transfer> Submit<'transfer> {
     pub fn transfer_into_uniform_buffer<T: Copy>(
         &mut self,
         ubo: UniformBufferId,
-        data: &'transfer [T],
+        data: &'transfer T,
     ) -> &mut Self {
         let untyped_slice = unsafe {
-            std::slice::from_raw_parts(
-                data.as_ptr() as *const u8,
-                data.len() * std::mem::size_of::<T>(),
-            )
+            std::slice::from_raw_parts(data as *const T as *const u8, std::mem::size_of::<T>())
         };
         self.ubo_transfers.push((ubo, untyped_slice));
         self

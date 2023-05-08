@@ -50,11 +50,11 @@ impl VkContext {
 
     pub fn new_uniform_buffer<T>(
         &mut self,
-        data: &[T],
+        data: &T,
         _ext: Option<NewUniformBufferExt>,
     ) -> GResult<UniformBufferId> {
         let (mut buf, staging) = self.new_generic_buffer(
-            data,
+            std::slice::from_ref(data),
             BufferStorageType::Dynamic,
             vk::BufferUsageFlags::UNIFORM_BUFFER,
             vk::BufferUsageFlags::empty(),

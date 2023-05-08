@@ -40,7 +40,7 @@ impl MockContext {
 
     pub fn new_uniform_buffer<T: Copy>(
         &mut self,
-        _data: &[T],
+        _data: &T,
         _ext: Option<NewUniformBufferExt>,
     ) -> GResult<UniformBufferId> {
         unimplemented!("No backend chosen")

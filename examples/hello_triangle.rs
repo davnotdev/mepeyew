@@ -98,7 +98,7 @@ fn main() {
     //
 
     event_loop.run(move |event, _, control_flow| {
-        *control_flow = ControlFlow::Wait;
+        *control_flow = ControlFlow::Poll;
 
         match event {
             Event::WindowEvent {
@@ -113,7 +113,7 @@ fn main() {
                     .surface_extension_set_surface_size(size.width as usize, size.height as usize)
                     .unwrap();
             }
-            Event::RedrawRequested(_) => {
+            Event::MainEventsCleared => {
                 //
                 //  --- Begin Render Code ---
                 //

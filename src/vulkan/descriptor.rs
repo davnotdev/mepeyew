@@ -51,7 +51,7 @@ impl VkDescriptors {
             let binding_info = match uniform.ty {
                 ShaderUniformType::UniformBuffer(_) => vk::DescriptorSetLayoutBinding::builder()
                     .binding(uniform.binding as u32)
-                    .stage_flags(vk::ShaderStageFlags::VERTEX)
+                    .stage_flags(vk::ShaderStageFlags::VERTEX | vk::ShaderStageFlags::FRAGMENT)
                     .descriptor_type(vk::DescriptorType::UNIFORM_BUFFER)
                     .descriptor_count(1)
                     .build(),
