@@ -4,7 +4,7 @@ use super::context::{
     extensions as context_extensions, BufferStorageType, CompilePassExt, CompiledPassId, Extension,
     ExtensionType, ImageId, ImageUsage, IndexBufferElement, IndexBufferId, NewImageExt,
     NewIndexBufferExt, NewProgramExt, NewUniformBufferExt, NewVertexBufferExt, Pass, ProgramId,
-    ShaderSet, ShaderUniform, Submit, SubmitExt, UniformBufferId, VertexBufferElement,
+    ShaderSet, ShaderType, ShaderUniform, Submit, SubmitExt, UniformBufferId, VertexBufferElement,
     VertexBufferId,
 };
 use super::error::GResult;
