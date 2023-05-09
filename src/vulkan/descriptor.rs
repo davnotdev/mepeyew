@@ -2,6 +2,8 @@ use super::*;
 
 const DESCRIPTOR_SET_COUNT: usize = 4;
 
+//  TODO OPT: Aren't descriptor sets frame dependent?
+
 pub struct VkDescriptors {
     descriptor_pool: vk::DescriptorPool,
     pub descriptor_sets: [vk::DescriptorSet; DESCRIPTOR_SET_COUNT],
@@ -107,14 +109,20 @@ impl VkDescriptors {
                         .range(ubo.buffer.size as u64)
                         .offset(0)
                         .build();
-                    buffer_infos.push(buffer_info);
-                    Ok(vk::WriteDescriptorSet::builder()
+
+                    let buffer_info_list = vec![buffer_info];
+
+                    let ret = Ok(vk::WriteDescriptorSet::builder()
                         .dst_set(descriptor_sets[set_idx])
                         .dst_binding(uniform.binding as u32)
                         .dst_array_element(0)
                         .descriptor_type(vk::DescriptorType::UNIFORM_BUFFER)
-                        .buffer_info(&[buffer_info])
-                        .build())
+                        .buffer_info(&buffer_info_list)
+                        .build());
+
+                    buffer_infos.push(buffer_info_list);
+
+                    ret
                 }
             })
             .collect::<GResult<Vec<_>>>()?;
