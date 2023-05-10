@@ -1,12 +1,6 @@
 mod extensions;
 
-use super::context::{
-    extensions as context_extensions, BufferStorageType, CompilePassExt, CompiledPassId, Extension,
-    ExtensionType, ImageId, ImageUsage, IndexBufferElement, IndexBufferId, NewImageExt,
-    NewIndexBufferExt, NewProgramExt, NewUniformBufferExt, NewVertexBufferExt, Pass, ProgramId,
-    ShaderSet, ShaderType, ShaderUniform, Submit, SubmitExt, UniformBufferId, VertexBufferElement,
-    VertexBufferId,
-};
+use super::context::{extensions as context_extensions, *};
 use super::error::GResult;
 
 //  This is used when disabling backends.
@@ -53,6 +47,10 @@ impl MockContext {
         _usage: ImageUsage,
         _ext: NewImageExt,
     ) -> GResult<ImageId> {
+        unimplemented!("No backend chosen")
+    }
+
+    pub fn get_sampler(&mut self, _ext: Option<GetSamplerExt>) -> GResult<SamplerId> {
         unimplemented!("No backend chosen")
     }
 
