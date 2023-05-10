@@ -40,7 +40,7 @@ impl VkSamplerCache {
         if let Some(&(id, _)) = self
             .samplers
             .keys()
-            .find(|(id, cached_data)| *cached_data == data)
+            .find(|(_, cached_data)| *cached_data == data)
         {
             Ok(id)
         } else {
@@ -51,8 +51,12 @@ impl VkSamplerCache {
                 .address_mode_v(mode_into_vk(data.v_mode))
                 .build();
 
-            data.min_lod.map(|lod| sampler_info.min_lod = lod.get_val());
-            data.max_lod.map(|lod| sampler_info.max_lod = lod.get_val());
+            if let Some(lod) = data.min_lod {
+                sampler_info.min_lod = lod.get_val()
+            }
+            if let Some(lod) = data.max_lod {
+                sampler_info.max_lod = lod.get_val()
+            }
 
             let sampler = unsafe { dev.create_sampler(&sampler_info, None) }
                 .map_err(|e| gpu_api_err!("vulkan sampler {}", e))?;

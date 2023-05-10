@@ -18,12 +18,12 @@ pub enum SamplerFilter {
 
 #[derive(Default)]
 pub struct GetSamplerExt {
-    min_filter: SamplerFilter,
-    mag_filter: SamplerFilter,
-    u_mode: SamplerMode,
-    v_mode: SamplerMode,
-    min_lod: Option<f32>,
-    max_lod: Option<f32>,
+    pub min_filter: SamplerFilter,
+    pub mag_filter: SamplerFilter,
+    pub u_mode: SamplerMode,
+    pub v_mode: SamplerMode,
+    pub min_lod: Option<f32>,
+    pub max_lod: Option<f32>,
 }
 
 impl Context {
