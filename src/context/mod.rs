@@ -13,6 +13,7 @@ mod pass;
 mod pass_step;
 mod platform;
 mod program;
+mod sampler;
 mod submit;
 
 macro_rules! def_id_ty {
@@ -39,6 +40,8 @@ pub struct UniformBufferId(usize);
 pub struct ProgramId(usize);
 #[derive(Debug, Clone, Copy, Hash, PartialEq, Eq)]
 pub struct ImageId(usize);
+#[derive(Debug, Clone, Copy, Hash, PartialEq, Eq)]
+pub struct SamplerId(usize);
 #[derive(Debug, Clone, Copy, Hash, PartialEq, Eq, Default)]
 pub struct PassStepDependency(usize);
 #[derive(Debug, Clone, Copy, Hash, PartialEq, Eq)]
@@ -51,6 +54,7 @@ def_id_ty!(IndexBufferId);
 def_id_ty!(UniformBufferId);
 def_id_ty!(ProgramId);
 def_id_ty!(ImageId);
+def_id_ty!(SamplerId);
 def_id_ty!(PassStepDependency);
 def_id_ty!(PassLocalAttachment);
 def_id_ty!(CompiledPassId);
@@ -83,6 +87,7 @@ pub use program::{
     NewProgramExt, ShaderSet, ShaderType, ShaderUniform, ShaderUniformFrequencyHint,
     ShaderUniformType,
 };
+pub use sampler::{GetSamplerExt, SamplerFilter, SamplerMode};
 pub use submit::{
     ClearColor, ClearDepthStencil, Draw, PassSubmitData, StepSubmitData, Submit, SubmitExt,
 };

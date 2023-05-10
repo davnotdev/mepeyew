@@ -1,10 +1,11 @@
 use super::context::{
-    self, BufferStorageType, CompilePassExt, CompiledPassId, Extension, ExtensionType, ImageId,
-    ImageUsage, IndexBufferElement, IndexBufferId, NewImageExt, NewIndexBufferExt, NewProgramExt,
-    NewUniformBufferExt, NewVertexBufferExt, Pass, PassInputLoadOpColorType,
-    PassInputLoadOpDepthStencilType, PassInputType, PassStep, ProgramId, ShaderSet, ShaderType,
-    ShaderUniform, ShaderUniformType, Submit, SubmitExt, UniformBufferId, VertexBufferElement,
-    VertexBufferId, VertexBufferInput, VertexInputArgStride,
+    self, BufferStorageType, CompilePassExt, CompiledPassId, Extension, ExtensionType,
+    GetSamplerExt, ImageId, ImageUsage, IndexBufferElement, IndexBufferId, NewImageExt,
+    NewIndexBufferExt, NewProgramExt, NewUniformBufferExt, NewVertexBufferExt, Pass,
+    PassInputLoadOpColorType, PassInputLoadOpDepthStencilType, PassInputType, PassStep, ProgramId,
+    SamplerFilter, SamplerId, SamplerMode, ShaderSet, ShaderType, ShaderUniform, ShaderUniformType,
+    Submit, SubmitExt, UniformBufferId, VertexBufferElement, VertexBufferId, VertexBufferInput,
+    VertexInputArgStride,
 };
 use super::error::{gpu_api_err, GResult, GpuError};
 use ash::{extensions as vk_extensions, vk, Entry, *};
@@ -27,6 +28,7 @@ use framebuffer::VkFramebuffer;
 use image::{new_image_view, VkImage, VK_COLOR_ATTACHMENT_FORMAT, VK_DEPTH_ATTACHMENT_FORMAT};
 use pass::VkCompiledPass;
 use program::VkProgram;
+use sampler::VkSamplerCache;
 use shader::VkShader;
 use submit::VkSubmitData;
 use vkcore::{new_fence, new_semaphore, VkCore, VkCoreConfiguration, VkCoreGpuPreference};
@@ -41,6 +43,7 @@ mod framebuffer;
 mod image;
 mod pass;
 mod program;
+mod sampler;
 mod shader;
 mod submit;
 mod vkcore;
@@ -57,6 +60,7 @@ pub struct VkContext {
     images: ManuallyDrop<Vec<VkImage>>,
     compiled_passes: ManuallyDrop<Vec<VkCompiledPass>>,
     submit: ManuallyDrop<VkSubmitData>,
+    sampler_cache: ManuallyDrop<VkSamplerCache>,
     alloc: ManuallyDrop<Allocator>,
 
     enabled_extensions: HashSet<ExtensionType>,
@@ -169,6 +173,9 @@ impl VkContext {
         //  Context State
         let submit = VkSubmitData::new(&core.dev, &frame, core.graphics_command_pool, &drop_queue)?;
 
+        //  Sampler Cache
+        let sampler_cache = VkSamplerCache::new();
+
         let shaders = ManuallyDrop::new(vec![]);
         let vbos = ManuallyDrop::new(vec![]);
         let ibos = ManuallyDrop::new(vec![]);
@@ -182,6 +189,7 @@ impl VkContext {
 
             alloc: ManuallyDrop::new(alloc),
             submit: ManuallyDrop::new(submit),
+            sampler_cache: ManuallyDrop::new(sampler_cache),
 
             drop_queue: ManuallyDrop::new(drop_queue),
 
