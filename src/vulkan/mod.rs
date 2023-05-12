@@ -166,7 +166,7 @@ impl VkContext {
         let submit = VkSubmitData::new(&core.dev, &frame, core.graphics_command_pool, &drop_queue)?;
 
         //  Sampler Cache
-        let sampler_cache = VkSamplerCache::new();
+        let sampler_cache = VkSamplerCache::new(&drop_queue);
 
         let shaders = ManuallyDrop::new(vec![]);
         let vbos = ManuallyDrop::new(vec![]);
@@ -215,6 +215,7 @@ impl Drop for VkContext {
 
             let _submit = ManuallyDrop::take(&mut self.submit);
             let _surface_ext = ManuallyDrop::take(&mut self.surface_ext);
+            let _sampler_cache = ManuallyDrop::take(&mut self.sampler_cache);
 
             let _programs = ManuallyDrop::take(&mut self.programs);
             let _vbos = ManuallyDrop::take(&mut self.vbos);

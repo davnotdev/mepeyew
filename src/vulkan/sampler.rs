@@ -25,15 +25,20 @@ struct SamplerData {
     max_lod: Option<HashableF32>,
 }
 
-#[derive(Default)]
 pub struct VkSamplerCache {
     current_id: usize,
     samplers: HashMap<(usize, SamplerData), vk::Sampler>,
+
+    drop_queue_ref: VkDropQueueRef,
 }
 
 impl VkSamplerCache {
-    pub fn new() -> Self {
-        Self::default()
+    pub fn new(drop_queue_ref: &VkDropQueueRef) -> Self {
+        Self {
+            current_id: 0,
+            samplers: HashMap::new(),
+            drop_queue_ref: Arc::clone(drop_queue_ref),
+        }
     }
 
     fn get_or_insert(&mut self, dev: &Device, data: SamplerData) -> GResult<usize> {
@@ -102,11 +107,25 @@ impl VkContext {
             mag_filter,
             u_mode,
             v_mode,
-            min_lod: min_lod.map(|lod| HashableF32::from_val(lod)),
-            max_lod: max_lod.map(|lod| HashableF32::from_val(lod)),
+            min_lod: min_lod.map(HashableF32::from_val),
+            max_lod: max_lod.map(HashableF32::from_val),
         };
         self.sampler_cache
             .get_or_insert(&self.core.dev, data)
-            .map(|id| SamplerId::from_id(id))
+            .map(SamplerId::from_id)
+    }
+}
+
+impl Drop for VkSamplerCache {
+    fn drop(&mut self) {
+        let samplers = self.samplers.values().cloned().collect::<Vec<_>>();
+        self.drop_queue_ref
+            .lock()
+            .unwrap()
+            .push(Box::new(move |dev, _| unsafe {
+                for sampler in samplers {
+                    dev.destroy_sampler(sampler, None);
+                }
+            }))
     }
 }
