@@ -21,7 +21,7 @@ retaining the power and control of APIs like Vulkan.
 > This project is a work in progress!
 
 - [x] Basic Uniforms
-- [ ] Textures
+- [x] Textures
 - [ ] Shader Attachments
 - [ ] Documentation
 - [ ] v0.1 Release!
