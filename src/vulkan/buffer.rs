@@ -59,8 +59,6 @@ impl VkContext {
     }
 }
 
-//  TODO OPT: Perhaps drop the staging buffer?
-
 pub struct VkVertexBuffer {
     pub buffer: VkBuffer,
     staging: Option<VkBuffer>,
@@ -178,29 +176,7 @@ impl VkContext {
             MemoryLocation::GpuOnly,
         )?;
         {
-            let fence = new_fence(&self.core.dev, false)?;
-            let transfer_command_buf_alloc = vk::CommandBufferAllocateInfo::builder()
-                .command_pool(self.core.compute_command_pool)
-                .command_buffer_count(1)
-                .build();
-            let transfer_command_buf = unsafe {
-                self.core
-                    .dev
-                    .allocate_command_buffers(&transfer_command_buf_alloc)
-            }
-            .map_err(|e| gpu_api_err!("vulkan buffer alloc command buffer {}", e))?
-            .into_iter()
-            .next()
-            .unwrap();
-            VkBuffer::single_upload_copy_data(
-                &staging,
-                &buf,
-                &self.core.dev,
-                self.core.graphics_queue,
-                fence,
-                transfer_command_buf,
-            )?;
-            unsafe { self.core.dev.destroy_fence(fence, None) }
+            VkBuffer::single_upload_copy_data(&staging, &buf, &self.core)?;
         }
 
         Ok((
@@ -268,7 +244,7 @@ impl VkBuffer {
         })
     }
 
-    fn map_copy_data(&mut self, ptr: *const u8, size: usize) -> GResult<()> {
+    pub fn map_copy_data(&mut self, ptr: *const u8, size: usize) -> GResult<()> {
         if let Some(mapped_ptr) = self.mapped_ptr {
             unsafe {
                 std::ptr::copy_nonoverlapping::<u8>(ptr, mapped_ptr, size);
@@ -292,14 +268,7 @@ impl VkBuffer {
         unsafe { dev.cmd_copy_buffer(command_buf, src.buffer, dst.buffer, &[copy_create]) };
     }
 
-    pub fn single_upload_copy_data(
-        src: &Self,
-        dst: &Self,
-        dev: &Device,
-        transfer_queue: vk::Queue,
-        fence: vk::Fence,
-        command_buf: vk::CommandBuffer,
-    ) -> GResult<()> {
+    pub fn single_upload_copy_data(src: &Self, dst: &Self, core: &VkCore) -> GResult<()> {
         if src.size > dst.size {
             Err(gpu_api_err!(
                 "vulkan upload copy src.size ({}) > dst.size ({})",
@@ -307,32 +276,8 @@ impl VkBuffer {
                 dst.size
             ))?
         }
-        unsafe {
-            let cmd_begin_create = vk::CommandBufferBeginInfo::builder()
-                .flags(vk::CommandBufferUsageFlags::ONE_TIME_SUBMIT)
-                .build();
-            dev.begin_command_buffer(command_buf, &cmd_begin_create)
-                .map_err(|e| gpu_api_err!("vulkan upload copy begin command buffer {}", e))?;
-
-            Self::cmd_upload_copy_data(src, dst, dev, command_buf);
-
-            dev.end_command_buffer(command_buf)
-                .map_err(|e| gpu_api_err!("vulkan upload copy end command buffer {}", e))?;
-
-            let submit_create = vk::SubmitInfo::builder()
-                .command_buffers(&[command_buf])
-                .build();
-            dev.queue_submit(transfer_queue, &[submit_create], fence)
-                .map_err(|e| gpu_api_err!("vulkan upload copy submit {}", e))?;
-            dev.wait_for_fences(&[fence], true, std::u64::MAX)
-                .map_err(|e| gpu_api_err!("vulkan upload copy wait fence {}", e))?;
-
-            //  Cleanup
-            dev.reset_fences(&[fence])
-                .map_err(|e| gpu_api_err!("vulkan upload copy reset fence {}", e))?;
-            dev.reset_command_buffer(command_buf, vk::CommandBufferResetFlags::empty())
-                .map_err(|e| gpu_api_err!("vulkan upload copy reset command buffer {}", e))?;
-        }
+        let _misc_cmd = core.misc_command()?;
+        Self::cmd_upload_copy_data(src, dst, &core.dev, core.misc_command_buffer);
         Ok(())
     }
 }

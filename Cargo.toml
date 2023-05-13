@@ -16,11 +16,9 @@ assert_extensions = []
 surface_extension = ["dep:raw-window-handle"]
 shader_reflection_extension = ["dep:spirv-reflect"]
 
-[[example]]
-name = "hello_triangle"
-
 [dev-dependencies]
 winit = "0.28.1"
+stb_image_rust = "2.27.2"
 
 [dependencies]
 #  vulkan

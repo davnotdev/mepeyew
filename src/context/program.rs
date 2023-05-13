@@ -11,6 +11,7 @@ pub enum ShaderUniformFrequencyHint {
 
 #[derive(Clone, Copy)]
 pub enum ShaderUniformType {
+    Texture(TextureId),
     UniformBuffer(UniformBufferId),
 }
 

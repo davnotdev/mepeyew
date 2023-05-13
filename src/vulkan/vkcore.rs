@@ -13,6 +13,9 @@ pub struct VkCore {
     pub graphics_command_pool: vk::CommandPool,
     pub compute_command_pool: vk::CommandPool,
 
+    pub misc_fence: vk::Fence,
+    pub misc_command_buffer: vk::CommandBuffer,
+
     pub debug: Option<VkDebug>,
     pub entry: Entry,
 }
@@ -236,6 +239,19 @@ impl VkCore {
             unsafe { dev.create_command_pool(&compute_command_pool_create, None) }
                 .map_err(|e| gpu_api_err!("vulkan compute command pool init {}", e))?;
 
+        //  # Create Single Use Fence and Command Buffer
+        let misc_fence = new_fence(&dev, false)?;
+        let misc_command_buffer_alloc = vk::CommandBufferAllocateInfo::builder()
+            .command_pool(compute_command_pool)
+            .command_buffer_count(1)
+            .build();
+        let misc_command_buffer =
+            unsafe { dev.allocate_command_buffers(&misc_command_buffer_alloc) }
+                .map_err(|e| gpu_api_err!("vulkan alloc misc command buffer {}", e))?
+                .into_iter()
+                .next()
+                .unwrap();
+
         Ok(VkCore {
             instance,
             physical_dev,
@@ -246,13 +262,63 @@ impl VkCore {
             compute_queue,
             graphics_command_pool,
             compute_command_pool,
+            misc_fence,
+            misc_command_buffer,
         })
+    }
+
+    pub fn misc_command(&self) -> GResult<VkMiscCommand> {
+        self.begin_misc_cmd()?;
+        Ok(VkMiscCommand { vkcore: self })
+    }
+
+    fn begin_misc_cmd(&self) -> GResult<()> {
+        let cmd_begin_create = vk::CommandBufferBeginInfo::builder()
+            .flags(vk::CommandBufferUsageFlags::ONE_TIME_SUBMIT)
+            .build();
+        unsafe {
+            self.dev
+                .begin_command_buffer(self.misc_command_buffer, &cmd_begin_create)
+                .map_err(|e| gpu_api_err!("vulkan misc begin command buffer {}", e))?;
+        }
+        Ok(())
+    }
+
+    fn end_misc_cmd(&self) -> GResult<()> {
+        unsafe {
+            self.dev
+                .end_command_buffer(self.misc_command_buffer)
+                .map_err(|e| gpu_api_err!("vulkan misc end command buffer {}", e))?;
+
+            let submit_create = vk::SubmitInfo::builder()
+                .command_buffers(&[self.misc_command_buffer])
+                .build();
+
+            self.dev
+                .queue_submit(self.compute_queue, &[submit_create], self.misc_fence)
+                .map_err(|e| gpu_api_err!("vulkan misc submit {}", e))?;
+            self.dev
+                .wait_for_fences(&[self.misc_fence], true, std::u64::MAX)
+                .map_err(|e| gpu_api_err!("vulkan misc wait fence {}", e))?;
+
+            self.dev
+                .reset_fences(&[self.misc_fence])
+                .map_err(|e| gpu_api_err!("vulkan misc copy reset fence {}", e))?;
+            self.dev
+                .reset_command_buffer(
+                    self.misc_command_buffer,
+                    vk::CommandBufferResetFlags::empty(),
+                )
+                .map_err(|e| gpu_api_err!("vulkan misc reset command buffer {}", e))?;
+        }
+        Ok(())
     }
 }
 
 impl Drop for VkCore {
     fn drop(&mut self) {
         unsafe {
+            self.dev.destroy_fence(self.misc_fence, None);
             self.dev
                 .destroy_command_pool(self.graphics_command_pool, None);
             self.dev
@@ -316,4 +382,14 @@ pub fn new_fence(dev: &Device, signaled: bool) -> GResult<vk::Fence> {
         })
         .build();
     unsafe { dev.create_fence(&fence_create, None) }.map_err(|e| gpu_api_err!("vulkan fence {}", e))
+}
+
+pub struct VkMiscCommand<'a> {
+    vkcore: &'a VkCore,
+}
+
+impl<'a> Drop for VkMiscCommand<'a> {
+    fn drop(&mut self) {
+        self.vkcore.end_misc_cmd().unwrap();
+    }
 }

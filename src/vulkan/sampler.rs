@@ -26,8 +26,8 @@ struct SamplerData {
 }
 
 pub struct VkSamplerCache {
-    current_id: usize,
-    samplers: HashMap<(usize, SamplerData), vk::Sampler>,
+    samplers: HashMap<SamplerData, vk::Sampler>,
+    sampler_datas: Vec<SamplerData>,
 
     drop_queue_ref: VkDropQueueRef,
 }
@@ -35,17 +35,22 @@ pub struct VkSamplerCache {
 impl VkSamplerCache {
     pub fn new(drop_queue_ref: &VkDropQueueRef) -> Self {
         Self {
-            current_id: 0,
             samplers: HashMap::new(),
+            sampler_datas: Vec::new(),
             drop_queue_ref: Arc::clone(drop_queue_ref),
         }
     }
 
+    pub fn get(&self, sampler_id: SamplerId) -> Option<vk::Sampler> {
+        let data = self.sampler_datas.get(sampler_id.id())?;
+        self.samplers.get(data).cloned()
+    }
+
     fn get_or_insert(&mut self, dev: &Device, data: SamplerData) -> GResult<usize> {
-        if let Some(&(id, _)) = self
-            .samplers
-            .keys()
-            .find(|(_, cached_data)| *cached_data == data)
+        if let Some(id) = self
+            .sampler_datas
+            .iter()
+            .position(|&cached_data| cached_data == data)
         {
             Ok(id)
         } else {
@@ -66,10 +71,9 @@ impl VkSamplerCache {
             let sampler = unsafe { dev.create_sampler(&sampler_info, None) }
                 .map_err(|e| gpu_api_err!("vulkan sampler {}", e))?;
 
-            let id = self.current_id;
-            self.current_id += 1;
-
-            self.samplers.insert((id, data), sampler);
+            let id = self.sampler_datas.len();
+            self.sampler_datas.push(data);
+            self.samplers.insert(data, sampler);
 
             Ok(id)
         }

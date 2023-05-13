@@ -12,7 +12,7 @@ use std::{
     sync::{Arc, Mutex},
 };
 
-use buffer::{VkIndexBuffer, VkUniformBuffer, VkVertexBuffer};
+use buffer::{VkBuffer, VkIndexBuffer, VkUniformBuffer, VkVertexBuffer};
 use descriptor::VkDescriptors;
 use drop::VkDropQueue;
 use frame::{VkFrame, VkFrameDependent};
@@ -23,6 +23,7 @@ use program::VkProgram;
 use sampler::VkSamplerCache;
 use shader::VkShader;
 use submit::VkSubmitData;
+use texture::VkTexture;
 use vkcore::{new_fence, new_semaphore, VkCore, VkCoreConfiguration, VkCoreGpuPreference};
 
 mod buffer;
@@ -38,6 +39,7 @@ mod program;
 mod sampler;
 mod shader;
 mod submit;
+mod texture;
 mod vkcore;
 
 pub type VkDropQueueRef = Arc<Mutex<VkDropQueue>>;
@@ -49,7 +51,9 @@ pub struct VkContext {
     vbos: ManuallyDrop<Vec<VkVertexBuffer>>,
     ibos: ManuallyDrop<Vec<VkIndexBuffer>>,
     ubos: ManuallyDrop<Vec<VkUniformBuffer>>,
+    //  TODO FIX: images has no place in this world anymore.
     images: ManuallyDrop<Vec<VkImage>>,
+    textures: ManuallyDrop<Vec<VkTexture>>,
     compiled_passes: ManuallyDrop<Vec<VkCompiledPass>>,
     submit: ManuallyDrop<VkSubmitData>,
     sampler_cache: ManuallyDrop<VkSamplerCache>,
@@ -173,6 +177,7 @@ impl VkContext {
         let ibos = ManuallyDrop::new(vec![]);
         let ubos = ManuallyDrop::new(vec![]);
         let images = ManuallyDrop::new(vec![]);
+        let textures = ManuallyDrop::new(vec![]);
         let compiled_passes = ManuallyDrop::new(vec![]);
 
         Ok(VkContext {
@@ -190,6 +195,7 @@ impl VkContext {
             ibos,
             ubos,
             images,
+            textures,
             compiled_passes,
 
             enabled_extensions,
@@ -222,6 +228,7 @@ impl Drop for VkContext {
             let _ibos = ManuallyDrop::take(&mut self.ibos);
             let _ubos = ManuallyDrop::take(&mut self.ubos);
             let _images = ManuallyDrop::take(&mut self.images);
+            let _textures = ManuallyDrop::take(&mut self.textures);
             let _compiled_passes = ManuallyDrop::take(&mut self.compiled_passes);
         }
 

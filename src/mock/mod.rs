@@ -40,16 +40,6 @@ impl MockContext {
         unimplemented!("No backend chosen")
     }
 
-    pub fn new_image(
-        &mut self,
-        _width: usize,
-        _height: usize,
-        _usage: ImageUsage,
-        _ext: NewImageExt,
-    ) -> GResult<ImageId> {
-        unimplemented!("No backend chosen")
-    }
-
     pub fn get_sampler(&mut self, _ext: Option<GetSamplerExt>) -> GResult<SamplerId> {
         unimplemented!("No backend chosen")
     }

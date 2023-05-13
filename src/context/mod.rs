@@ -8,13 +8,13 @@ use super::vulkan::*;
 pub mod extensions;
 
 mod buffer;
-mod image;
 mod pass;
 mod pass_step;
 mod platform;
 mod program;
 mod sampler;
 mod submit;
+mod texture;
 
 macro_rules! def_id_ty {
     ($NAME: ident) => {
@@ -42,6 +42,8 @@ pub struct ProgramId(usize);
 pub struct ImageId(usize);
 #[derive(Debug, Clone, Copy, Hash, PartialEq, Eq)]
 pub struct SamplerId(usize);
+#[derive(Debug, Clone, Copy, Hash, PartialEq, Eq)]
+pub struct TextureId(usize);
 #[derive(Debug, Clone, Copy, Hash, PartialEq, Eq, Default)]
 pub struct PassStepDependency(usize);
 #[derive(Debug, Clone, Copy, Hash, PartialEq, Eq)]
@@ -55,6 +57,7 @@ def_id_ty!(UniformBufferId);
 def_id_ty!(ProgramId);
 def_id_ty!(ImageId);
 def_id_ty!(SamplerId);
+def_id_ty!(TextureId);
 def_id_ty!(PassStepDependency);
 def_id_ty!(PassLocalAttachment);
 def_id_ty!(CompiledPassId);
@@ -77,7 +80,6 @@ pub use buffer::{
     NewVertexBufferExt, VertexBufferElement, VertexBufferInput, VertexInputArgStride,
 };
 pub use extensions::{Extension, ExtensionType};
-pub use image::{ImageUsage, NewImageExt};
 pub use pass::{
     CompilePassExt, NewPassExt, Pass, PassAttachment, PassInputLoadOpColorType,
     PassInputLoadOpDepthStencilType, PassInputType,
@@ -90,4 +92,7 @@ pub use program::{
 pub use sampler::{GetSamplerExt, SamplerFilter, SamplerMode};
 pub use submit::{
     ClearColor, ClearDepthStencil, Draw, PassSubmitData, StepSubmitData, Submit, SubmitExt,
+};
+pub use texture::{
+    NewTextureExt, ResizeTextureExt, TextureAttachmentUsage, TextureFormat, UploadTextureExt,
 };
