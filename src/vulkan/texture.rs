@@ -79,8 +79,9 @@ impl VkTexture {
         ext: NewTextureExt,
     ) -> GResult<Self> {
         let vkformat = match format {
-            // TextureFormat::Rgb => vk::Format::R8G8B8_SRGB,
-            TextureFormat::Rgba => vk::Format::R8G8B8A8_SRGB,
+            // TextureFormat::Rgb => vk::Format::R8G8B8_UNORM,
+            // TODO FIX: This should be R8G8B8A8_SRGB, shouldn't it?
+            TextureFormat::Rgba => vk::Format::R8G8B8A8_UNORM,
         };
 
         let mut vkusages = vk::ImageUsageFlags::TRANSFER_DST | vk::ImageUsageFlags::SAMPLED;
