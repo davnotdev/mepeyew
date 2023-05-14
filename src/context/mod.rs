@@ -39,8 +39,6 @@ pub struct UniformBufferId(usize);
 #[derive(Debug, Clone, Copy, Hash, PartialEq, Eq)]
 pub struct ProgramId(usize);
 #[derive(Debug, Clone, Copy, Hash, PartialEq, Eq)]
-pub struct ImageId(usize);
-#[derive(Debug, Clone, Copy, Hash, PartialEq, Eq)]
 pub struct SamplerId(usize);
 #[derive(Debug, Clone, Copy, Hash, PartialEq, Eq)]
 pub struct TextureId(usize);
@@ -55,7 +53,6 @@ def_id_ty!(VertexBufferId);
 def_id_ty!(IndexBufferId);
 def_id_ty!(UniformBufferId);
 def_id_ty!(ProgramId);
-def_id_ty!(ImageId);
 def_id_ty!(SamplerId);
 def_id_ty!(TextureId);
 def_id_ty!(PassStepDependency);

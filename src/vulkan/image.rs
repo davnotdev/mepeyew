@@ -4,48 +4,6 @@ use std::mem::ManuallyDrop;
 pub const VK_COLOR_ATTACHMENT_FORMAT: vk::Format = vk::Format::R8G8B8A8_SRGB;
 pub const VK_DEPTH_ATTACHMENT_FORMAT: vk::Format = vk::Format::D32_SFLOAT;
 
-// impl VkContext {
-    // pub fn new_image(
-    //     &mut self,
-    //     width: usize,
-    //     height: usize,
-    //     usage: ImageUsage,
-    //     _ext: NewImageExt,
-    // ) -> GResult<ImageId> {
-    //     let image = match usage {
-    //         ImageUsage::ColorAttachment => VkImage::new(
-    //             &self.core.dev,
-    //             &self.drop_queue,
-    //             &mut self.alloc,
-    //             VK_COLOR_ATTACHMENT_FORMAT,
-    //             vk::ImageUsageFlags::COLOR_ATTACHMENT,
-    //             vk::ImageAspectFlags::COLOR,
-    //             vk::Extent3D {
-    //                 width: width as u32,
-    //                 height: height as u32,
-    //                 depth: 1,
-    //             },
-    //         ),
-    //         ImageUsage::DepthAttachment => VkImage::new(
-    //             &self.core.dev,
-    //             &self.drop_queue,
-    //             &mut self.alloc,
-    //             VK_DEPTH_ATTACHMENT_FORMAT,
-    //             vk::ImageUsageFlags::DEPTH_STENCIL_ATTACHMENT,
-    //             vk::ImageAspectFlags::DEPTH,
-    //             vk::Extent3D {
-    //                 width: width as u32,
-    //                 height: height as u32,
-    //                 depth: 1,
-    //             },
-    //         ),
-    //     }?;
-
-    //     self.images.push(image);
-    //     Ok(ImageId::from_id(self.images.len() - 1))
-    // }
-// }
-
 pub struct VkImage {
     pub image: vk::Image,
     pub format: vk::Format,

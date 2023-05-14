@@ -52,7 +52,6 @@ pub struct VkContext {
     ibos: ManuallyDrop<Vec<VkIndexBuffer>>,
     ubos: ManuallyDrop<Vec<VkUniformBuffer>>,
     //  TODO FIX: images has no place in this world anymore.
-    images: ManuallyDrop<Vec<VkImage>>,
     textures: ManuallyDrop<Vec<VkTexture>>,
     compiled_passes: ManuallyDrop<Vec<VkCompiledPass>>,
     submit: ManuallyDrop<VkSubmitData>,
@@ -176,7 +175,6 @@ impl VkContext {
         let vbos = ManuallyDrop::new(vec![]);
         let ibos = ManuallyDrop::new(vec![]);
         let ubos = ManuallyDrop::new(vec![]);
-        let images = ManuallyDrop::new(vec![]);
         let textures = ManuallyDrop::new(vec![]);
         let compiled_passes = ManuallyDrop::new(vec![]);
 
@@ -194,7 +192,6 @@ impl VkContext {
             vbos,
             ibos,
             ubos,
-            images,
             textures,
             compiled_passes,
 
@@ -227,7 +224,6 @@ impl Drop for VkContext {
             let _vbos = ManuallyDrop::take(&mut self.vbos);
             let _ibos = ManuallyDrop::take(&mut self.ibos);
             let _ubos = ManuallyDrop::take(&mut self.ubos);
-            let _images = ManuallyDrop::take(&mut self.images);
             let _textures = ManuallyDrop::take(&mut self.textures);
             let _compiled_passes = ManuallyDrop::take(&mut self.compiled_passes);
         }

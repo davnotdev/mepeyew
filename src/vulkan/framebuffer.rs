@@ -9,7 +9,7 @@ impl VkFramebuffer {
     pub fn new(
         context: &VkContext,
         render_pass: vk::RenderPass,
-        images: &[ImageId],
+        images: &[TextureId],
         width: usize,
         height: usize,
         use_swapchain: bool,
@@ -68,7 +68,7 @@ impl VkSingleFramebuffer {
     fn new(
         context: &VkContext,
         render_pass: vk::RenderPass,
-        images: &[ImageId],
+        images: &[TextureId],
         width: usize,
         height: usize,
         swapchain_image_view: Option<vk::ImageView>,
@@ -78,16 +78,11 @@ impl VkSingleFramebuffer {
         } else {
             images
                 .iter()
-                .map(|image_id| {
-                    let image = context.images.get(image_id.id()).unwrap();
-                    new_image_view(
-                        &context.core.dev,
-                        image.image,
-                        image.format,
-                        image.view_aspect,
-                    )
+                .map(|texture_id| {
+                    let texture = context.textures.get(texture_id.id()).unwrap();
+                    texture.image_view
                 })
-                .collect::<GResult<Vec<_>>>()?
+                .collect::<Vec<_>>()
         };
 
         let framebuffer_create = vk::FramebufferCreateInfo::builder()
