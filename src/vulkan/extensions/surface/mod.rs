@@ -67,6 +67,21 @@ impl VkContext {
         width: usize,
         height: usize,
     ) -> GResult<()> {
+        unsafe { self.core.dev.device_wait_idle() }.unwrap();
+
+        //  Resize Attachment Images.
+        for attachment_image in self.attachment_images.iter_mut() {
+            attachment_image.resize(
+                &self.core.dev,
+                &self.drop_queue,
+                &mut self.alloc,
+                width,
+                height,
+            )?;
+        }
+
+        self.update_descriptors()?;
+
         //  Resize Surface.
         let old_surface = unsafe { ManuallyDrop::take(&mut self.surface_ext) }.ok_or(
             gpu_api_err!("vulkan tried to resize surface without surface extension"),

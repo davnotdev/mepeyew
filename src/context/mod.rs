@@ -42,6 +42,8 @@ pub struct ProgramId(usize);
 pub struct SamplerId(usize);
 #[derive(Debug, Clone, Copy, Hash, PartialEq, Eq)]
 pub struct TextureId(usize);
+#[derive(Debug, Clone, Copy, Hash, PartialEq, Eq)]
+pub struct AttachmentImageId(usize);
 #[derive(Debug, Clone, Copy, Hash, PartialEq, Eq, Default)]
 pub struct PassStepDependency(usize);
 #[derive(Debug, Clone, Copy, Hash, PartialEq, Eq)]
@@ -55,6 +57,7 @@ def_id_ty!(UniformBufferId);
 def_id_ty!(ProgramId);
 def_id_ty!(SamplerId);
 def_id_ty!(TextureId);
+def_id_ty!(AttachmentImageId);
 def_id_ty!(PassStepDependency);
 def_id_ty!(PassLocalAttachment);
 def_id_ty!(CompiledPassId);
@@ -91,5 +94,6 @@ pub use submit::{
     ClearColor, ClearDepthStencil, Draw, PassSubmitData, StepSubmitData, Submit, SubmitExt,
 };
 pub use texture::{
-    NewTextureExt, ResizeTextureExt, TextureAttachmentUsage, TextureFormat, UploadTextureExt,
+    NewAttachmentImageExt, NewTextureExt, ResizeTextureExt, AttachmentImageUsage, TextureFormat,
+    UploadTextureExt,
 };

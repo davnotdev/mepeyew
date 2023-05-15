@@ -101,7 +101,7 @@ fn new_framebuffer(
             if pass.surface_attachment && attachment.local_attachment_idx == 0 {
                 None
             } else {
-                Some(attachment.output_image)
+                Some(attachment.output_image.unwrap())
             }
         })
         .collect::<Vec<_>>();
@@ -191,16 +191,25 @@ fn new_render_pass(ctx: &VkContext, pass: &Pass) -> GResult<vk::RenderPass> {
                 .iter()
                 .map(|dep| pass_input_attachments[dep.id()].1)
                 .collect::<Vec<_>>();
-            let mut total_input_attachments = color_input_attachments.clone();
-            let depth_input_attachment = step.write_depth.map(|write_depth| {
-                let attachment = pass_input_attachments[write_depth.id()].1;
-                total_input_attachments.push(attachment);
-                attachment
-            });
+
+            let input_attachments = step
+                .read_attachment
+                .iter()
+                .map(|local| {
+                    vk::AttachmentReference::builder()
+                        .attachment(local.id() as u32)
+                        .layout(vk::ImageLayout::SHADER_READ_ONLY_OPTIMAL)
+                        .build()
+                })
+                .collect::<Vec<_>>();
+
+            let depth_input_attachment = step
+                .write_depth
+                .map(|write_depth| pass_input_attachments[write_depth.id()].1);
 
             let partial = vk::SubpassDescription::builder()
                 .pipeline_bind_point(vk::PipelineBindPoint::GRAPHICS)
-                // .input_attachments(&total_input_attachments)
+                .input_attachments(&input_attachments)
                 .color_attachments(&color_input_attachments);
             let partial = if let Some(depth) = &depth_input_attachment {
                 partial.depth_stencil_attachment(depth)
@@ -210,7 +219,7 @@ fn new_render_pass(ctx: &VkContext, pass: &Pass) -> GResult<vk::RenderPass> {
 
             let subpass = partial.build();
 
-            each_total_input_attachments.push(total_input_attachments);
+            each_total_input_attachments.push(input_attachments);
             each_color_input_attachments.push(color_input_attachments);
             each_depth_input_attachments.push(depth_input_attachment);
 
@@ -260,10 +269,10 @@ fn new_render_pass(ctx: &VkContext, pass: &Pass) -> GResult<vk::RenderPass> {
                             .src_stage_mask(vk::PipelineStageFlags::COLOR_ATTACHMENT_OUTPUT)
                             .dst_stage_mask(match shader_stage_usage {
                                 ShaderType::Vertex(_) => vk::PipelineStageFlags::VERTEX_SHADER,
-                                ShaderType::Fragment => vk::PipelineStageFlags::VERTEX_SHADER,
+                                ShaderType::Fragment => vk::PipelineStageFlags::FRAGMENT_SHADER,
                             })
                             .src_access_mask(vk::AccessFlags::COLOR_ATTACHMENT_WRITE)
-                            .dst_access_mask(vk::AccessFlags::COLOR_ATTACHMENT_READ);
+                            .dst_access_mask(vk::AccessFlags::SHADER_READ);
                         subpass_dep.build()
                     }),
                 step.wait_for_depth_from
@@ -278,7 +287,7 @@ fn new_render_pass(ctx: &VkContext, pass: &Pass) -> GResult<vk::RenderPass> {
                             )
                             .dst_stage_mask(match shader_stage_usage {
                                 ShaderType::Vertex(_) => vk::PipelineStageFlags::VERTEX_SHADER,
-                                ShaderType::Fragment => vk::PipelineStageFlags::VERTEX_SHADER,
+                                ShaderType::Fragment => vk::PipelineStageFlags::FRAGMENT_SHADER,
                             })
                             .src_access_mask(vk::AccessFlags::DEPTH_STENCIL_ATTACHMENT_WRITE)
                             .dst_access_mask(vk::AccessFlags::DEPTH_STENCIL_ATTACHMENT_READ);

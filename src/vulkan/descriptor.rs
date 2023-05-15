@@ -9,6 +9,8 @@ pub struct VkDescriptors {
     pub descriptor_sets: [vk::DescriptorSet; DESCRIPTOR_SET_COUNT],
     pub descriptor_set_layouts: [vk::DescriptorSetLayout; DESCRIPTOR_SET_COUNT],
 
+    shader_uniforms: Vec<ShaderUniform>,
+
     drop_queue_ref: VkDropQueueRef,
 }
 
@@ -63,6 +65,12 @@ impl VkDescriptors {
                     .descriptor_type(vk::DescriptorType::COMBINED_IMAGE_SAMPLER)
                     .descriptor_count(1)
                     .build(),
+                ShaderUniformType::InputAttachment(_) => vk::DescriptorSetLayoutBinding::builder()
+                    .binding(uniform.binding as u32)
+                    .stage_flags(vk::ShaderStageFlags::FRAGMENT)
+                    .descriptor_type(vk::DescriptorType::INPUT_ATTACHMENT)
+                    .descriptor_count(1)
+                    .build(),
             };
             layouts_bindings[uniform.frequency as usize].push(binding_info);
         });
@@ -99,10 +107,27 @@ impl VkDescriptors {
         .try_into()
         .unwrap();
 
+        let mut descriptors = VkDescriptors {
+            descriptor_pool,
+            descriptor_sets,
+            descriptor_set_layouts,
+
+            shader_uniforms: uniforms.to_vec(),
+
+            drop_queue_ref: Arc::clone(&context.drop_queue),
+        };
+
+        descriptors.update(context)?;
+
+        Ok(descriptors)
+    }
+
+    pub fn update(&mut self, context: &VkContext) -> GResult<()> {
         //  Update Descriptor Sets
         let mut buffer_infos = vec![];
         let mut image_infos = vec![];
-        let writes = uniforms
+        let writes = self
+            .shader_uniforms
             .iter()
             .map(|uniform| {
                 let set_idx = uniform.frequency as usize;
@@ -121,7 +146,7 @@ impl VkDescriptors {
                         let buffer_info_list = vec![buffer_info];
 
                         let ret = Ok(vk::WriteDescriptorSet::builder()
-                            .dst_set(descriptor_sets[set_idx])
+                            .dst_set(self.descriptor_sets[set_idx])
                             .dst_binding(uniform.binding as u32)
                             .dst_array_element(0)
                             .descriptor_type(vk::DescriptorType::UNIFORM_BUFFER)
@@ -154,35 +179,52 @@ impl VkDescriptors {
 
                         let image_info_list = vec![image_info];
 
-                        let mut ret = vk::WriteDescriptorSet::builder()
-                            .dst_set(descriptor_sets[set_idx])
+                        let ret = vk::WriteDescriptorSet::builder()
+                            .dst_set(self.descriptor_sets[set_idx])
                             .dst_binding(uniform.binding as u32)
                             .dst_array_element(0)
                             .descriptor_type(vk::DescriptorType::COMBINED_IMAGE_SAMPLER)
                             .image_info(&image_info_list)
                             .build();
 
-                        ret.p_buffer_info = std::ptr::null();
+                        image_infos.push(image_info_list);
 
-                        let ret = Ok(ret);
+                        Ok(ret)
+                    }
+                    ShaderUniformType::InputAttachment(attachment_image_id) => {
+                        let attachment_image = context
+                            .attachment_images
+                            .get(attachment_image_id.id())
+                            .ok_or(gpu_api_err!(
+                                "vulkan uniform attachment image id {:?} does not exist",
+                                attachment_image_id
+                            ))?;
+                        let set_idx = uniform.frequency as usize;
+                        let image_info = vk::DescriptorImageInfo::builder()
+                            .image_view(attachment_image.image_view)
+                            .image_layout(vk::ImageLayout::SHADER_READ_ONLY_OPTIMAL)
+                            .build();
+
+                        let image_info_list = vec![image_info];
+
+                        let ret = vk::WriteDescriptorSet::builder()
+                            .dst_set(self.descriptor_sets[set_idx])
+                            .dst_binding(uniform.binding as u32)
+                            .dst_array_element(0)
+                            .descriptor_type(vk::DescriptorType::INPUT_ATTACHMENT)
+                            .image_info(&image_info_list)
+                            .build();
 
                         image_infos.push(image_info_list);
 
-                        ret
+                        Ok(ret)
                     }
                 }
             })
             .collect::<GResult<Vec<_>>>()?;
 
         unsafe { context.core.dev.update_descriptor_sets(&writes, &[]) };
-
-        Ok(VkDescriptors {
-            descriptor_pool,
-            descriptor_sets,
-            descriptor_set_layouts,
-
-            drop_queue_ref: Arc::clone(&context.drop_queue),
-        })
+        Ok(())
     }
 }
 
@@ -200,5 +242,16 @@ impl Drop for VkDescriptors {
                     dev.destroy_descriptor_set_layout(descriptor_set_layout, None)
                 }
             }));
+    }
+}
+
+impl VkContext {
+    pub fn update_descriptors(&mut self) -> GResult<()> {
+        let p = unsafe { &*(self as *const Self) };
+        for program in self.programs.iter_mut() {
+            //  TODO FIX: I pinky promise that this won't break.
+            program.descriptors.update(p)?;
+        }
+        Ok(())
     }
 }

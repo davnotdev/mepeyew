@@ -13,6 +13,8 @@ pub struct PassStep {
 
     pub(crate) wait_for_color_from: Option<(PassStepDependency, ShaderType)>,
     pub(crate) wait_for_depth_from: Option<(PassStepDependency, ShaderType)>,
+
+    pub(crate) read_attachment: Vec<PassLocalAttachment>,
 }
 
 //  TODO EXT: Quiz Users ie Have users input the shader attachment / location indices which we then validate.
@@ -58,6 +60,11 @@ impl PassStep {
 
     pub fn set_write_depth(&mut self, local_attachment: PassLocalAttachment) -> &mut Self {
         self.write_depth = Some(local_attachment);
+        self
+    }
+
+    pub fn read_local_attachment(&mut self, local_attachment: PassLocalAttachment) -> &mut Self {
+        self.read_attachment.push(local_attachment);
         self
     }
 

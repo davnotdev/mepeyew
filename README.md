@@ -22,7 +22,7 @@ retaining the power and control of APIs like Vulkan.
 
 - [x] Basic Uniforms
 - [x] Textures
-- [ ] Shader Attachments
+- [x] Shader Attachments
 - [ ] Documentation
 - [ ] v0.1 Release!
 - [ ] Compute

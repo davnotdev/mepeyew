@@ -1,29 +1,29 @@
 use super::*;
 
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub enum PassInputType {
     Color(PassInputLoadOpColorType),
     Depth(PassInputLoadOpDepthStencilType),
 }
 
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub enum PassInputLoadOpColorType {
     Load,
     Clear,
 }
 
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub enum PassInputLoadOpDepthStencilType {
     Load,
     Clear,
 }
 
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub struct PassAttachment {
     pub(crate) ty: PassInputType,
     //  Could technically be replaced with `.iter().enumerate()`.
     pub(crate) local_attachment_idx: usize,
-    pub(crate) output_image: TextureId,
+    pub(crate) output_image: Option<AttachmentImageId>,
 }
 
 //  `surface_attachment` is always index 0 if set.
@@ -59,7 +59,7 @@ impl Pass {
                 ty: PassInputType::Color(surface_attachment_load_op),
                 local_attachment_idx: 0,
                 //  Will be ignored.
-                output_image: TextureId(0),
+                output_image: None,
             })
         }
         pass
@@ -81,7 +81,7 @@ impl Pass {
 
     pub fn add_attachment_color_image(
         &mut self,
-        color: TextureId,
+        color: AttachmentImageId,
         load_op: PassInputLoadOpColorType,
     ) -> PassLocalAttachment {
         self.add_attachment(color, PassInputType::Color(load_op))
@@ -89,16 +89,20 @@ impl Pass {
 
     pub fn add_attachment_depth_image(
         &mut self,
-        depth: TextureId,
+        depth: AttachmentImageId,
         load_op: PassInputLoadOpDepthStencilType,
     ) -> PassLocalAttachment {
         self.add_attachment(depth, PassInputType::Depth(load_op))
     }
 
-    fn add_attachment(&mut self, image: TextureId, ty: PassInputType) -> PassLocalAttachment {
+    fn add_attachment(
+        &mut self,
+        image: AttachmentImageId,
+        ty: PassInputType,
+    ) -> PassLocalAttachment {
         self.attachments.push(PassAttachment {
             ty,
-            output_image: image,
+            output_image: Some(image),
             local_attachment_idx: self.attachments.len(),
         });
         PassLocalAttachment::from_id(self.attachments.len() - 1)

@@ -8,20 +8,19 @@ pub enum TextureFormat {
 }
 
 #[derive(Clone, Copy)]
-pub enum TextureAttachmentUsage {
+pub enum AttachmentImageUsage {
     ColorAttachment,
     DepthAttachment,
 }
 
 #[derive(Default, Clone, Copy)]
-pub struct NewTextureExt {
-    pub attachment_usage: Option<TextureAttachmentUsage>,
-    pub depends_on_surface_size: bool,
-}
-#[derive(Default)]
+pub struct NewTextureExt {}
+#[derive(Default, Clone, Copy)]
 pub struct ResizeTextureExt {}
-#[derive(Default)]
+#[derive(Default, Clone, Copy)]
 pub struct UploadTextureExt {}
+#[derive(Default, Clone, Copy)]
+pub struct NewAttachmentImageExt {}
 
 impl Context {
     pub fn new_texture(
@@ -57,6 +56,20 @@ impl Context {
     ) -> GResult<()> {
         match self {
             Self::Vulkan(vk) => vk.upload_texture(texture, data, ext),
+        }
+    }
+
+    pub fn new_attachment_image(
+        &mut self,
+        initial_width: usize,
+        initial_height: usize,
+        attachment_usage: AttachmentImageUsage,
+        ext: NewAttachmentImageExt,
+    ) -> GResult<AttachmentImageId> {
+        match self {
+            Self::Vulkan(vk) => {
+                vk.new_attachment_image(initial_width, initial_height, attachment_usage, ext)
+            }
         }
     }
 }

@@ -34,6 +34,9 @@ impl VkContext {
 
         let texture = self.textures.get_mut(texture_id.id()).unwrap();
         let _drop_old_texture = std::mem::replace(texture, new_texture);
+
+        self.update_descriptors()?;
+
         Ok(())
     }
 
@@ -43,14 +46,11 @@ impl VkContext {
         data: &[u8],
         ext: UploadTextureExt,
     ) -> GResult<()> {
-        //  Should be fine considering our use case.
-        let lifetime_fix = unsafe { &*(self as *const Self) };
-
         let texture = self.textures.get_mut(texture.id()).ok_or(gpu_api_err!(
             "vulkan upload texture {:?} doesn't exist",
             texture
         ))?;
-        texture.upload(lifetime_fix, data, ext)
+        texture.upload(&self.core, data, ext)
     }
 }
 
@@ -84,20 +84,8 @@ impl VkTexture {
             TextureFormat::Rgba => vk::Format::R8G8B8A8_UNORM,
         };
 
-        let mut vkusages = vk::ImageUsageFlags::TRANSFER_DST | vk::ImageUsageFlags::SAMPLED;
-        let mut aspect = vk::ImageAspectFlags::COLOR;
-
-        if let Some(additional_usage) = ext.attachment_usage {
-            match additional_usage {
-                TextureAttachmentUsage::ColorAttachment => {
-                    vkusages |= vk::ImageUsageFlags::COLOR_ATTACHMENT;
-                }
-                TextureAttachmentUsage::DepthAttachment => {
-                    vkusages |= vk::ImageUsageFlags::DEPTH_STENCIL_ATTACHMENT;
-                    aspect = vk::ImageAspectFlags::DEPTH;
-                }
-            }
-        }
+        let vkusages = vk::ImageUsageFlags::TRANSFER_DST | vk::ImageUsageFlags::SAMPLED;
+        let aspect = vk::ImageAspectFlags::COLOR;
 
         let image = VkImage::new(
             &context.core.dev,
@@ -144,11 +132,11 @@ impl VkTexture {
         })
     }
 
-    fn upload(&mut self, context: &VkContext, data: &[u8], _ext: UploadTextureExt) -> GResult<()> {
+    fn upload(&mut self, core: &VkCore, data: &[u8], _ext: UploadTextureExt) -> GResult<()> {
         self.staging
             .map_copy_data(data.as_ptr() as *const u8, data.len())?;
 
-        let _misc_command = context.core.misc_command();
+        let _misc_command = core.misc_command();
 
         let range = vk::ImageSubresourceRange::builder()
             .aspect_mask(self.aspect)
@@ -168,8 +156,8 @@ impl VkTexture {
             .build();
 
         unsafe {
-            context.core.dev.cmd_pipeline_barrier(
-                context.core.misc_command_buffer,
+            core.dev.cmd_pipeline_barrier(
+                core.misc_command_buffer,
                 vk::PipelineStageFlags::TOP_OF_PIPE,
                 vk::PipelineStageFlags::TRANSFER,
                 vk::DependencyFlags::empty(),
@@ -198,8 +186,8 @@ impl VkTexture {
             .build();
 
         unsafe {
-            context.core.dev.cmd_copy_buffer_to_image(
-                context.core.misc_command_buffer,
+            core.dev.cmd_copy_buffer_to_image(
+                core.misc_command_buffer,
                 self.staging.buffer,
                 self.image.image,
                 vk::ImageLayout::TRANSFER_DST_OPTIMAL,
@@ -207,25 +195,16 @@ impl VkTexture {
             );
         }
 
-        let use_as_attachment = self.ext.attachment_usage.is_some();
-
+        //  TODO FIX: Support depth as well.
         let mut image_use_barrier = image_transfer_barrier;
         image_use_barrier.old_layout = vk::ImageLayout::TRANSFER_DST_OPTIMAL;
-        image_use_barrier.new_layout = if use_as_attachment {
-            vk::ImageLayout::ATTACHMENT_OPTIMAL
-        } else {
-            vk::ImageLayout::SHADER_READ_ONLY_OPTIMAL
-        };
+        image_use_barrier.new_layout = vk::ImageLayout::SHADER_READ_ONLY_OPTIMAL;
         image_use_barrier.src_access_mask = vk::AccessFlags::TRANSFER_WRITE;
-        image_use_barrier.dst_access_mask = if use_as_attachment {
-            vk::AccessFlags::COLOR_ATTACHMENT_WRITE
-        } else {
-            vk::AccessFlags::SHADER_READ
-        };
+        image_use_barrier.dst_access_mask = vk::AccessFlags::SHADER_READ;
 
         unsafe {
-            context.core.dev.cmd_pipeline_barrier(
-                context.core.misc_command_buffer,
+            core.dev.cmd_pipeline_barrier(
+                core.misc_command_buffer,
                 vk::PipelineStageFlags::TRANSFER,
                 vk::PipelineStageFlags::FRAGMENT_SHADER,
                 vk::DependencyFlags::empty(),

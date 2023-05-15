@@ -12,6 +12,7 @@ use std::{
     sync::{Arc, Mutex},
 };
 
+use attachment_image::VkAttachmentImage;
 use buffer::{VkBuffer, VkIndexBuffer, VkUniformBuffer, VkVertexBuffer};
 use descriptor::VkDescriptors;
 use drop::VkDropQueue;
@@ -26,6 +27,7 @@ use submit::VkSubmitData;
 use texture::VkTexture;
 use vkcore::{new_fence, new_semaphore, VkCore, VkCoreConfiguration, VkCoreGpuPreference};
 
+mod attachment_image;
 mod buffer;
 mod debug;
 mod descriptor;
@@ -51,8 +53,8 @@ pub struct VkContext {
     vbos: ManuallyDrop<Vec<VkVertexBuffer>>,
     ibos: ManuallyDrop<Vec<VkIndexBuffer>>,
     ubos: ManuallyDrop<Vec<VkUniformBuffer>>,
-    //  TODO FIX: images has no place in this world anymore.
     textures: ManuallyDrop<Vec<VkTexture>>,
+    attachment_images: ManuallyDrop<Vec<VkAttachmentImage>>,
     compiled_passes: ManuallyDrop<Vec<VkCompiledPass>>,
     submit: ManuallyDrop<VkSubmitData>,
     sampler_cache: ManuallyDrop<VkSamplerCache>,
@@ -176,6 +178,7 @@ impl VkContext {
         let ibos = ManuallyDrop::new(vec![]);
         let ubos = ManuallyDrop::new(vec![]);
         let textures = ManuallyDrop::new(vec![]);
+        let attachment_images = ManuallyDrop::new(vec![]);
         let compiled_passes = ManuallyDrop::new(vec![]);
 
         Ok(VkContext {
@@ -193,6 +196,7 @@ impl VkContext {
             ibos,
             ubos,
             textures,
+            attachment_images,
             compiled_passes,
 
             enabled_extensions,
@@ -225,6 +229,7 @@ impl Drop for VkContext {
             let _ibos = ManuallyDrop::take(&mut self.ibos);
             let _ubos = ManuallyDrop::take(&mut self.ubos);
             let _textures = ManuallyDrop::take(&mut self.textures);
+            let _attachment_images = ManuallyDrop::take(&mut self.attachment_images);
             let _compiled_passes = ManuallyDrop::take(&mut self.compiled_passes);
         }
 
