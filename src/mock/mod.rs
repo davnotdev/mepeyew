@@ -44,6 +44,46 @@ impl MockContext {
         unimplemented!("No backend chosen")
     }
 
+    pub fn new_texture(
+        &mut self,
+        _width: usize,
+        _height: usize,
+        _sampler: SamplerId,
+        _format: TextureFormat,
+        _ext: NewTextureExt,
+    ) -> GResult<TextureId> {
+        unimplemented!("No backend chosen")
+    }
+
+    pub fn resize_texture(
+        &mut self,
+        _texture: TextureId,
+        _width: usize,
+        _height: usize,
+        _ext: ResizeTextureExt,
+    ) -> GResult<()> {
+        unimplemented!("No backend chosen")
+    }
+
+    pub fn upload_texture(
+        &mut self,
+        _texture: TextureId,
+        _data: &[u8],
+        _ext: UploadTextureExt,
+    ) -> GResult<()> {
+        unimplemented!("No backend chosen")
+    }
+
+    pub fn new_attachment_image(
+        &mut self,
+        _initial_width: usize,
+        _initial_height: usize,
+        _attachment_usage: AttachmentImageUsage,
+        _ext: NewAttachmentImageExt,
+    ) -> GResult<AttachmentImageId> {
+        unimplemented!("No backend chosen")
+    }
+
     pub fn compile_pass(
         &mut self,
         _pass: &Pass,
