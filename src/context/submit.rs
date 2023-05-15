@@ -68,6 +68,7 @@ impl PassSubmitData {
 
     //  TODO EXT: Validate attachment type.
 
+    /// Ensure that the `surface_attachment_load_op` from [`NewPassExt`] was set.
     pub fn set_attachment_clear_color(
         &mut self,
         attachment_ref: PassLocalAttachment,
@@ -101,6 +102,7 @@ impl<'transfer> Submit<'transfer> {
         self
     }
 
+    /// Ensure that [`BufferStorageType`] is set to `BufferStorageType::Dynamic`.
     pub fn transfer_into_vertex_buffer(
         &mut self,
         vbo: VertexBufferId,
@@ -110,6 +112,7 @@ impl<'transfer> Submit<'transfer> {
         self
     }
 
+    /// Ensure that [`BufferStorageType`] is set to `BufferStorageType::Dynamic`.
     pub fn transfer_into_index_buffer(
         &mut self,
         ibo: IndexBufferId,
@@ -119,6 +122,7 @@ impl<'transfer> Submit<'transfer> {
         self
     }
 
+    /// Note that this function may not be safe as the `T` type is not validated.
     pub fn transfer_into_uniform_buffer<T: Copy>(
         &mut self,
         ubo: UniformBufferId,

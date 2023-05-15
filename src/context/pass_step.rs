@@ -35,6 +35,8 @@ impl PassStep {
         self
     }
 
+    /// Wait for a specific step to finish rendering.
+    /// The dependency can be obtained with `step.get_step_dependency()`.
     pub fn set_wait_for_color_from_step(
         &mut self,
         dependency: PassStepDependency,
@@ -44,6 +46,8 @@ impl PassStep {
         self
     }
 
+    /// Wait for a specific step to complete depth testing.
+    /// The dependency can be obtained with `step.get_step_dependency()`.
     pub fn set_wait_for_depth_from_step(
         &mut self,
         dependency: PassStepDependency,
@@ -53,21 +57,25 @@ impl PassStep {
         self
     }
 
+    /// Add a [`PassLocalAttachment`] to draw into.
     pub fn add_write_color(&mut self, local_attachment: PassLocalAttachment) -> &mut Self {
         self.write_colors.push(local_attachment);
         self
     }
 
+    /// Add a [`PassLocalAttachment`] to use for depth testing.
     pub fn set_write_depth(&mut self, local_attachment: PassLocalAttachment) -> &mut Self {
         self.write_depth = Some(local_attachment);
         self
     }
 
+    /// Denote that a [`PassLocalAttachment`] is used as input.
     pub fn read_local_attachment(&mut self, local_attachment: PassLocalAttachment) -> &mut Self {
         self.read_attachment.push(local_attachment);
         self
     }
 
+    /// Get a [`PassStepDependency`] to have another step wait for this one to complete.
     pub fn get_step_dependency(&self) -> PassStepDependency {
         self.step_dependency
     }

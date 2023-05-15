@@ -94,6 +94,6 @@ pub use submit::{
     ClearColor, ClearDepthStencil, Draw, PassSubmitData, StepSubmitData, Submit, SubmitExt,
 };
 pub use texture::{
-    NewAttachmentImageExt, NewTextureExt, ResizeTextureExt, AttachmentImageUsage, TextureFormat,
+    AttachmentImageUsage, NewAttachmentImageExt, NewTextureExt, ResizeTextureExt, TextureFormat,
     UploadTextureExt,
 };

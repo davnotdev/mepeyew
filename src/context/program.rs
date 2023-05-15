@@ -1,5 +1,18 @@
 use super::*;
 
+/// Not all graphics apis use the concept of descriptor sets.
+/// When using an api that does, this value also notes the descriptor set index.
+/// The values are shown below.
+/// ```
+/// #[repr(u8)]
+/// #[derive(Clone, Copy)]
+/// pub enum ShaderUniformFrequencyHint {
+///     High = 0,
+///     Mid = 1,
+///     Low = 2,
+///     Static = 3,
+/// }
+/// ```
 #[repr(u8)]
 #[derive(Clone, Copy)]
 pub enum ShaderUniformFrequencyHint {
@@ -20,9 +33,13 @@ pub enum ShaderUniformType {
 pub struct ShaderUniform {
     pub ty: ShaderUniformType,
     pub binding: usize,
+    /// This value also denotes descriptor set indices for apis that use them.
+    /// See [`ShaderUniformFrequencyHint`].
     pub frequency: ShaderUniformFrequencyHint,
 }
 
+/// This value can be inferred using the shader reflection extension.
+/// See [`Extension`].
 #[derive(Clone)]
 pub enum ShaderType {
     Vertex(VertexBufferInput),

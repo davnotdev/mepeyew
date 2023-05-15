@@ -39,7 +39,9 @@ pub struct Pass {
 
 #[derive(Default)]
 pub struct NewPassExt {
+    /// Have the pass resize with the surface.
     pub depends_on_surface_size: Option<()>,
+    /// Whether to clear or load prior to rendering.
     pub surface_attachment_load_op: Option<PassInputLoadOpColorType>,
 }
 
@@ -75,10 +77,13 @@ impl Pass {
         &mut self.steps[dep.id()]
     }
 
+    /// Get the [`PassLocalAttachment`] that represents the surface.
+    /// Be sure that the surface extension is enabled.
     pub fn get_surface_local_attachment(&self) -> PassLocalAttachment {
         PassLocalAttachment::from_id(0)
     }
 
+    /// Get a [`PassLocalAttachment`] from an color [`AttachmentImageId`].
     pub fn add_attachment_color_image(
         &mut self,
         color: AttachmentImageId,
@@ -87,6 +92,7 @@ impl Pass {
         self.add_attachment(color, PassInputType::Color(load_op))
     }
 
+    /// Get a [`PassLocalAttachment`] from an depth [`AttachmentImageId`].
     pub fn add_attachment_depth_image(
         &mut self,
         depth: AttachmentImageId,

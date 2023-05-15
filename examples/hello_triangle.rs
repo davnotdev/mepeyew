@@ -69,7 +69,7 @@ fn main() {
         .new_vertex_buffer(&vertex_data, BufferStorageType::Static, None)
         .unwrap();
     let ibo = context
-        .new_index_buffer(&index_data, BufferStorageType::Dynamic, None)
+        .new_index_buffer(&index_data, BufferStorageType::Static, None)
         .unwrap();
 
     let mut pass = Pass::new(
