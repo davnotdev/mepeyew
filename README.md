@@ -25,5 +25,6 @@ retaining the power and control of APIs like Vulkan.
 - [x] Shader Attachments
 - [ ] Documentation
 - [ ] v0.1 Release!
+- [ ] WGLSL and Naga
+- [ ] WebGPU
 - [ ] Compute
-- [ ] Other API support
