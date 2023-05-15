@@ -55,9 +55,9 @@ fn main() {
 
     #[rustfmt::skip]
     let vertex_data: Vec<VertexBufferElement> = vec![
-         0.0,  0.5, 0.0,
-        -0.5, -0.5, 0.0,
-         0.5, -0.5, 0.0,
+         0.0,  0.5, 0.0, 1.0, 0.0, 0.0,
+        -0.5, -0.5, 0.0, 0.0, 1.0, 0.0,
+         0.5, -0.5, 0.0, 0.0, 0.0, 1.0,
     ];
 
     #[rustfmt::skip]
@@ -129,9 +129,9 @@ fn main() {
                     pass_submit.set_attachment_clear_color(
                         output_attachment,
                         ClearColor {
-                            r: 1.0,
-                            g: 0.0,
-                            b: 0.0,
+                            r: 0.0,
+                            g: 0.2,
+                            b: 0.2,
                             a: 1.0,
                         },
                     );

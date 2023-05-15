@@ -149,7 +149,8 @@ impl VkContext {
 
             submit.ubo_transfers.iter().for_each(|(ubo, data)| {
                 let ubo = self.ubos.get_mut(ubo.id()).unwrap();
-                ubo.cmd_transfer(&self.core.dev.clone(), graphics_command_buffer, data).unwrap();
+                ubo.cmd_transfer(&self.core.dev.clone(), graphics_command_buffer, data)
+                    .unwrap();
             });
 
             //  Read somewhere that this is actually unneccessary.

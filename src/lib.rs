@@ -30,7 +30,7 @@
 //!             height: 480,
 //!         //  You are in charge of this.
 //!             display: unimplemented!(),
-//!             window: unimplemented!(), 
+//!             window: unimplemented!(),
 //!         }),
 //!         Extension::ShaderReflection,
 //!     ],
@@ -95,7 +95,7 @@
 //!         ..Default::default()
 //!     }),
 //! );
-//! 
+//!
 //! let output_attachment = pass.get_surface_local_attachment();
 //!
 //! //  Each render pass has steps.
@@ -139,7 +139,7 @@
 //!     submit.pass(pass_submit);
 //!     context.submit(submit, None).unwrap();
 //! }
-//! 
+//!
 //! ```
 //!
 //! > Sorry for the massive code dump!
