@@ -69,6 +69,7 @@ impl Context {
     pub fn extension_is_enabled(&self, ty: ExtensionType) -> bool {
         match self {
             Self::Vulkan(vk) => vk.extension_is_enabled(ty),
+            Self::WebGpu(wgpu) => wgpu.extension_is_enabled(ty),
         }
     }
 

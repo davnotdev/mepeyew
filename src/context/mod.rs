@@ -4,6 +4,8 @@ use super::error::*;
 use super::mock::*;
 #[cfg(feature = "vulkan")]
 use super::vulkan::*;
+#[cfg(feature = "webgpu")]
+use super::webgpu::*;
 
 pub mod extensions;
 
@@ -66,6 +68,8 @@ def_id_ty!(CompiledPassId);
 pub enum Api {
     #[cfg(feature = "vulkan")]
     Vulkan,
+    #[cfg(feature = "webgpu")]
+    WebGpu,
 }
 
 pub enum Context {
@@ -73,6 +77,10 @@ pub enum Context {
     Vulkan(VkContext),
     #[cfg(not(feature = "vulkan"))]
     Vulkan(MockContext),
+    #[cfg(feature = "webgpu")]
+    WebGpu(WebGpuContext),
+    #[cfg(not(feature = "webgpu"))]
+    WebGpu(MockContext),
 }
 
 pub use buffer::{

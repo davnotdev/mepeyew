@@ -14,6 +14,7 @@ impl Context {
         self.assert_extension_enabled(ExtensionType::ShaderReflection);
         match self {
             Self::Vulkan(vk) => vk.shader_reflection_extension_reflect(code, hint),
+            Self::WebGpu(_) => todo!(),
         }
     }
 }

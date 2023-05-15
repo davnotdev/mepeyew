@@ -66,6 +66,7 @@ impl Context {
     ) -> GResult<ProgramId> {
         match self {
             Context::Vulkan(vk) => vk.new_program(shaders, uniforms, ext),
+            Context::WebGpu(wgpu) => wgpu.new_program(shaders, uniforms, ext),
         }
     }
 }

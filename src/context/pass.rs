@@ -126,6 +126,7 @@ impl Context {
     ) -> GResult<CompiledPassId> {
         match self {
             Self::Vulkan(vk) => vk.compile_pass(pass, ext),
+            Self::WebGpu(wgpu) => wgpu.compile_pass(pass, ext),
         }
     }
 }

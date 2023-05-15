@@ -18,6 +18,7 @@ impl Context {
         self.assert_extension_enabled(ExtensionType::Surface);
         match self {
             Self::Vulkan(vk) => vk.surface_extension_set_surface_size(width, height),
+            Self::WebGpu(_) => todo!(),
         }
     }
 }

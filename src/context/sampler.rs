@@ -31,6 +31,7 @@ impl Context {
     pub fn get_sampler(&mut self, ext: Option<GetSamplerExt>) -> GResult<SamplerId> {
         match self {
             Self::Vulkan(vk) => vk.get_sampler(ext),
+            Self::WebGpu(wgpu) => wgpu.get_sampler(ext),
         }
     }
 }

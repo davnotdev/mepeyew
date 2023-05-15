@@ -16,9 +16,12 @@ fn platform_prefered() -> Vec<Api> {
     ]
 }
 
+//  TODO
 #[cfg(all(not(target_os = "macos"), target_family = "unix"))]
 fn platform_prefered() -> Vec<Api> {
     vec![
+        #[cfg(feature = "webgpu")]
+        Api::WebGpu,
         #[cfg(feature = "vulkan")]
         Api::Vulkan,
     ]
@@ -54,6 +57,11 @@ impl Context {
                 #[cfg(feature = "vulkan")]
                 Api::Vulkan => match VkContext::new(api_extensions) {
                     Ok(context) => return Ok(Context::Vulkan(context)),
+                    Err(fail) => fails.push(fail),
+                },
+                #[cfg(feature = "webgpu")]
+                Api::WebGpu => match WebGpuContext::new(api_extensions) {
+                    Ok(context) => return Ok(Context::WebGpu(context)),
                     Err(fail) => fails.push(fail),
                 },
             }

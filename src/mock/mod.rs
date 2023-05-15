@@ -3,9 +3,8 @@ mod extensions;
 use super::context::{extensions as context_extensions, *};
 use super::error::GResult;
 
-//  This is used when disabling backends.
-//  You can use this as a sort of reference for implementations.
-
+///  This is used when disabling backends.
+///  You can use this as a sort of reference for implementations.
 pub struct MockContext;
 
 #[allow(dead_code)]

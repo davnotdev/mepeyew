@@ -152,3 +152,5 @@ mod mock;
 
 #[cfg(feature = "vulkan")]
 mod vulkan;
+#[cfg(feature = "webgpu")]
+mod webgpu;

@@ -33,6 +33,7 @@ impl Context {
     ) -> GResult<TextureId> {
         match self {
             Self::Vulkan(vk) => vk.new_texture(width, height, sampler, format, ext),
+            Self::WebGpu(wgpu) => wgpu.new_texture(width, height, sampler, format, ext),
         }
     }
 
@@ -45,6 +46,7 @@ impl Context {
     ) -> GResult<()> {
         match self {
             Self::Vulkan(vk) => vk.resize_texture(texture, width, height, ext),
+            Self::WebGpu(wgpu) => wgpu.resize_texture(texture, width, height, ext),
         }
     }
 
@@ -56,6 +58,7 @@ impl Context {
     ) -> GResult<()> {
         match self {
             Self::Vulkan(vk) => vk.upload_texture(texture, data, ext),
+            Self::WebGpu(wgpu) => wgpu.upload_texture(texture, data, ext),
         }
     }
 
@@ -69,6 +72,9 @@ impl Context {
         match self {
             Self::Vulkan(vk) => {
                 vk.new_attachment_image(initial_width, initial_height, attachment_usage, ext)
+            }
+            Self::WebGpu(wgpu) => {
+                wgpu.new_attachment_image(initial_width, initial_height, attachment_usage, ext)
             }
         }
     }

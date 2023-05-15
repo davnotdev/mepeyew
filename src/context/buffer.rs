@@ -49,6 +49,7 @@ impl Context {
     ) -> GResult<VertexBufferId> {
         match self {
             Self::Vulkan(vk) => vk.new_vertex_buffer(data, storage_type, ext),
+            Self::WebGpu(wgpu) => wgpu.new_vertex_buffer(data, storage_type, ext),
         }
     }
 
@@ -60,6 +61,7 @@ impl Context {
     ) -> GResult<IndexBufferId> {
         match self {
             Self::Vulkan(vk) => vk.new_index_buffer(data, storage_type, ext),
+            Self::WebGpu(wgpu) => wgpu.new_index_buffer(data, storage_type, ext),
         }
     }
 
@@ -70,6 +72,7 @@ impl Context {
     ) -> GResult<UniformBufferId> {
         match self {
             Self::Vulkan(vk) => vk.new_uniform_buffer::<T>(data, ext),
+            Self::WebGpu(wgpu) => wgpu.new_uniform_buffer::<T>(data, ext),
         }
     }
 }

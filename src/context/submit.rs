@@ -143,6 +143,7 @@ impl Context {
     pub fn submit(&mut self, submit: Submit, ext: Option<SubmitExt>) -> GResult<()> {
         match self {
             Self::Vulkan(vk) => vk.submit(submit, ext),
+            Self::WebGpu(wgpu) => wgpu.submit(submit, ext),
         }
     }
 }
