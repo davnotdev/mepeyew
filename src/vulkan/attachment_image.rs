@@ -6,7 +6,7 @@ impl VkContext {
         initial_width: usize,
         initial_height: usize,
         attachment_usage: AttachmentImageUsage,
-        ext: NewAttachmentImageExt,
+        ext: Option<NewAttachmentImageExt>,
     ) -> GResult<AttachmentImageId> {
         let attachment_image = VkAttachmentImage::new(
             &self.core.dev,
@@ -15,7 +15,7 @@ impl VkContext {
             initial_width,
             initial_height,
             attachment_usage,
-            ext,
+            ext.unwrap_or_default(),
         )?;
         self.attachment_images.push(attachment_image);
 

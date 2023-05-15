@@ -29,7 +29,7 @@ impl Context {
         height: usize,
         sampler: SamplerId,
         format: TextureFormat,
-        ext: NewTextureExt,
+        ext: Option<NewTextureExt>,
     ) -> GResult<TextureId> {
         match self {
             Self::Vulkan(vk) => vk.new_texture(width, height, sampler, format, ext),
@@ -41,7 +41,7 @@ impl Context {
         texture: TextureId,
         width: usize,
         height: usize,
-        ext: ResizeTextureExt,
+        ext: Option<ResizeTextureExt>,
     ) -> GResult<()> {
         match self {
             Self::Vulkan(vk) => vk.resize_texture(texture, width, height, ext),
@@ -52,7 +52,7 @@ impl Context {
         &mut self,
         texture: TextureId,
         data: &[u8],
-        ext: UploadTextureExt,
+        ext: Option<UploadTextureExt>,
     ) -> GResult<()> {
         match self {
             Self::Vulkan(vk) => vk.upload_texture(texture, data, ext),
@@ -64,7 +64,7 @@ impl Context {
         initial_width: usize,
         initial_height: usize,
         attachment_usage: AttachmentImageUsage,
-        ext: NewAttachmentImageExt,
+        ext: Option<NewAttachmentImageExt>,
     ) -> GResult<AttachmentImageId> {
         match self {
             Self::Vulkan(vk) => {

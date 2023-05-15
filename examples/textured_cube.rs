@@ -65,13 +65,7 @@ fn main() {
     }
 
     let texture = context
-        .new_texture(
-            x as usize,
-            y as usize,
-            sampler,
-            TextureFormat::Rgba,
-            NewTextureExt::default(),
-        )
+        .new_texture(x as usize, y as usize, sampler, TextureFormat::Rgba, None)
         .unwrap();
 
     context
@@ -80,7 +74,7 @@ fn main() {
             unsafe {
                 std::slice::from_raw_parts(image, (x * y) as usize * std::mem::size_of::<i32>())
             },
-            UploadTextureExt::default(),
+            None,
         )
         .unwrap();
 

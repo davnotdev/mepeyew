@@ -60,12 +60,7 @@ fn main() {
         .unwrap();
 
     let pass_output_attachment_image = context
-        .new_attachment_image(
-            640,
-            480,
-            AttachmentImageUsage::ColorAttachment,
-            NewAttachmentImageExt::default(),
-        )
+        .new_attachment_image(640, 480, AttachmentImageUsage::ColorAttachment, None)
         .unwrap();
 
     let pass_output_uniform = ShaderUniform {

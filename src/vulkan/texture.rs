@@ -7,9 +7,16 @@ impl VkContext {
         height: usize,
         sampler: SamplerId,
         format: TextureFormat,
-        ext: NewTextureExt,
+        ext: Option<NewTextureExt>,
     ) -> GResult<TextureId> {
-        let texture = VkTexture::new(self, width, height, sampler, format, ext)?;
+        let texture = VkTexture::new(
+            self,
+            width,
+            height,
+            sampler,
+            format,
+            ext.unwrap_or_default(),
+        )?;
         self.textures.push(texture);
         Ok(TextureId::from_id(self.textures.len() - 1))
     }
@@ -19,7 +26,7 @@ impl VkContext {
         texture_id: TextureId,
         width: usize,
         height: usize,
-        _ext: ResizeTextureExt,
+        _ext: Option<ResizeTextureExt>,
     ) -> GResult<()> {
         let texture = self.textures.get_mut(texture_id.id()).ok_or(gpu_api_err!(
             "vulkan resize texture {:?} doesn't exist",
@@ -44,13 +51,13 @@ impl VkContext {
         &mut self,
         texture: TextureId,
         data: &[u8],
-        ext: UploadTextureExt,
+        ext: Option<UploadTextureExt>,
     ) -> GResult<()> {
         let texture = self.textures.get_mut(texture.id()).ok_or(gpu_api_err!(
             "vulkan upload texture {:?} doesn't exist",
             texture
         ))?;
-        texture.upload(&self.core, data, ext)
+        texture.upload(&self.core, data, ext.unwrap_or_default())
     }
 }
 
