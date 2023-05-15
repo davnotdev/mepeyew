@@ -50,7 +50,7 @@ impl MockContext {
         _height: usize,
         _sampler: SamplerId,
         _format: TextureFormat,
-        _ext: NewTextureExt,
+        _ext: Option<NewTextureExt>,
     ) -> GResult<TextureId> {
         unimplemented!("No backend chosen")
     }
@@ -60,7 +60,7 @@ impl MockContext {
         _texture: TextureId,
         _width: usize,
         _height: usize,
-        _ext: ResizeTextureExt,
+        _ext: Option<ResizeTextureExt>,
     ) -> GResult<()> {
         unimplemented!("No backend chosen")
     }
@@ -69,7 +69,7 @@ impl MockContext {
         &mut self,
         _texture: TextureId,
         _data: &[u8],
-        _ext: UploadTextureExt,
+        _ext: Option<UploadTextureExt>,
     ) -> GResult<()> {
         unimplemented!("No backend chosen")
     }
@@ -79,7 +79,7 @@ impl MockContext {
         _initial_width: usize,
         _initial_height: usize,
         _attachment_usage: AttachmentImageUsage,
-        _ext: NewAttachmentImageExt,
+        _ext: Option<NewAttachmentImageExt>,
     ) -> GResult<AttachmentImageId> {
         unimplemented!("No backend chosen")
     }
