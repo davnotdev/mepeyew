@@ -5,26 +5,29 @@ the screen directly anymore.
 Instead, rendering APIs are used for drawing in order to efficiently utilize the hardware.
 Each platform has its own preferred APIs (DirectX on Windows, Metal on
 MacOS, etc), where each platform has its own little quirks and tricks.
-Modern renderers are designed to abstract over this to provide equal support among APIs.
 
-`mepeyew` is the rendering API abstraction for Rust created for [`mewo`](https://github.com/davnotdev/mewo),
-designed with both modern and older rendering APIs in mind.
-This allows `mepeyew` to be support constrained APIs like WebGL while still
-retaining the power and control of APIs like Vulkan.
+Built in rust, `mepeyew` is meant to hide away these quirks in a nice and neat package while
+trying to give you as much power as possible!
 
-## Usage
+![An image was meant to go here](./images/triangle.png)
 
-> See the examples until better docs come!
+## Basic Usage
+
+Hey, welcome to the world of graphics programming.
+I'm deeply sorry, but in this strange world, there is no such thing as "basic usage".
+I'd like to put the classic triangle example code, but that would completely fill your screen.
+Instead, I'd recommend checking [out this example](https://www.youtube.com/watch?v=dQw4w9WgXcQ).
 
 ## Road Map
 
-> This project is a work in progress!
+This project is a work in progress!
+The API is designed to be stable, but I can't guarentee anything of course.
 
 - [x] Basic Uniforms
 - [x] Textures
 - [x] Shader Attachments
-- [ ] Documentation
-- [ ] v0.1 Release!
+- [x] Documentation
+- [x] v0.1 Release!
 - [ ] WGLSL and Naga
 - [ ] WebGPU
 - [ ] Compute
