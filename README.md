@@ -11,12 +11,14 @@ trying to give you as much power as possible!
 
 ![An image was meant to go here](./images/triangle.png)
 
+> The classic hello triangle!
+
 ## Basic Usage
 
 Hey, welcome to the world of graphics programming.
 I'm deeply sorry, but in this strange world, there is no such thing as "basic usage".
 I'd like to put the classic triangle example code, but that would completely fill your screen.
-Instead, I'd recommend checking [out this example](https://www.youtube.com/watch?v=dQw4w9WgXcQ).
+Instead, I'd recommend checking [out this example in the docs](https://www.youtube.com/watch?v=dQw4w9WgXcQ).
 
 ## Road Map
 
