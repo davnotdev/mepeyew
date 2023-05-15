@@ -1,6 +1,8 @@
 use super::context::{self, *};
 use super::error::{gpu_api_err, GResult, GpuError};
 use std::collections::HashSet;
+use wasm_bindgen::prelude::*;
+use web_sys::*;
 
 mod attachment_image;
 mod buffer;
@@ -17,6 +19,9 @@ pub struct WebGpuContext {
 
 impl WebGpuContext {
     pub fn new(extensions: &[Extension]) -> GResult<Self> {
+        let val = JsValue::from_str("Hello World!");
+        console::log_1(&val);
+
         let supported_extensions = extensions::supported_extensions();
         let (enabled_extensions, unsupported_extensions): (Vec<_>, Vec<_>) = extensions
             .iter()

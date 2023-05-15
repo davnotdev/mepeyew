@@ -16,14 +16,18 @@ fn platform_prefered() -> Vec<Api> {
     ]
 }
 
-//  TODO
 #[cfg(all(not(target_os = "macos"), target_family = "unix"))]
 fn platform_prefered() -> Vec<Api> {
     vec![
-        #[cfg(feature = "webgpu")]
-        Api::WebGpu,
         #[cfg(feature = "vulkan")]
         Api::Vulkan,
+    ]
+}
+
+#[cfg(feature = "webgpu")]
+fn platform_prefered() -> Vec<Api> {
+    vec![
+        Api::WebGpu,        
     ]
 }
 
