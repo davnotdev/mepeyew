@@ -2,7 +2,11 @@
 name = "mepeyew"
 version = "0.1.0"
 edition = "2021"
-
+description = "mepeyew - Small But Powerful Graphics Library"
+repository = "https://github.com/davnotdev/mepeyew"
+homepage = "https://github.com/davnotdev/mepeyew"
+license = "BSD-2-Clause"
+keywords = ["gamedev", "graphics"]
 
 [features]
 default = [
