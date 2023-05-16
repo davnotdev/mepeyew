@@ -8,6 +8,7 @@ pub fn supported_extensions() -> &'static [ExtensionType] {
         // ExtensionType::NativeDebug,
         // ExtensionType::MemoryFlush,
         // ExtensionType::ShaderReflection,
+        ExtensionType::WebGpuInit,
     ]
 }
 
