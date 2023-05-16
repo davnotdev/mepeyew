@@ -17,7 +17,7 @@ default = [
     "shader_reflection_extension",
 ]
 vulkan = ["dep:ash", "dep:gpu-allocator", "dep:raw-window-metal"]
-webgpu = ["dep:wasm-bindgen", "dep:web-sys"]
+webgpu = ["dep:wasm-bindgen", "dep:web-sys", "dep:js-sys"]
 assert_extensions = []
 surface_extension = ["dep:raw-window-handle"]
 shader_reflection_extension = ["dep:spirv-reflect"]
@@ -38,8 +38,9 @@ raw-window-handle = { version = "0.5.0", optional = true }
 spirv-reflect = { version = "0.2.3", optional = true }
 
 #  webgpu
+js-sys = { version = "0.3", optional = true }
 wasm-bindgen = { version = "0.2", optional = true }
-web-sys = { version = "0.3", features = ["console", "Document", "Window", "Element", "Navigator", "Gpu", "GpuAdapter", "GpuDevice", "GpuCanvasContext", "HtmlCanvasElement", "GpuCanvasConfiguration", "GpuTextureFormat", "GpuCanvasAlphaMode"], optional = true }
+web-sys = { version = "0.3", features = ["console", "Document", "Window", "Element", "Navigator", "Gpu", "GpuAdapter", "GpuDevice", "GpuCanvasContext", "HtmlCanvasElement", "GpuCanvasConfiguration", "GpuTextureFormat", "GpuCanvasAlphaMode", "GpuBuffer", "GpuBufferDescriptor", "GpuCommandEncoder"], optional = true }
 
 [target.'cfg(any(target_os = "macos", target_os = "ios"))'.dependencies]
 #  vulkan

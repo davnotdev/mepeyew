@@ -1,14 +1,18 @@
 use super::context::*;
 use super::error::{gpu_api_err, GResult, GpuError};
+use js_sys::*;
 use std::collections::HashSet;
 use wasm_bindgen::prelude::*;
 use web_sys::*;
 
+use buffer::WebGpuBuffer;
+use flags::GpuBufferUsageFlags;
 use surface::WebGpuSurface;
 
 mod attachment_image;
 mod buffer;
 mod extensions;
+mod flags;
 mod pass;
 mod program;
 mod sampler;
@@ -21,6 +25,10 @@ pub struct WebGpuContext {
     device: GpuDevice,
     surface: Option<WebGpuSurface>,
     enabled_extensions: HashSet<ExtensionType>,
+
+    vbos: Vec<WebGpuBuffer>,
+    ibos: Vec<WebGpuBuffer>,
+    ubos: Vec<WebGpuBuffer>,
 }
 
 impl WebGpuContext {
@@ -101,6 +109,9 @@ impl WebGpuContext {
         } else {
             None
         };
+
+        //  Create command encoder.
+        let command_encoder = device.create_command_encoder();
 
         Ok(WebGpuContext {
             adapter,
