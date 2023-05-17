@@ -6,7 +6,7 @@ impl VkContext {
         &mut self,
         shaders: &ShaderSet,
         uniforms: &[ShaderUniform],
-        _ext: Option<NewProgramExt>,
+        ext: Option<NewProgramExt>,
     ) -> GResult<ProgramId> {
         let shaders = shaders
             .0
@@ -20,6 +20,7 @@ impl VkContext {
             layout: new_pipeline_layout(&self.core.dev, &descriptors.descriptor_set_layouts)?,
             shaders,
             descriptors,
+            ext: ext.unwrap_or_default(),
             drop_queue: Arc::clone(&self.drop_queue),
         };
         self.programs.push(program);
@@ -42,6 +43,7 @@ fn new_pipeline_layout(
 pub struct VkProgram {
     pub descriptors: VkDescriptors,
     pub layout: vk::PipelineLayout,
+    pub ext: NewProgramExt,
     shaders: Vec<VkShader>,
 
     drop_queue: VkDropQueueRef,
@@ -55,6 +57,7 @@ impl VkProgram {
         render_pass: vk::RenderPass,
         extent: vk::Extent2D,
         subpass: usize,
+        ext: &NewProgramExt,
     ) -> GResult<vk::Pipeline> {
         //  Vertex Input State Info
         let (attributes, bindings) = self
@@ -133,9 +136,18 @@ impl VkProgram {
 
         //  Depth Stencil
         let depth_create = vk::PipelineDepthStencilStateCreateInfo::builder()
-            .depth_test_enable(true)
-            .depth_write_enable(true)
-            .depth_compare_op(vk::CompareOp::LESS_OR_EQUAL)
+            .depth_test_enable(ext.enable_depth_test.is_some())
+            .depth_write_enable(ext.enable_depth_test.is_some())
+            .depth_compare_op(match ext.depth_compare_op.unwrap_or_default() {
+                ShaderDepthCompareOp::Never => vk::CompareOp::NEVER,
+                ShaderDepthCompareOp::Less => vk::CompareOp::LESS,
+                ShaderDepthCompareOp::Equal => vk::CompareOp::EQUAL,
+                ShaderDepthCompareOp::LessOrEqual => vk::CompareOp::LESS_OR_EQUAL,
+                ShaderDepthCompareOp::Greater => vk::CompareOp::GREATER,
+                ShaderDepthCompareOp::NotEqual => vk::CompareOp::NOT_EQUAL,
+                ShaderDepthCompareOp::GreaterOrEqual => vk::CompareOp::GREATER_OR_EQUAL,
+                ShaderDepthCompareOp::Always => vk::CompareOp::ALWAYS,
+            })
             .depth_bounds_test_enable(false)
             .stencil_test_enable(false)
             .min_depth_bounds(0.0)

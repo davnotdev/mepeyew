@@ -22,6 +22,22 @@ pub enum ShaderUniformFrequencyHint {
     Static = 3,
 }
 
+///  Used in [`NewProgramExt`] to configure depth testing.
+///  [learnopengl.com](https://learnopengl.com/Advanced-OpenGL/Depth-testing) has a nice article
+///  about this topic.
+#[derive(Default, Clone, Copy)]
+pub enum ShaderDepthCompareOp {
+    Never,
+    #[default]
+    Less,
+    Equal,
+    LessOrEqual,
+    Greater,
+    NotEqual,
+    GreaterOrEqual,
+    Always,
+}
+
 #[derive(Clone, Copy)]
 pub enum ShaderUniformType {
     Texture(TextureId),
@@ -55,7 +71,10 @@ impl<'a> ShaderSet<'a> {
 }
 
 #[derive(Default)]
-pub struct NewProgramExt {}
+pub struct NewProgramExt {
+    pub enable_depth_test: Option<()>,
+    pub depth_compare_op: Option<ShaderDepthCompareOp>,
+}
 
 impl Context {
     pub fn new_program(
