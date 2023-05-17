@@ -17,13 +17,13 @@ trying to give you as much power as possible!
 
 Add this to your `Cargo.toml`:
 
-### Desktop Use
+### Desktop Platform Use
 
 ```
 mepeyew = "0.1"
 ```
 
-### WebGpu Use
+### Web Platform Use
 
 ```
 # This is coming soon! See the webgpu branch for current progress!
