@@ -16,10 +16,11 @@ impl WebGpuContext {
 }
 
 pub struct WebGpuProgram {
-    vertex_module: GpuShaderModule,
-    fragment_module: Option<GpuShaderModule>,
+    pub vertex_module: GpuShaderModule,
+    pub fragment_module: Option<GpuShaderModule>,
     bind_groups: Vec<GpuBindGroup>,
-    bind_group_layouts: Vec<GpuBindGroupLayout>,
+    pub bind_group_layouts: Vec<GpuBindGroupLayout>,
+    pub ext: NewProgramExt,
 }
 
 impl WebGpuProgram {
@@ -27,7 +28,7 @@ impl WebGpuProgram {
         device: &GpuDevice,
         shaders: &ShaderSet,
         uniforms: &[ShaderUniform],
-        _ext: Option<NewProgramExt>,
+        ext: Option<NewProgramExt>,
     ) -> GResult<Self> {
         let vertex = take_single_shader(device, shaders, |ty| matches!(ty, ShaderType::Vertex(_)))?
             .ok_or(gpu_api_err!("webgpu did not get a vertex shader"))?;
@@ -74,7 +75,7 @@ impl WebGpuProgram {
             })
             .collect::<Vec<_>>();
 
-        let bind_groups = (0..BINDING_GROUP_COUNT).map(|_| vec![]).collect::<Vec<_>>();
+        let mut bind_groups = (0..BINDING_GROUP_COUNT).map(|_| vec![]).collect::<Vec<_>>();
 
         uniforms.iter().for_each(|uniform| {
             let entry = GpuBindGroupEntry::new(uniform.binding as u32, &JsValue::null());
@@ -113,6 +114,7 @@ impl WebGpuProgram {
 
             bind_groups,
             bind_group_layouts,
+            ext: ext.unwrap_or_default(),
         })
     }
 }

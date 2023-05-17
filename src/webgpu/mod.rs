@@ -7,6 +7,7 @@ use web_sys::*;
 
 use buffer::WebGpuBuffer;
 use flags::{GpuBufferUsageFlags, GpuShaderStageFlags};
+use pass::WebGpuCompiledPass;
 use program::WebGpuProgram;
 use surface::WebGpuSurface;
 
@@ -31,6 +32,7 @@ pub struct WebGpuContext {
     ibos: Vec<WebGpuBuffer>,
     ubos: Vec<WebGpuBuffer>,
     programs: Vec<WebGpuProgram>,
+    compiled_passes: Vec<WebGpuCompiledPass>,
 }
 
 impl WebGpuContext {
@@ -122,6 +124,7 @@ impl WebGpuContext {
             ibos: vec![],
             ubos: vec![],
             programs: vec![],
+            compiled_passes: vec![],
         })
     }
 }

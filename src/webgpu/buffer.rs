@@ -54,7 +54,7 @@ impl WebGpuContext {
 
 pub struct WebGpuBuffer {
     size: u32,
-    buffer: GpuBuffer,
+    pub buffer: GpuBuffer,
 }
 
 impl WebGpuBuffer {
