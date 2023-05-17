@@ -54,6 +54,7 @@ impl VkCompiledPass {
                     render_pass,
                     render_extent,
                     subpass_idx,
+                    &program.ext,
                 )
             })
             .collect::<GResult<Vec<_>>>()?;
