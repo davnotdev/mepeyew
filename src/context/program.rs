@@ -22,9 +22,9 @@ pub enum ShaderUniformFrequencyHint {
     Static = 3,
 }
 
-///  Used in [`NewProgramExt`] to configure depth testing.
-///  [learnopengl.com](https://learnopengl.com/Advanced-OpenGL/Depth-testing) has a nice article
-///  about this topic.
+/// Used in [`NewProgramExt`] to configure depth testing.
+/// [learnopengl.com](https://learnopengl.com/Advanced-OpenGL/Depth-testing) has a nice article
+/// about this topic.
 #[derive(Default, Clone, Copy)]
 pub enum ShaderDepthCompareOp {
     Never,
@@ -72,7 +72,10 @@ impl<'a> ShaderSet<'a> {
 
 #[derive(Default)]
 pub struct NewProgramExt {
+    /// Enable depth testing.
+    /// [learnopengl.com](https://learnopengl.com/Advanced-OpenGL/Depth-testing) has a nice article
     pub enable_depth_test: Option<()>,
+    /// See [`ShaderDepthCompareOp`].
     pub depth_compare_op: Option<ShaderDepthCompareOp>,
 }
 
