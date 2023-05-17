@@ -6,7 +6,8 @@ use wasm_bindgen::prelude::*;
 use web_sys::*;
 
 use buffer::WebGpuBuffer;
-use flags::GpuBufferUsageFlags;
+use flags::{GpuBufferUsageFlags, GpuShaderStageFlags};
+use program::WebGpuProgram;
 use surface::WebGpuSurface;
 
 mod attachment_image;
@@ -29,6 +30,7 @@ pub struct WebGpuContext {
     vbos: Vec<WebGpuBuffer>,
     ibos: Vec<WebGpuBuffer>,
     ubos: Vec<WebGpuBuffer>,
+    programs: Vec<WebGpuProgram>,
 }
 
 impl WebGpuContext {
@@ -110,14 +112,16 @@ impl WebGpuContext {
             None
         };
 
-        //  Create command encoder.
-        let command_encoder = device.create_command_encoder();
-
         Ok(WebGpuContext {
             adapter,
             device,
             surface,
             enabled_extensions,
+
+            vbos: vec![],
+            ibos: vec![],
+            ubos: vec![],
+            programs: vec![],
         })
     }
 }

@@ -13,3 +13,9 @@ pub enum GpuBufferUsageFlags {
     QueryResolve = 0x0200,
 }
 
+#[repr(u8)]
+pub enum GpuShaderStageFlags {
+    VERTEX = 0x1,
+    FRAGMENT = 0x2,
+    COMPUTE = 0x4,
+}

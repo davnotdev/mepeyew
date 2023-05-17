@@ -40,7 +40,7 @@ pub struct ShaderUniform {
 
 /// This value can be inferred using the shader reflection extension.
 /// See [`Extension`].
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub enum ShaderType {
     Vertex(VertexBufferInput),
     Fragment,
