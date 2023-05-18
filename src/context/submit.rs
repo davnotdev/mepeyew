@@ -46,6 +46,7 @@ pub struct PassSubmitData {
     pub(crate) pass: CompiledPassId,
     pub(crate) steps_datas: Vec<StepSubmitData>,
 
+
     pub(crate) clear_colors: HashMap<PassLocalAttachment, ClearColor>,
     pub(crate) clear_depths: HashMap<PassLocalAttachment, ClearDepthStencil>,
 }

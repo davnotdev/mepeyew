@@ -16,8 +16,8 @@ impl WebGpuContext {
 }
 
 pub struct WebGpuCompiledPass {
-    original_pass: Pass,
-    pipelines: Vec<GpuRenderPipeline>,
+    pub original_pass: Pass,
+    pub pipelines: Vec<GpuRenderPipeline>,
 }
 
 impl WebGpuCompiledPass {
@@ -38,25 +38,20 @@ impl WebGpuCompiledPass {
                         step.program.unwrap()
                     ))?;
                 let vertex_buffers = Array::new();
-                step.vertex_buffers.iter().try_for_each(|vbo| {
-                    let vbo = context.vbos.get(vbo.id()).ok_or(gpu_api_err!(
-                        "webgpu in pass step, vertex buffer {:?} does not exist",
-                        vbo
-                    ))?;
-                    vertex_buffers.push(&vbo.buffer);
-                    Ok(())
-                })?;
-
+                vertex_buffers.push(&program.vertex_buffer_layout);
                 let mut vertex = GpuVertexState::new("main", &program.vertex_module);
                 vertex.buffers(&vertex_buffers);
 
-                let mut bind_layouts = JsValue::from_str("auto");
+                let mut layout = JsValue::from_str("auto");
                 if !program.bind_group_layouts.is_empty() {
                     let layouts = Array::new();
                     program.bind_group_layouts.iter().for_each(|layout| {
                         layouts.push(layout);
                     });
-                    bind_layouts = layouts.into();
+
+                    let layout_info = GpuPipelineLayoutDescriptor::new(&layouts);
+                    let pipeline_layout = context.device.create_pipeline_layout(&layout_info);
+                    layout = pipeline_layout.into();
                 }
 
                 let mut primitive = GpuPrimitiveState::new();
@@ -65,24 +60,26 @@ impl WebGpuCompiledPass {
                     .front_face(GpuFrontFace::Ccw)
                     .topology(GpuPrimitiveTopology::TriangleList);
 
-                let mut depth_stencil = GpuDepthStencilState::new(WEBGPU_DEPTH_ATTACHMENT_FORMAT);
-                depth_stencil
-                    .depth_write_enabled(program.ext.enable_depth_test.is_some())
-                    .depth_compare(match program.ext.depth_compare_op.unwrap_or_default() {
-                        ShaderDepthCompareOp::Never => GpuCompareFunction::Never,
-                        ShaderDepthCompareOp::Less => GpuCompareFunction::Less,
-                        ShaderDepthCompareOp::Equal => GpuCompareFunction::Equal,
-                        ShaderDepthCompareOp::LessOrEqual => GpuCompareFunction::LessEqual,
-                        ShaderDepthCompareOp::Greater => GpuCompareFunction::Greater,
-                        ShaderDepthCompareOp::NotEqual => GpuCompareFunction::NotEqual,
-                        ShaderDepthCompareOp::GreaterOrEqual => GpuCompareFunction::GreaterEqual,
-                        ShaderDepthCompareOp::Always => GpuCompareFunction::Always,
-                    });
-
-                let mut pipeline_info = GpuRenderPipelineDescriptor::new(&bind_layouts, &vertex);
+                let mut pipeline_info = GpuRenderPipelineDescriptor::new(&layout, &vertex);
                 pipeline_info
-                    .primitive(&primitive)
-                    .depth_stencil(&depth_stencil);
+                    .primitive(&primitive);
+
+                if program.ext.enable_depth_test.is_some() {
+                    let mut depth_stencil = GpuDepthStencilState::new(WEBGPU_DEPTH_ATTACHMENT_FORMAT);
+                    depth_stencil
+                        .depth_write_enabled(true)
+                        .depth_compare(match program.ext.depth_compare_op.unwrap_or_default() {
+                            ShaderDepthCompareOp::Never => GpuCompareFunction::Never,
+                            ShaderDepthCompareOp::Less => GpuCompareFunction::Less,
+                            ShaderDepthCompareOp::Equal => GpuCompareFunction::Equal,
+                            ShaderDepthCompareOp::LessOrEqual => GpuCompareFunction::LessEqual,
+                            ShaderDepthCompareOp::Greater => GpuCompareFunction::Greater,
+                            ShaderDepthCompareOp::NotEqual => GpuCompareFunction::NotEqual,
+                            ShaderDepthCompareOp::GreaterOrEqual => GpuCompareFunction::GreaterEqual,
+                            ShaderDepthCompareOp::Always => GpuCompareFunction::Always,
+                        });
+                    pipeline_info.depth_stencil(&depth_stencil);
+                }
 
                 if let Some(fragment_module) = &program.fragment_module {
                     let targets = Array::new();
