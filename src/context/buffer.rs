@@ -1,24 +1,24 @@
 use super::*;
 
-///  Stride represents the following.
+///  Count represents the following.
 ///  ```
-///  [1, 1, 1, 2, 2, 3, 3, 3]
-///   ^0       ^3    ^5
+///  [A, A, A, B, B, C, C, C]
+///          ^3   ^2       ^3
 ///  ```
 #[derive(Debug, Clone, Copy)]
-pub struct VertexInputArgStride(pub usize);
+pub struct VertexInputArgCount(pub usize);
 
-///  Defines the stride (see [`VertexInputArgStride`]) of each vbo item.
+///  Defines the stride (see [`VertexInputArgCount`]) of each vbo item.
 ///  ```
-///  [1, 1, 1, 2, 2, 3, 3, 3]
-///   ^0       ^3    ^5
+///  [A, A, A, B, B, C, C, C]
+///          ^3   ^2       ^3
 ///  let _ = VertexBufferInput {
-///      args: vec![0, 3, 5],
+///      args: vec![3, 2, 3],
 ///  };
 ///  ```
 #[derive(Debug, Clone)]
 pub struct VertexBufferInput {
-    pub args: Vec<VertexInputArgStride>,
+    pub args: Vec<VertexInputArgCount>,
 }
 
 ///  Whether you plan on dynamically upload to a buffer later on.
