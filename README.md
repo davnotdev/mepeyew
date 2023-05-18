@@ -15,6 +15,23 @@ trying to give you as much power as possible!
 
 ## Basic Usage
 
+Add this to your `Cargo.toml`:
+
+### Desktop Platform Use
+
+```
+mepeyew = "0.1"
+```
+
+### Web Platform Use
+
+```
+# This is coming soon! See the webgpu branch for current progress!
+mepeyew = { version = "0.1", default-features = false, features = ["webgpu", "assert_extensions"] }
+```
+
+### Code
+
 Hey, welcome to the world of graphics programming.
 I'm deeply sorry, but in this strange world, there is no such thing as "basic usage".
 I'd like to put the classic triangle example code, but that would completely fill your screen.

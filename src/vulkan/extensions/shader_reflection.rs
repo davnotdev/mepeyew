@@ -28,7 +28,7 @@ fn vertex_data(reflect: &ShaderModule) -> VertexBufferInput {
         args: inputs
             .into_iter()
             .map(|input| {
-                VertexInputArgStride(match input.format {
+                VertexInputArgCount(match input.format {
                     ReflectFormat::R32_SFLOAT => 1,
                     ReflectFormat::R32G32_SFLOAT => 2,
                     ReflectFormat::R32G32B32_SFLOAT => 3,

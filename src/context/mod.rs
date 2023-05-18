@@ -85,7 +85,7 @@ pub enum Context {
 
 pub use buffer::{
     BufferStorageType, IndexBufferElement, NewIndexBufferExt, NewUniformBufferExt,
-    NewVertexBufferExt, VertexBufferElement, VertexBufferInput, VertexInputArgStride,
+    NewVertexBufferExt, VertexBufferElement, VertexBufferInput, VertexInputArgCount,
 };
 pub use extensions::{Extension, ExtensionType};
 pub use pass::{
