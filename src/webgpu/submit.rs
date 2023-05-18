@@ -85,7 +85,31 @@ fn submit_pass(
                     Ok(())
                 })?;
 
-            pass_encoder.draw(3);
+            if let Some(ibo) = step.index_buffer {
+                let ibo = context.ibos.get(ibo.id()).ok_or(gpu_api_err!(
+                    "webgpu submit index buffer id {:?} does not exist",
+                    ibo
+                ))?;
+                assert_eq!(std::mem::size_of::<IndexBufferElement>(), 4);
+                pass_encoder.set_index_buffer(&ibo.buffer, GpuIndexFormat::Uint32);
+            }
+
+            step_data.draws.iter().for_each(|draw| {
+                pass_encoder.draw_with_instance_count_and_first_vertex(
+                    draw.count as u32,
+                    1,
+                    draw.first as u32,
+                );
+            });
+
+            step_data.draws_indexed.iter().for_each(|draw| {
+                pass_encoder.draw_indexed_with_instance_count_and_first_index(
+                    draw.count as u32,
+                    1,
+                    draw.first as u32,
+                );
+            });
+
             pass_encoder.end();
 
             Ok(())
