@@ -27,9 +27,7 @@ fn platform_prefered() -> Vec<Api> {
 
 #[cfg(all(feature = "webgpu"))]
 fn platform_prefered() -> Vec<Api> {
-    vec![
-        Api::WebGpu,        
-    ]
+    vec![Api::WebGpu]
 }
 
 impl Context {
@@ -69,6 +67,7 @@ impl Context {
                     Ok(context) => return Ok(Context::WebGpu(context)),
                     Err(fail) => fails.push(fail),
                 },
+                _ => continue,
             }
         }
 

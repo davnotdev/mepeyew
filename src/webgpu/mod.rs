@@ -51,7 +51,7 @@ impl WebGpuContext {
         }
 
         //  Take adapter, device, and canvas id from WebGpuInit extension.
-        let (adapter, device, canvas_id) = extensions
+        let (adapter_str, device_str, canvas_id) = extensions
             .iter()
             .find_map(|ext| {
                 if let Extension::WebGpuInit(init) = ext.clone() {
@@ -64,12 +64,28 @@ impl WebGpuContext {
                 "webgpu expected extension WebGpuInit to be used."
             ))?;
 
-        let adapter: GpuAdapter = adapter.into();
-        let device: GpuDevice = device.into();
+        let window = window().unwrap();
+
+        let window_flabby: &JsValue = &window;
+
+        let adapter_key = JsValue::from_str(&adapter_str);
+        let device_key = JsValue::from_str(&device_str);
+
+        let adapter = Reflect::get(window_flabby, &adapter_key)
+            .map_err(|e| gpu_api_err!("webgpu window.{} does not exist: {:?}", adapter_str, e))?
+            .dyn_into::<GpuAdapter>()
+            .map_err(|e| {
+                gpu_api_err!("webgpu window.{} is not a GPUAdapter: {:?}", adapter_str, e)
+            })?;
+        let device = Reflect::get(window_flabby, &device_key)
+            .map_err(|e| gpu_api_err!("webgpu window.{} does not exist: {:?}", device_str, e))?
+            .dyn_into::<GpuDevice>()
+            .map_err(|e| {
+                gpu_api_err!("webgpu window.{} is not a GPUDevice: {:?}", device_str, e)
+            })?;
 
         //  Optionally configure canvas.
         let surface = if let Some(canvas_id) = canvas_id {
-            let window = window().unwrap();
             let navigator = window.navigator();
             let canvas = window
                 .document()

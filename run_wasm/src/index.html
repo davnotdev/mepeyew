@@ -1,0 +1,8 @@
+<canvas id="canvas"></canvas>
+<script type="module">
+    let adapter = await navigator.gpu.requestAdapter();
+    let device = await adapter.requestDevice();
+
+    window.mepeyewDevice = device;
+    window.mepeyewAdapter = adapter;
+</script>

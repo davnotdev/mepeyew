@@ -14,7 +14,7 @@ default = [
     "webgpu",
     "assert_extensions",
     "surface_extension",
-    "shader_reflection_extension",
+    # "shader_reflection_extension",
 ]
 vulkan = ["dep:ash", "dep:gpu-allocator", "dep:raw-window-metal"]
 webgpu = ["dep:wasm-bindgen", "dep:web-sys", "dep:js-sys"]
@@ -25,6 +25,7 @@ shader_reflection_extension = ["dep:spirv-reflect"]
 [dev-dependencies]
 winit = "0.28.1"
 stb_image_rust = "2.27.2"
+console_error_panic_hook = "0.1"
 
 [dependencies]
 #  vulkan
@@ -48,5 +49,5 @@ raw-window-metal = { version = "0.3", optional = true }
 
 [workspace]
 members = [
-    "examples/web"
+    "run_wasm"
 ]

@@ -66,9 +66,7 @@ def_id_ty!(CompiledPassId);
 
 #[derive(Clone, Copy, PartialEq, Eq)]
 pub enum Api {
-    #[cfg(feature = "vulkan")]
     Vulkan,
-    #[cfg(feature = "webgpu")]
     WebGpu,
 }
 

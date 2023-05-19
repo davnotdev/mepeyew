@@ -2,11 +2,13 @@ use mepeyew::prelude::*;
 use raw_window_handle::{HasRawDisplayHandle, HasRawWindowHandle};
 use winit::{
     event::{Event, WindowEvent},
-    event_loop::{ControlFlow, EventLoop},
+    event_loop::EventLoop,
     window::WindowBuilder,
 };
 
 fn main() {
+    std::panic::set_hook(Box::new(console_error_panic_hook::hook));
+
     let event_loop = EventLoop::new();
     let window = WindowBuilder::new().build(&event_loop).unwrap();
 
@@ -14,40 +16,71 @@ fn main() {
     //  --- Begin Setup Code ---
     //
 
-    let mut context = Context::new(&[(
-        Api::Vulkan,
-        &[
-            Extension::NativeDebug,
-            Extension::Surface(surface::SurfaceConfiguration {
-                width: 640,
-                height: 480,
-                display: window.raw_display_handle(),
-                window: window.raw_window_handle(),
-            }),
-            Extension::ShaderReflection,
-        ],
-    )])
+    let mut context = Context::new(&[
+        (
+            Api::Vulkan,
+            &[
+                Extension::NativeDebug,
+                Extension::Surface(surface::SurfaceConfiguration {
+                    width: 640,
+                    height: 480,
+                    display: window.raw_display_handle(),
+                    window: window.raw_window_handle(),
+                }),
+            ],
+        ),
+        (
+            Api::WebGpu,
+            &[Extension::WebGpuInit(webgpu_init::WebGpuInit {
+                adapter: String::from("mepeyewAdapter"),
+                device: String::from("mepeyewDevice"),
+                canvas_id: Some(String::from("canvas")),
+            })],
+        ),
+    ])
     .unwrap();
 
-    let vs = include_bytes!("shaders/hello_triangle/vs.spv");
-    let fs = include_bytes!("shaders/hello_triangle/fs.spv");
+    // let vs = include_bytes!("shaders/hello_triangle/vs.spv");
+    // let fs = include_bytes!("shaders/hello_triangle/fs.spv");
+    let vs_code = r#"
+        struct VertexOutput {
+            @builtin(position) position : vec4<f32>,
+            @location(0) color : vec3<f32>,
+        }
 
-    let vs_reflect = context
-        .shader_reflection_extension_reflect(
-            vs,
-            shader_reflection::ReflectionShaderTypeHint::Vertex,
-        )
-        .unwrap();
-    let fs_reflect = context
-        .shader_reflection_extension_reflect(
-            fs,
-            shader_reflection::ReflectionShaderTypeHint::Fragment,
-        )
-        .unwrap();
+        @vertex
+        fn main(
+            @location(0) position : vec3<f32>,
+            @location(1) color : vec3<f32>
+        ) -> VertexOutput {
+            var output: VertexOutput;
+            output.position = vec4<f32>(position, 1.0);
+            output.color = color;
+            return output;
+        }"#;
+
+    let fs_code = r#"
+        @fragment
+        fn main(
+            @location(0) color: vec3<f32>
+        ) -> @location(0) vec4<f32> {
+            return vec4(color, 1.0);
+        }"#;
+
+    let vs = vs_code.as_bytes();
+    let fs = fs_code.as_bytes();
 
     let program = context
         .new_program(
-            &ShaderSet::shaders(&[(vs_reflect, vs), (fs_reflect, fs)]),
+            &ShaderSet::shaders(&[
+                (
+                    ShaderType::Vertex(VertexBufferInput {
+                        args: vec![VertexInputArgCount(3), VertexInputArgCount(3)],
+                    }),
+                    vs,
+                ),
+                (ShaderType::Fragment, fs),
+            ]),
             &[],
             None,
         )
@@ -98,13 +131,13 @@ fn main() {
     //
 
     event_loop.run(move |event, _, control_flow| {
-        *control_flow = ControlFlow::Poll;
+        control_flow.set_poll();
 
         match event {
             Event::WindowEvent {
                 event: WindowEvent::CloseRequested,
                 window_id,
-            } if window_id == window.id() => *control_flow = ControlFlow::Exit,
+            } if window_id == window.id() => control_flow.set_exit(),
             Event::WindowEvent {
                 event: WindowEvent::Resized(size),
                 window_id,
@@ -144,6 +177,7 @@ fn main() {
                 //
                 //  --- End Render Code ---
                 //
+                window.request_redraw();
             }
             _ => (),
         }
