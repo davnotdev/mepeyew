@@ -32,7 +32,6 @@
 //!             display: unimplemented!(),
 //!             window: unimplemented!(),
 //!         }),
-//!         Extension::ShaderReflection,
 //!     ],
 //! )])
 //! .unwrap();
@@ -41,26 +40,21 @@
 //! let vs = "...";
 //! let fs = "...";
 //!
-//! let vs_reflect = context
-//!     .shader_reflection_extension_reflect(
-//!         vs,
-//!         shader_reflection::ReflectionShaderTypeHint::Vertex,
-//!     )
-//!     .unwrap();
-//! let fs_reflect = context
-//!     .shader_reflection_extension_reflect(
-//!         fs,
-//!         shader_reflection::ReflectionShaderTypeHint::Fragment,
-//!     )
-//!     .unwrap();
-//!
 //! let program = context
 //!     .new_program(
-//!         &ShaderSet::shaders(&[(vs_reflect, vs), (fs_reflect, fs)]),
+//!         &ShaderSet::shaders(&[
+//!             (
+//!                 ShaderType::Vertex(VertexBufferInput {
+//!                     args: vec![VertexInputArgCount(3)],
+//!                 }),
+//!                 vs,
+//!             ),
+//!             (ShaderType::Fragment, fs),
+//!         ]),
 //!         &[],
 //!         None,
 //!     )
-//!    .unwrap();
+//!     .unwrap();
 //!
 //! //  Create a VBO and IBO for drawing a triangle.
 //! #[rustfmt::skip]

@@ -1,6 +1,6 @@
 mod extensions;
 
-use super::context::{extensions as context_extensions, *};
+use super::context::*;
 use super::error::GResult;
 
 //  This is used when disabling backends.

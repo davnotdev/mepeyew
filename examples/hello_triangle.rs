@@ -24,7 +24,6 @@ fn main() {
                 display: window.raw_display_handle(),
                 window: window.raw_window_handle(),
             }),
-            Extension::ShaderReflection,
         ],
     )])
     .unwrap();
@@ -32,22 +31,17 @@ fn main() {
     let vs = include_bytes!("shaders/hello_triangle/vs.spv");
     let fs = include_bytes!("shaders/hello_triangle/fs.spv");
 
-    let vs_reflect = context
-        .shader_reflection_extension_reflect(
-            vs,
-            shader_reflection::ReflectionShaderTypeHint::Vertex,
-        )
-        .unwrap();
-    let fs_reflect = context
-        .shader_reflection_extension_reflect(
-            fs,
-            shader_reflection::ReflectionShaderTypeHint::Fragment,
-        )
-        .unwrap();
-
     let program = context
         .new_program(
-            &ShaderSet::shaders(&[(vs_reflect, vs), (fs_reflect, fs)]),
+            &ShaderSet::shaders(&[
+                (
+                    ShaderType::Vertex(VertexBufferInput {
+                        args: vec![VertexInputArgCount(3), VertexInputArgCount(3)],
+                    }),
+                    vs,
+                ),
+                (ShaderType::Fragment, fs),
+            ]),
             &[],
             None,
         )

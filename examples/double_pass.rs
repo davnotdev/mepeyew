@@ -24,7 +24,6 @@ fn main() {
                 display: window.raw_display_handle(),
                 window: window.raw_window_handle(),
             }),
-            Extension::ShaderReflection,
         ],
     )])
     .unwrap();
@@ -33,31 +32,6 @@ fn main() {
     let vs_pass_2 = include_bytes!("shaders/double_pass/vs_pass_2.spv");
     let fs_pass_1 = include_bytes!("shaders/double_pass/fs_pass_1.spv");
     let fs_pass_2 = include_bytes!("shaders/double_pass/fs_pass_2.spv");
-
-    let vs_pass_1_reflect = context
-        .shader_reflection_extension_reflect(
-            vs_pass_1,
-            shader_reflection::ReflectionShaderTypeHint::Vertex,
-        )
-        .unwrap();
-    let vs_pass_2_reflect = context
-        .shader_reflection_extension_reflect(
-            vs_pass_2,
-            shader_reflection::ReflectionShaderTypeHint::Vertex,
-        )
-        .unwrap();
-    let fs_pass_1_reflect = context
-        .shader_reflection_extension_reflect(
-            fs_pass_1,
-            shader_reflection::ReflectionShaderTypeHint::Fragment,
-        )
-        .unwrap();
-    let fs_pass_2_reflect = context
-        .shader_reflection_extension_reflect(
-            fs_pass_2,
-            shader_reflection::ReflectionShaderTypeHint::Fragment,
-        )
-        .unwrap();
 
     let pass_output_attachment_image = context
         .new_attachment_image(640, 480, AttachmentImageUsage::ColorAttachment, None)
@@ -72,8 +46,13 @@ fn main() {
     let program_pass_1 = context
         .new_program(
             &ShaderSet::shaders(&[
-                (vs_pass_1_reflect, vs_pass_1),
-                (fs_pass_1_reflect, fs_pass_1),
+                (
+                    ShaderType::Vertex(VertexBufferInput {
+                        args: vec![VertexInputArgCount(3)],
+                    }),
+                    vs_pass_1,
+                ),
+                (ShaderType::Fragment, fs_pass_1),
             ]),
             &[],
             None,
@@ -83,8 +62,13 @@ fn main() {
     let program_pass_2 = context
         .new_program(
             &ShaderSet::shaders(&[
-                (vs_pass_2_reflect, vs_pass_2),
-                (fs_pass_2_reflect, fs_pass_2),
+                (
+                    ShaderType::Vertex(VertexBufferInput {
+                        args: vec![VertexInputArgCount(3), VertexInputArgCount(2)],
+                    }),
+                    vs_pass_2,
+                ),
+                (ShaderType::Fragment, fs_pass_2),
             ]),
             &[pass_output_uniform],
             None,

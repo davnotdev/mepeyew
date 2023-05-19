@@ -25,26 +25,12 @@ fn main() {
                 display: window.raw_display_handle(),
                 window: window.raw_window_handle(),
             }),
-            Extension::ShaderReflection,
         ],
     )])
     .unwrap();
 
     let vs = include_bytes!("shaders/textured_cube/vs.spv");
     let fs = include_bytes!("shaders/textured_cube/fs.spv");
-
-    let vs_reflect = context
-        .shader_reflection_extension_reflect(
-            vs,
-            shader_reflection::ReflectionShaderTypeHint::Vertex,
-        )
-        .unwrap();
-    let fs_reflect = context
-        .shader_reflection_extension_reflect(
-            fs,
-            shader_reflection::ReflectionShaderTypeHint::Fragment,
-        )
-        .unwrap();
 
     let sampler = context.get_sampler(None).unwrap();
 
@@ -86,7 +72,15 @@ fn main() {
 
     let program = context
         .new_program(
-            &ShaderSet::shaders(&[(vs_reflect, vs), (fs_reflect, fs)]),
+            &ShaderSet::shaders(&[
+                (
+                    ShaderType::Vertex(VertexBufferInput {
+                        args: vec![VertexInputArgCount(3), VertexInputArgCount(2)],
+                    }),
+                    vs,
+                ),
+                (ShaderType::Fragment, fs),
+            ]),
             &[uniform],
             None,
         )
