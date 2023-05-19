@@ -19,8 +19,46 @@ impl WebGpuContext {
     }
 }
 
-fn submit_transfers(context: &WebGpuContext, submit: &Submit) {
-    // todo!()
+fn submit_transfers(context: &WebGpuContext, submit: &Submit) -> GResult<()> {
+    let queue = context.device.queue();
+    submit.vbo_transfers.iter().try_for_each(|(vbo_id, data)| {
+        let vbo = context.vbos.get(vbo_id.id()).ok_or(gpu_api_err!(
+            "webgpu submit transfers vbo id {:?} does not exist",
+            vbo_id
+        ))?;
+        queue.write_buffer_with_u32_and_u8_array(&vbo.buffer, 0, unsafe {
+            std::slice::from_raw_parts(
+                data.as_ptr() as *const u8,
+                data.len() * std::mem::size_of::<VertexBufferElement>(),
+            )
+        });
+        Ok(())
+    })?;
+
+    submit.ibo_transfers.iter().try_for_each(|(ibo_id, data)| {
+        let ibo = context.ibos.get(ibo_id.id()).ok_or(gpu_api_err!(
+            "webgpu submit transfers ibo id {:?} does not exist",
+            ibo_id
+        ))?;
+        queue.write_buffer_with_u32_and_u8_array(&ibo.buffer, 0, unsafe {
+            std::slice::from_raw_parts(
+                data.as_ptr() as *const u8,
+                data.len() * std::mem::size_of::<IndexBufferId>(),
+            )
+        });
+        Ok(())
+    })?;
+
+    submit.ubo_transfers.iter().try_for_each(|(ubo_id, data)| {
+        let ubo = context.ubos.get(ubo_id.id()).ok_or(gpu_api_err!(
+            "webgpu submit transfers ubo id {:?} does not exist",
+            ubo_id
+        ))?;
+        queue.write_buffer_with_u32_and_u8_array(&ubo.buffer, 0, data);
+        Ok(())
+    })?;
+
+    Ok(())
 }
 
 fn submit_pass(

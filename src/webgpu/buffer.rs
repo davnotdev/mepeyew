@@ -11,7 +11,10 @@ impl WebGpuContext {
         let buffer = WebGpuBuffer::new(
             &self.device,
             size as u32,
-            GpuBufferUsageFlags::Vertex as u32,
+            GpuBufferUsageFlags::Vertex as u32 | match storage_type {
+                BufferStorageType::Dynamic => GpuBufferUsageFlags::CopyDst as u32,
+                _ => 0
+            },
             unsafe { std::slice::from_raw_parts(data.as_ptr() as *const u8, size) },
         );
         self.vbos.push(buffer);
@@ -28,7 +31,10 @@ impl WebGpuContext {
         let buffer = WebGpuBuffer::new(
             &self.device,
             size as u32,
-            GpuBufferUsageFlags::Index as u32,
+            GpuBufferUsageFlags::Index as u32 | match storage_type {
+                BufferStorageType::Dynamic => GpuBufferUsageFlags::CopyDst as u32,
+                _ => 0
+            },
             unsafe { std::slice::from_raw_parts(data.as_ptr() as *const u8, size) },
         );
         self.ibos.push(buffer);
@@ -44,7 +50,7 @@ impl WebGpuContext {
         let buffer = WebGpuBuffer::new(
             &self.device,
             size as u32,
-            GpuBufferUsageFlags::Index as u32,
+            GpuBufferUsageFlags::Uniform as u32 | GpuBufferUsageFlags::CopyDst as u32,
             unsafe { std::slice::from_raw_parts(data as *const T as *const u8, size) },
         );
         self.ubos.push(buffer);
@@ -53,7 +59,6 @@ impl WebGpuContext {
 }
 
 pub struct WebGpuBuffer {
-    size: u32,
     pub buffer: GpuBuffer,
 }
 
@@ -71,6 +76,6 @@ impl WebGpuBuffer {
 
         buffer.unmap();
 
-        WebGpuBuffer { size, buffer }
+        WebGpuBuffer { buffer }
     }
 }
