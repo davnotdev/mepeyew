@@ -18,10 +18,15 @@ impl WebGpuContext {
 pub struct WebGpuCompiledPass {
     pub original_pass: Pass,
     pub pipelines: Vec<GpuRenderPipeline>,
+    pub attachment_views: Vec<GpuTextureView>,
 }
 
 impl WebGpuCompiledPass {
-    pub fn new(context: &WebGpuContext, pass: &Pass, ext: Option<CompilePassExt>) -> GResult<Self> {
+    pub fn new(
+        context: &WebGpuContext,
+        pass: &Pass,
+        _ext: Option<CompilePassExt>,
+    ) -> GResult<Self> {
         let pipelines = pass
             .steps
             .iter()
@@ -109,8 +114,12 @@ impl WebGpuCompiledPass {
             })
             .collect::<GResult<Vec<_>>>()?;
 
+        //  TODO
+        let attachment_views = vec![];
+
         Ok(WebGpuCompiledPass {
             pipelines,
+            attachment_views,
             original_pass: pass.clone(),
         })
     }
