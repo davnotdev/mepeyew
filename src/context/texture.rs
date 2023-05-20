@@ -27,12 +27,11 @@ impl Context {
         &mut self,
         width: usize,
         height: usize,
-        sampler: SamplerId,
         format: TextureFormat,
         ext: Option<NewTextureExt>,
     ) -> GResult<TextureId> {
         match self {
-            Self::Vulkan(vk) => vk.new_texture(width, height, sampler, format, ext),
+            Self::Vulkan(vk) => vk.new_texture(width, height, format, ext),
         }
     }
 

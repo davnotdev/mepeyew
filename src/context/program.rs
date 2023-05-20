@@ -40,6 +40,7 @@ pub enum ShaderDepthCompareOp {
 
 #[derive(Clone, Copy)]
 pub enum ShaderUniformType {
+    Sampler(SamplerId),
     Texture(TextureId),
     UniformBuffer(UniformBufferId),
     InputAttachment(AttachmentImageId),

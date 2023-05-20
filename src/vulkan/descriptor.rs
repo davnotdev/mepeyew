@@ -19,8 +19,9 @@ impl VkDescriptors {
         //  Descriptor Pool
         let supported_descriptor_types = [
             vk::DescriptorType::UNIFORM_BUFFER,
-            vk::DescriptorType::COMBINED_IMAGE_SAMPLER,
             vk::DescriptorType::INPUT_ATTACHMENT,
+            vk::DescriptorType::SAMPLED_IMAGE,
+            vk::DescriptorType::SAMPLER,
         ];
 
         let descriptor_pool_sizes = supported_descriptor_types
@@ -62,7 +63,13 @@ impl VkDescriptors {
                 ShaderUniformType::Texture(_) => vk::DescriptorSetLayoutBinding::builder()
                     .binding(uniform.binding as u32)
                     .stage_flags(vk::ShaderStageFlags::FRAGMENT)
-                    .descriptor_type(vk::DescriptorType::COMBINED_IMAGE_SAMPLER)
+                    .descriptor_type(vk::DescriptorType::SAMPLED_IMAGE)
+                    .descriptor_count(1)
+                    .build(),
+                ShaderUniformType::Sampler(_) => vk::DescriptorSetLayoutBinding::builder()
+                    .binding(uniform.binding as u32)
+                    .stage_flags(vk::ShaderStageFlags::FRAGMENT)
+                    .descriptor_type(vk::DescriptorType::SAMPLER)
                     .descriptor_count(1)
                     .build(),
                 ShaderUniformType::InputAttachment(_) => vk::DescriptorSetLayoutBinding::builder()
@@ -162,18 +169,9 @@ impl VkDescriptors {
                             "vulkan uniform texture id {:?} does not exist",
                             texture_id
                         ))?;
-                        let sampler =
-                            context
-                                .sampler_cache
-                                .get(texture.sampler)
-                                .ok_or(gpu_api_err!(
-                                    "vulkan uniform sampler id {:?} does not exist",
-                                    texture.sampler
-                                ))?;
                         let set_idx = uniform.frequency as usize;
                         let image_info = vk::DescriptorImageInfo::builder()
                             .image_view(texture.image_view)
-                            .sampler(sampler)
                             .image_layout(vk::ImageLayout::SHADER_READ_ONLY_OPTIMAL)
                             .build();
 
@@ -183,7 +181,30 @@ impl VkDescriptors {
                             .dst_set(self.descriptor_sets[set_idx])
                             .dst_binding(uniform.binding as u32)
                             .dst_array_element(0)
-                            .descriptor_type(vk::DescriptorType::COMBINED_IMAGE_SAMPLER)
+                            .descriptor_type(vk::DescriptorType::SAMPLED_IMAGE)
+                            .image_info(&image_info_list)
+                            .build();
+
+                        image_infos.push(image_info_list);
+
+                        Ok(ret)
+                    }
+                    ShaderUniformType::Sampler(sampler_id) => {
+                        let sampler = context.sampler_cache.get(sampler_id).ok_or(gpu_api_err!(
+                            "vulkan uniform sampler id {:?} does not exist",
+                            sampler_id
+                        ))?;
+                        let set_idx = uniform.frequency as usize;
+                        let image_info =
+                            vk::DescriptorImageInfo::builder().sampler(sampler).build();
+
+                        let image_info_list = vec![image_info];
+
+                        let ret = vk::WriteDescriptorSet::builder()
+                            .dst_set(self.descriptor_sets[set_idx])
+                            .dst_binding(uniform.binding as u32)
+                            .dst_array_element(0)
+                            .descriptor_type(vk::DescriptorType::SAMPLER)
                             .image_info(&image_info_list)
                             .build();
 

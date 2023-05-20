@@ -5,7 +5,6 @@ impl VkContext {
         &mut self,
         width: usize,
         height: usize,
-        sampler: SamplerId,
         format: TextureFormat,
         ext: Option<NewTextureExt>,
     ) -> GResult<TextureId> {
@@ -13,7 +12,6 @@ impl VkContext {
             self,
             width,
             height,
-            sampler,
             format,
             ext.unwrap_or_default(),
         )?;
@@ -33,11 +31,10 @@ impl VkContext {
             texture_id
         ))?;
 
-        let old_sampler = texture.sampler;
         let old_format = texture.format;
         let old_ext = texture.ext;
 
-        let new_texture = VkTexture::new(self, width, height, old_sampler, old_format, old_ext)?;
+        let new_texture = VkTexture::new(self, width, height, old_format, old_ext)?;
 
         let texture = self.textures.get_mut(texture_id.id()).unwrap();
         let _drop_old_texture = std::mem::replace(texture, new_texture);
@@ -70,7 +67,6 @@ pub struct VkTexture {
 
     pub image: VkImage,
     staging: VkBuffer,
-    pub sampler: SamplerId,
     pub image_view: vk::ImageView,
 
     drop_queue_ref: VkDropQueueRef,
@@ -81,7 +77,6 @@ impl VkTexture {
         context: &mut VkContext,
         width: usize,
         height: usize,
-        sampler: SamplerId,
         format: TextureFormat,
         ext: NewTextureExt,
     ) -> GResult<Self> {
@@ -132,7 +127,6 @@ impl VkTexture {
             image,
             staging,
             image_view,
-            sampler,
             format,
             ext,
             drop_queue_ref: Arc::clone(&context.drop_queue),

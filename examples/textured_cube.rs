@@ -51,7 +51,7 @@ fn main() {
     }
 
     let texture = context
-        .new_texture(x as usize, y as usize, sampler, TextureFormat::Rgba, None)
+        .new_texture(x as usize, y as usize, TextureFormat::Rgba, None)
         .unwrap();
 
     context
@@ -64,9 +64,14 @@ fn main() {
         )
         .unwrap();
 
-    let uniform = ShaderUniform {
+    let texture_uniform = ShaderUniform {
         ty: ShaderUniformType::Texture(texture),
         binding: 0,
+        frequency: ShaderUniformFrequencyHint::High,
+    };
+    let sampler_uniform = ShaderUniform {
+        ty: ShaderUniformType::Sampler(sampler),
+        binding: 1,
         frequency: ShaderUniformFrequencyHint::High,
     };
 
@@ -81,7 +86,7 @@ fn main() {
                 ),
                 (ShaderType::Fragment, fs),
             ]),
-            &[uniform],
+            &[texture_uniform, sampler_uniform],
             None,
         )
         .unwrap();
