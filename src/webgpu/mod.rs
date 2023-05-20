@@ -5,6 +5,7 @@ use std::collections::HashSet;
 use wasm_bindgen::prelude::*;
 use web_sys::*;
 
+use attachment_image::WebGpuAttachmentImage;
 use buffer::WebGpuBuffer;
 use flags::{GpuBufferUsageFlags, GpuShaderStageFlags, GpuTextureUsageFlags};
 use pass::WebGpuCompiledPass;
@@ -12,6 +13,9 @@ use program::WebGpuProgram;
 use sampler::WebGpuSamplerCache;
 use surface::WebGpuSurface;
 use texture::WebGpuTexture;
+
+pub const WEBGPU_COLOR_ATTACHMENT_FORMAT: GpuTextureFormat = GpuTextureFormat::Rgba8unorm;
+pub const WEBGPU_DEPTH_ATTACHMENT_FORMAT: GpuTextureFormat = GpuTextureFormat::Depth32float;
 
 mod attachment_image;
 mod buffer;
@@ -36,6 +40,7 @@ pub struct WebGpuContext {
     programs: Vec<WebGpuProgram>,
     compiled_passes: Vec<WebGpuCompiledPass>,
     textures: Vec<WebGpuTexture>,
+    attachment_images: Vec<WebGpuAttachmentImage>,
     sampler_cache: WebGpuSamplerCache,
 }
 
@@ -146,6 +151,7 @@ impl WebGpuContext {
             programs: vec![],
             compiled_passes: vec![],
             textures: vec![],
+            attachment_images: vec![],
             sampler_cache: WebGpuSamplerCache::new(),
         })
     }

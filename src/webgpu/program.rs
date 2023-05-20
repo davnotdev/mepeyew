@@ -98,8 +98,10 @@ impl WebGpuProgram {
                     GpuShaderStageFlags::FRAGMENT as u8
                 }
                 ShaderUniformType::InputAttachment(_) => {
-                    unimplemented!();
-                    GpuShaderStageFlags::VERTEX as u8 | GpuShaderStageFlags::FRAGMENT as u8
+                    let mut layout = GpuTextureBindingLayout::new();
+                    layout.sample_type(GpuTextureSampleType::UnfilterableFloat);
+                    entry.texture(&layout);
+                    GpuShaderStageFlags::FRAGMENT as u8
                 }
             };
 
@@ -149,8 +151,15 @@ impl WebGpuProgram {
                     ))?;
                     entry.resource(&sampler);
                 }
-                ShaderUniformType::InputAttachment(_) => {
-                    unimplemented!()
+                ShaderUniformType::InputAttachment(attachment_image_id) => {
+                    let attachment_image = context
+                        .attachment_images
+                        .get(attachment_image_id.id())
+                        .ok_or(gpu_api_err!(
+                            "program uniform attachment image id {:?} does not exist",
+                            attachment_image_id
+                        ))?;
+                    entry.resource(&attachment_image.texture_view);
                 }
             }
 

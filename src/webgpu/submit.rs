@@ -89,95 +89,70 @@ fn submit_pass(
                 .as_ref()
                 .map(|surface| surface.context.get_current_texture().create_view());
 
-            //  We only want to clear on the first pass.
-            //  (That's the expected behavior)
-            pass.original_pass
-                .attachments
-                .iter()
-                .try_for_each(|attachment| {
-                    let attachment_view =
-                        if attachment.local_attachment_idx == 0 && surface_view.is_some() {
-                            surface_view.as_ref().unwrap()
-                        } else {
-                            &pass.attachment_views[attachment.local_attachment_idx]
-                        };
+            step.write_colors.iter().try_for_each(|write_color| {
+                let attachment =
+                    pass.original_pass
+                        .attachments
+                        .get(write_color.id())
+                        .ok_or(gpu_api_err!(
+                            "webgpu submit write color {:?} does not exist",
+                            write_color
+                        ))?;
 
-                    match &attachment.ty {
-                        PassInputType::Color(load_op) => {
-                            let op = match load_op {
-                                //  Yes, it's expected behavior to only clear on the first step.
-                                PassInputLoadOpColorType::Clear if step_idx == 0 => {
-                                    GpuLoadOp::Clear
-                                }
-                                _ => GpuLoadOp::Load,
-                            };
+                let local_attachment_idx = write_color.id();
 
-                            let mut color_attachment = GpuRenderPassColorAttachment::new(
-                                op,
-                                GpuStoreOp::Store,
-                                attachment_view,
-                            );
+                let attachment_view = if local_attachment_idx == 0 {
+                    surface_view.as_ref().unwrap()
+                } else {
+                    &pass.attachment_views[local_attachment_idx]
+                };
 
-                            if op == GpuLoadOp::Clear {
-                                let local_attachment_id =
-                                    PassLocalAttachment::from_id(attachment.local_attachment_idx);
-                                let clear_val = pass_submit
-                                    .clear_colors
-                                    .get(&local_attachment_id)
-                                    .ok_or(gpu_api_err!(
-                                        "webpgpu clear color for attachment index {:?} not set",
-                                        local_attachment_id
-                                    ))?;
-                                color_attachment.clear_value(&GpuColorDict::new(
-                                    clear_val.a as f64,
-                                    clear_val.b as f64,
-                                    clear_val.g as f64,
-                                    clear_val.r as f64,
-                                ));
-                            }
-                            color_attachments.push(&color_attachment);
+                match &attachment.ty {
+                    PassInputType::Color(load_op) => {
+                        let op = match load_op {
+                                            //  Yes, it's expected behavior to only clear on the first step.
+                                            PassInputLoadOpColorType::Clear
+                                                // if step_idx == 0
+                                                => {
+                                                GpuLoadOp::Clear
+                                            }
+                                            _ => GpuLoadOp::Load,
+                                        };
+
+                        let mut color_attachment = GpuRenderPassColorAttachment::new(
+                            op,
+                            GpuStoreOp::Store,
+                            attachment_view,
+                        );
+
+                        if op == GpuLoadOp::Clear {
+                            let local_attachment_id =
+                                PassLocalAttachment::from_id(attachment.local_attachment_idx);
+                            let clear_val = pass_submit
+                                .clear_colors
+                                .get(&local_attachment_id)
+                                .ok_or(gpu_api_err!(
+                                    "webpgpu clear color for attachment index {:?} not set",
+                                    local_attachment_id
+                                ))?;
+                            color_attachment.clear_value(&GpuColorDict::new(
+                                clear_val.a as f64,
+                                clear_val.b as f64,
+                                clear_val.g as f64,
+                                clear_val.r as f64,
+                            ));
                         }
-                        PassInputType::Depth(load_op) => {
-                            let op = match load_op {
-                                //  Yes, it's expected behavior to only clear on the first step.
-                                PassInputLoadOpDepthStencilType::Clear if step_idx == 0 => {
-                                    GpuLoadOp::Clear
-                                }
-                                _ => GpuLoadOp::Load,
-                            };
-                            let mut depth_attachment =
-                                GpuRenderPassDepthStencilAttachment::new(attachment_view);
-
-                            if op == GpuLoadOp::Clear {
-                                let local_attachment_id =
-                                    PassLocalAttachment::from_id(attachment.local_attachment_idx);
-                                let clear_val = pass_submit
-                                    .clear_depths
-                                    .get(&local_attachment_id)
-                                    .ok_or(gpu_api_err!(
-                                        "webpgpu clear depth for attachment index {:?} not set",
-                                        local_attachment_id
-                                    ))?;
-                                depth_attachment.depth_clear_value(clear_val.depth);
-                                depth_attachment.stencil_clear_value(clear_val.stencil);
-                            }
-                            depth_attachment.depth_load_op(op);
-                            depth_attachment.stencil_load_op(op);
-
-                            if step.write_depth.is_some() {
-                                depth_attachment.depth_store_op(GpuStoreOp::Store);
-                            }
-
-                            depth_attachments.push(&depth_attachment);
-                        }
+                        color_attachments.push(&color_attachment);
                     }
+                    _ => unreachable!(),
+                }
 
-                    Ok(())
-                })?;
+                Ok(())
+            })?;
 
             let pass_info = GpuRenderPassDescriptor::new(&color_attachments);
             let pass_encoder = command_encoder.begin_render_pass(&pass_info);
-            pass_encoder.set_pipeline(&pass.pipelines[0]);
+            pass_encoder.set_pipeline(&pass.pipelines[step_idx]);
 
             if let Some(program) = step.program {
                 let program = context.programs.get(program.id()).ok_or(gpu_api_err!(

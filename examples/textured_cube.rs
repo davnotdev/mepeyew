@@ -3,7 +3,7 @@ use raw_window_handle::{HasRawDisplayHandle, HasRawWindowHandle};
 use stb_image_rust::*;
 use winit::{
     event::{Event, WindowEvent},
-    event_loop::{ControlFlow, EventLoop},
+    event_loop::EventLoop,
     window::WindowBuilder,
 };
 
@@ -180,13 +180,13 @@ fn main() {
     //
 
     event_loop.run(move |event, _, control_flow| {
-        *control_flow = ControlFlow::Poll;
+        control_flow.set_poll();
 
         match event {
             Event::WindowEvent {
                 event: WindowEvent::CloseRequested,
                 window_id,
-            } if window_id == window.id() => *control_flow = ControlFlow::Exit,
+            } if window_id == window.id() => control_flow.set_exit(),
             Event::WindowEvent {
                 event: WindowEvent::Resized(size),
                 window_id,

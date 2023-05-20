@@ -1,8 +1,5 @@
 use super::*;
 
-pub const WEBGPU_COLOR_ATTACHMENT_FORMAT: GpuTextureFormat = GpuTextureFormat::Rgba8uint;
-pub const WEBGPU_DEPTH_ATTACHMENT_FORMAT: GpuTextureFormat = GpuTextureFormat::Depth32float;
-
 impl WebGpuContext {
     pub fn compile_pass(
         &mut self,
@@ -16,17 +13,17 @@ impl WebGpuContext {
 }
 
 pub struct WebGpuCompiledPass {
+    pub ext: CompilePassExt,
+
     pub original_pass: Pass,
     pub pipelines: Vec<GpuRenderPipeline>,
     pub attachment_views: Vec<GpuTextureView>,
 }
 
 impl WebGpuCompiledPass {
-    pub fn new(
-        context: &WebGpuContext,
-        pass: &Pass,
-        _ext: Option<CompilePassExt>,
-    ) -> GResult<Self> {
+    pub fn new(context: &WebGpuContext, pass: &Pass, ext: Option<CompilePassExt>) -> GResult<Self> {
+        let ext = ext.unwrap_or_default();
+
         let pipelines = pass
             .steps
             .iter()
@@ -114,10 +111,27 @@ impl WebGpuCompiledPass {
             })
             .collect::<GResult<Vec<_>>>()?;
 
-        //  TODO
-        let attachment_views = vec![];
+        let attachment_views = pass
+            .attachments
+            .iter()
+            .map(|attachment| {
+                Ok(if let Some(attachment_image) = attachment.output_image {
+                    let attachment_image = context
+                        .attachment_images
+                        .get(attachment_image.id())
+                        .ok_or(gpu_api_err!(
+                            "webgpu compile pass attachment image id {:?} does not exist",
+                            attachment_image
+                        ))?;
+                    attachment_image.texture_view.clone()
+                } else {
+                    JsValue::null().into()
+                })
+            })
+            .collect::<GResult<Vec<_>>>()?;
 
         Ok(WebGpuCompiledPass {
+            ext,
             pipelines,
             attachment_views,
             original_pass: pass.clone(),

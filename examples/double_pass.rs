@@ -2,39 +2,116 @@ use mepeyew::prelude::*;
 use raw_window_handle::{HasRawDisplayHandle, HasRawWindowHandle};
 use winit::{
     event::{Event, WindowEvent},
-    event_loop::{ControlFlow, EventLoop},
+    event_loop::EventLoop,
     window::WindowBuilder,
 };
 
 fn main() {
+    #[cfg(feature = "webgpu")]
+    wasm::init();
+
     let event_loop = EventLoop::new();
     let window = WindowBuilder::new().build(&event_loop).unwrap();
+
+    let window_size = window.inner_size();
 
     //
     //  --- Begin Setup Code ---
     //
 
-    let mut context = Context::new(&[(
-        Api::Vulkan,
-        &[
-            Extension::NativeDebug,
-            Extension::Surface(surface::SurfaceConfiguration {
-                width: 640,
-                height: 480,
-                display: window.raw_display_handle(),
-                window: window.raw_window_handle(),
-            }),
-        ],
-    )])
+    let mut context = Context::new(&[
+        (
+            Api::Vulkan,
+            &[
+                Extension::NativeDebug,
+                Extension::Surface(surface::SurfaceConfiguration {
+                    width: window_size.width as usize,
+                    height: window_size.height as usize,
+                    display: window.raw_display_handle(),
+                    window: window.raw_window_handle(),
+                }),
+            ],
+        ),
+        (
+            Api::WebGpu,
+            &[
+                Extension::WebGpuInit(webgpu_init::WebGpuInit {
+                    adapter: String::from("mepeyewAdapter"),
+                    device: String::from("mepeyewDevice"),
+                    canvas_id: Some(String::from("canvas")),
+                }),
+                Extension::Surface(surface::SurfaceConfiguration {
+                    width: window_size.width as usize,
+                    height: window_size.height as usize,
+                    display: window.raw_display_handle(),
+                    window: window.raw_window_handle(),
+                }),
+            ],
+        ),
+    ])
     .unwrap();
 
-    let vs_pass_1 = include_bytes!("shaders/double_pass/vs_pass_1.spv");
-    let vs_pass_2 = include_bytes!("shaders/double_pass/vs_pass_2.spv");
-    let fs_pass_1 = include_bytes!("shaders/double_pass/fs_pass_1.spv");
-    let fs_pass_2 = include_bytes!("shaders/double_pass/fs_pass_2.spv");
+    // let vs_pass_1 = include_bytes!("shaders/double_pass/vs_pass_1.spv");
+    // let vs_pass_2 = include_bytes!("shaders/double_pass/vs_pass_2.spv");
+    // let fs_pass_1 = include_bytes!("shaders/double_pass/fs_pass_1.spv");
+    // let fs_pass_2 = include_bytes!("shaders/double_pass/fs_pass_2.spv");
+
+    let vs_pass_1_code = r#"
+        @vertex
+        fn main(
+            @location(0) position : vec3<f32>,
+        ) -> @builtin(position) vec4<f32> {
+            return vec4(position, 1.0);
+        }"#;
+
+    let fs_pass_1_code = r#"
+        @fragment
+        fn main() -> @location(0) vec4<f32> {
+            return vec4(0.0, 0.0, 1.0, 1.0);
+        }"#;
+    let vs_pass_2_code = r#"
+        struct VertexOutput {
+            @builtin(position) position : vec4<f32>,
+            @location(0) texture_coord : vec2<f32>,
+        }
+
+        @vertex
+        fn main(
+            @location(0) position : vec3<f32>,
+            @location(1) texture_coord : vec2<f32>
+        ) -> VertexOutput {
+            var output: VertexOutput;
+            output.position = vec4<f32>(position, 1.0);
+            output.texture_coord = texture_coord;
+            return output;
+        }"#;
+
+    let fs_pass_2_code = r#"
+        @group(0) @binding(0) var pass_color: texture_2d<f32>;
+
+        @fragment
+        fn main(
+            @builtin(position) coords: vec4<f32>,
+        ) -> @location(0) vec4<f32> {
+            return textureLoad(
+                pass_color,
+                vec2<i32>(floor(coords.xy)),
+                0
+            ).xyzw;
+        }"#;
+
+    let vs_pass_1 = vs_pass_1_code.as_bytes();
+    let vs_pass_2 = vs_pass_2_code.as_bytes();
+    let fs_pass_1 = fs_pass_1_code.as_bytes();
+    let fs_pass_2 = fs_pass_2_code.as_bytes();
 
     let pass_output_attachment_image = context
-        .new_attachment_image(640, 480, AttachmentImageUsage::ColorAttachment, None)
+        .new_attachment_image(
+            window_size.width as usize,
+            window_size.height as usize,
+            AttachmentImageUsage::ColorAttachment,
+            None,
+        )
         .unwrap();
 
     let pass_output_uniform = ShaderUniform {
@@ -108,8 +185,8 @@ fn main() {
         .unwrap();
 
     let mut pass = Pass::new(
-        640,
-        480,
+        window_size.width as usize,
+        window_size.height as usize,
         Some(NewPassExt {
             depends_on_surface_size: Some(()),
             surface_attachment_load_op: Some(PassInputLoadOpColorType::Clear),
@@ -149,14 +226,19 @@ fn main() {
     //  --- End Setup Code ---
     //
 
+    context
+        .surface_extension_set_surface_size(window_size.width as usize, window_size.height as usize)
+        .unwrap();
+
     event_loop.run(move |event, _, control_flow| {
-        *control_flow = ControlFlow::Poll;
+        // control_flow.set_poll();
+        control_flow.set_wait();
 
         match event {
             Event::WindowEvent {
                 event: WindowEvent::CloseRequested,
                 window_id,
-            } if window_id == window.id() => *control_flow = ControlFlow::Exit,
+            } if window_id == window.id() => control_flow.set_exit(),
             Event::WindowEvent {
                 event: WindowEvent::Resized(size),
                 window_id,
@@ -215,4 +297,11 @@ fn main() {
             _ => (),
         }
     });
+}
+
+#[cfg(feature = "webgpu")]
+mod wasm {
+    pub fn init() {
+        std::panic::set_hook(Box::new(console_error_panic_hook::hook));
+    }
 }

@@ -1,13 +1,10 @@
+mod surface;
+
 use super::*;
 
 pub fn supported_extensions() -> &'static [ExtensionType] {
     &[
-        // ExtensionType::Surface,
-        // ExtensionType::FlightFramesCount,
-        // ExtensionType::GpuPowerLevel,
-        // ExtensionType::NativeDebug,
-        // ExtensionType::MemoryFlush,
-        // ExtensionType::ShaderReflection,
+        ExtensionType::Surface,
         ExtensionType::WebGpuInit,
     ]
 }

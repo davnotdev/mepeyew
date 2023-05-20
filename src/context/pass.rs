@@ -115,7 +115,7 @@ impl Pass {
     }
 }
 
-#[derive(Default)]
+#[derive(Default, Clone)]
 pub struct CompilePassExt {}
 
 impl Context {
