@@ -54,8 +54,8 @@ fn main() {
     ])
     .unwrap();
 
-    let vs = include_bytes!("shaders/textured_cube/vs.wgsl");
-    let fs = include_bytes!("shaders/textured_cube/fs.wgsl");
+    let vs = include_bytes!("shaders/textured_quad/vs.wgsl");
+    let fs = include_bytes!("shaders/textured_quad/fs.wgsl");
 
     let vs = context
         .naga_translation_extension_translate_shader_code(
