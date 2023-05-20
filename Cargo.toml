@@ -1,6 +1,6 @@
 [package]
 name = "mepeyew"
-version = "0.1.5"
+version = "0.1.6"
 edition = "2021"
 description = "mepeyew - Small But Powerful Graphics Library"
 repository = "https://github.com/davnotdev/mepeyew"
