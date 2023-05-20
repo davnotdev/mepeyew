@@ -53,16 +53,6 @@ impl MockContext {
         unimplemented!("No backend chosen")
     }
 
-    pub fn resize_texture(
-        &mut self,
-        _texture: TextureId,
-        _width: usize,
-        _height: usize,
-        _ext: Option<ResizeTextureExt>,
-    ) -> GResult<()> {
-        unimplemented!("No backend chosen")
-    }
-
     pub fn upload_texture(
         &mut self,
         _texture: TextureId,

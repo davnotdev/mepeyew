@@ -8,40 +8,9 @@ impl VkContext {
         format: TextureFormat,
         ext: Option<NewTextureExt>,
     ) -> GResult<TextureId> {
-        let texture = VkTexture::new(
-            self,
-            width,
-            height,
-            format,
-            ext.unwrap_or_default(),
-        )?;
+        let texture = VkTexture::new(self, width, height, format, ext.unwrap_or_default())?;
         self.textures.push(texture);
         Ok(TextureId::from_id(self.textures.len() - 1))
-    }
-
-    pub fn resize_texture(
-        &mut self,
-        texture_id: TextureId,
-        width: usize,
-        height: usize,
-        _ext: Option<ResizeTextureExt>,
-    ) -> GResult<()> {
-        let texture = self.textures.get_mut(texture_id.id()).ok_or(gpu_api_err!(
-            "vulkan resize texture {:?} doesn't exist",
-            texture_id
-        ))?;
-
-        let old_format = texture.format;
-        let old_ext = texture.ext;
-
-        let new_texture = VkTexture::new(self, width, height, old_format, old_ext)?;
-
-        let texture = self.textures.get_mut(texture_id.id()).unwrap();
-        let _drop_old_texture = std::mem::replace(texture, new_texture);
-
-        self.update_descriptors()?;
-
-        Ok(())
     }
 
     pub fn upload_texture(
@@ -61,8 +30,6 @@ impl VkContext {
 pub struct VkTexture {
     width: usize,
     height: usize,
-    format: TextureFormat,
-    ext: NewTextureExt,
     aspect: vk::ImageAspectFlags,
 
     pub image: VkImage,
@@ -78,7 +45,7 @@ impl VkTexture {
         width: usize,
         height: usize,
         format: TextureFormat,
-        ext: NewTextureExt,
+        _ext: NewTextureExt,
     ) -> GResult<Self> {
         let vkformat = match format {
             // TextureFormat::Rgb => vk::Format::R8G8B8_UNORM,
@@ -127,8 +94,6 @@ impl VkTexture {
             image,
             staging,
             image_view,
-            format,
-            ext,
             drop_queue_ref: Arc::clone(&context.drop_queue),
         })
     }
