@@ -19,3 +19,13 @@ pub enum GpuShaderStageFlags {
     FRAGMENT = 0x2,
     COMPUTE = 0x4,
 }
+
+//  https://webgpu.rocks/reference/typedef/gputextureusageflags/#idl-gputextureusageflags
+#[repr(u32)]
+pub enum GpuTextureUsageFlags {
+    CopySrc = 0x01,
+    CopyDst = 0x02,
+    TextureBinding = 0x04,
+    StorageBinding = 0x08,
+    RenderAttachment = 0x10,
+}

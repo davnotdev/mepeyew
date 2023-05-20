@@ -8,6 +8,9 @@ use winit::{
 };
 
 fn main() {
+    #[cfg(feature = "webgpu")]
+    wasm::init();
+
     let event_loop = EventLoop::new();
     let window = WindowBuilder::new().build(&event_loop).unwrap();
 
@@ -15,36 +18,62 @@ fn main() {
     //  --- Begin Setup Code ---
     //
 
-    let mut context = Context::new(&[(
-        Api::Vulkan,
-        &[
-            Extension::NativeDebug,
-            Extension::Surface(surface::SurfaceConfiguration {
-                width: 640,
-                height: 480,
-                display: window.raw_display_handle(),
-                window: window.raw_window_handle(),
-            }),
-            Extension::ShaderReflection,
-        ],
-    )])
+    let mut context = Context::new(&[
+        (
+            Api::Vulkan,
+            &[
+                Extension::NativeDebug,
+                Extension::Surface(surface::SurfaceConfiguration {
+                    width: 640,
+                    height: 480,
+                    display: window.raw_display_handle(),
+                    window: window.raw_window_handle(),
+                }),
+            ],
+        ),
+        (
+            Api::WebGpu,
+            &[Extension::WebGpuInit(webgpu_init::WebGpuInit {
+                adapter: String::from("mepeyewAdapter"),
+                device: String::from("mepeyewDevice"),
+                canvas_id: Some(String::from("canvas")),
+            })],
+        ),
+    ])
     .unwrap();
 
-    let vs = include_bytes!("shaders/textured_cube/vs.spv");
-    let fs = include_bytes!("shaders/textured_cube/fs.spv");
+    // let vs = include_bytes!("shaders/textured_cube/vs.spv");
+    // let fs = include_bytes!("shaders/textured_cube/fs.spv");
+    let vs_code = r#"
+        struct VertexOutput {
+            @builtin(position) position : vec4<f32>,
+            @location(1) texture_coord : vec2<f32>,
+        }
 
-    let vs_reflect = context
-        .shader_reflection_extension_reflect(
-            vs,
-            shader_reflection::ReflectionShaderTypeHint::Vertex,
-        )
-        .unwrap();
-    let fs_reflect = context
-        .shader_reflection_extension_reflect(
-            fs,
-            shader_reflection::ReflectionShaderTypeHint::Fragment,
-        )
-        .unwrap();
+        @vertex
+        fn main(
+            @location(0) position : vec3<f32>,
+            @location(1) texture_coord : vec2<f32>
+        ) -> VertexOutput {
+            var output: VertexOutput;
+            output.position = vec4<f32>(position, 1.0);
+            output.color = color;
+            output.texture_coord = texture_coord;
+            return output;
+        }"#;
+
+    let fs_code = r#"
+        @group(0) @binding(0) var my_sampler: sampler;
+        @group(0) @binding(1) var my_texture: texture_2d<f32>;
+
+        @fragment
+        fn main(
+            @location(0) texture_coord: vec2<f32>
+        ) -> @location(0) vec4<f32> {
+            return textureSample(my_texture, my_sampler, texture_coord);
+        }"#;
+    let vs = vs_code.as_bytes();
+    let fs = fs_code.as_bytes();
 
     let sampler = context.get_sampler(None).unwrap();
 
@@ -86,7 +115,15 @@ fn main() {
 
     let program = context
         .new_program(
-            &ShaderSet::shaders(&[(vs_reflect, vs), (fs_reflect, fs)]),
+            &ShaderSet::shaders(&[
+                (
+                    ShaderType::Vertex(VertexBufferInput {
+                        args: vec![VertexInputArgCount(3), VertexInputArgCount(2)],
+                    }),
+                    vs,
+                ),
+                (ShaderType::Fragment, fs),
+            ]),
             &[uniform],
             None,
         )
@@ -189,4 +226,11 @@ fn main() {
             _ => (),
         }
     });
+}
+
+#[cfg(feature = "webgpu")]
+mod wasm {
+    pub fn init() {
+        std::panic::set_hook(Box::new(console_error_panic_hook::hook));
+    }
 }

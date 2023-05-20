@@ -6,10 +6,12 @@ use wasm_bindgen::prelude::*;
 use web_sys::*;
 
 use buffer::WebGpuBuffer;
-use flags::{GpuBufferUsageFlags, GpuShaderStageFlags};
+use flags::{GpuBufferUsageFlags, GpuShaderStageFlags, GpuTextureUsageFlags};
 use pass::WebGpuCompiledPass;
 use program::WebGpuProgram;
+use sampler::WebGpuSamplerCache;
 use surface::WebGpuSurface;
+use texture::WebGpuTexture;
 
 mod attachment_image;
 mod buffer;
@@ -33,6 +35,8 @@ pub struct WebGpuContext {
     ubos: Vec<WebGpuBuffer>,
     programs: Vec<WebGpuProgram>,
     compiled_passes: Vec<WebGpuCompiledPass>,
+    textures: Vec<WebGpuTexture>,
+    sampler_cache: WebGpuSamplerCache,
 }
 
 impl WebGpuContext {
@@ -141,6 +145,8 @@ impl WebGpuContext {
             ubos: vec![],
             programs: vec![],
             compiled_passes: vec![],
+            textures: vec![],
+            sampler_cache: WebGpuSamplerCache::new(),
         })
     }
 }

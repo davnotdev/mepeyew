@@ -7,7 +7,8 @@ use winit::{
 };
 
 fn main() {
-    std::panic::set_hook(Box::new(console_error_panic_hook::hook));
+    #[cfg(feature = "webgpu")]
+    wasm::init();
 
     let event_loop = EventLoop::new();
     let window = WindowBuilder::new().build(&event_loop).unwrap();
@@ -182,4 +183,11 @@ fn main() {
             _ => (),
         }
     });
+}
+
+#[cfg(feature = "webgpu")]
+mod wasm {
+    pub fn init() {
+        std::panic::set_hook(Box::new(console_error_panic_hook::hook));
+    }
 }
