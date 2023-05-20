@@ -14,6 +14,8 @@ fn main() {
     let event_loop = EventLoop::new();
     let window = WindowBuilder::new().build(&event_loop).unwrap();
 
+    let window_size = window.inner_size();
+
     //
     //  --- Begin Setup Code ---
     //
@@ -24,21 +26,30 @@ fn main() {
             &[
                 Extension::NativeDebug,
                 Extension::Surface(surface::SurfaceConfiguration {
-                    width: 640,
-                    height: 480,
+                    width: window_size.width as usize,
+                    height: window_size.height as usize,
                     display: window.raw_display_handle(),
                     window: window.raw_window_handle(),
                 }),
+                Extension::NagaTranslation,
             ],
         ),
-        #[cfg(all(feature = "webgpu", target_arch = "wasm32", target_os = "unknown"))]
         (
             Api::WebGpu,
-            &[Extension::WebGpuInit(webgpu_init::WebGpuInit {
-                adapter: String::from("mepeyewAdapter"),
-                device: String::from("mepeyewDevice"),
-                canvas_id: Some(String::from("canvas")),
-            })],
+            &[
+                Extension::WebGpuInitFromWindow(webgpu_init::WebGpuInitFromWindow {
+                    adapter: String::from("mepeyewAdapter"),
+                    device: String::from("mepeyewDevice"),
+                    canvas_id: Some(String::from("canvas")),
+                }),
+                Extension::Surface(surface::SurfaceConfiguration {
+                    width: window_size.width as usize,
+                    height: window_size.height as usize,
+                    display: window.raw_display_handle(),
+                    window: window.raw_window_handle(),
+                }),
+                Extension::NagaTranslation,
+            ],
         ),
     ])
     .unwrap();
@@ -144,8 +155,8 @@ fn main() {
         .unwrap();
 
     let mut pass = Pass::new(
-        640,
-        480,
+        window_size.width as usize,
+        window_size.height as usize,
         Some(NewPassExt {
             depends_on_surface_size: Some(()),
             surface_attachment_load_op: Some(PassInputLoadOpColorType::Clear),

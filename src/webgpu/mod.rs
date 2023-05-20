@@ -1,5 +1,5 @@
 use super::{
-    context::{self, *},
+    context::*,
     error::{gpu_api_err, GResult, GpuError},
 };
 use js_sys::*;
@@ -65,7 +65,7 @@ impl WebGpuContext {
         let (adapter_str, device_str, canvas_id) = extensions
             .iter()
             .find_map(|ext| {
-                if let Extension::WebGpuInit(init) = ext.clone() {
+                if let Extension::WebGpuInitFromWindow(init) = ext.clone() {
                     Some((init.adapter, init.device, init.canvas_id))
                 } else {
                     None

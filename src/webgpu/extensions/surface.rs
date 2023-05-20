@@ -6,11 +6,12 @@ impl WebGpuContext {
         _width: usize,
         _height: usize,
     ) -> GResult<()> {
-        //  Hmmm.
-        let surface_texture = self.surface.as_ref().unwrap().context.get_current_texture();
+        //  Ok, this seems to break more than it fixes.
+        // //  Hmmm.
+        // let surface_texture = self.surface.as_ref().unwrap().context.get_current_texture();
 
-        let width = surface_texture.width() as usize;
-        let height = surface_texture.height() as usize;
+        // let width = surface_texture.width() as usize;
+        // let height = surface_texture.height() as usize;
 
         // //  Resize Attachment Images.
         // for attachment_image in self.attachment_images.iter_mut() {

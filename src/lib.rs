@@ -19,26 +19,58 @@
 //!
 //! ```
 //! //  Create the context and initialize extensions.
-//! let mut context = Context::new(&[(
-//!     Api::Vulkan,
-//!     &[
-//!         //  I prefer this enabled, but it doesn't always help and may resource intensive.
-//!         Extension::NativeDebug,
-//!         Extension::Surface(surface::SurfaceConfiguration {
-//!         //  Yes, these numbers are arbitrary.
-//!             width: 640,
-//!             height: 480,
-//!         //  You are in charge of this.
-//!             display: unimplemented!(),
-//!             window: unimplemented!(),
-//!         }),
-//!     ],
-//! )])
+//! let mut context = Context::new(&[
+//!     (
+//!         Api::Vulkan,
+//!         &[
+//!         //  I prefer this enabled, but note that not all errors are fatal.
+//!             Extension::NativeDebug,
+//!             Extension::Surface(surface::SurfaceConfiguration {
+//!             //  All of this is up to you.
+//!                 width: todo!(),
+//!                 height: todo!(),
+//!                 display: todo!(),
+//!                 window: todo!(),
+//!             }),
+//!             Extension::NagaTranslation,
+//!         ],
+//!     ),
+//!     (
+//!         Api::WebGpu,
+//!         &[
+//!             //  See [`webgpu_init::WebGpuInitFromWindow`].
+//!             Extension::WebGpuInitFromWindow(webgpu_init::WebGpuInitFromWindow {
+//!                 adapter: todo!(),
+//!                 device: todo!(),
+//!                 canvas_id: todo!(),
+//!             }),
+//!             Extension::NagaTranslation,
+//!         ],
+//!     ),
+//! ])
 //! .unwrap();
 //!
 //! //  Load and create the shaders.
+//! //  Overall, wgsl is the best supported language.
 //! let vs = "...";
 //! let fs = "...";
+//!
+//! let vs = context
+//!     .naga_translation_extension_translate_shader_code(
+//!         naga_translation::NagaTranslationStage::Vertex,
+//!         naga_translation::NagaTranslationInput::Wgsl,
+//!         vs,
+//!         naga_translation::NagaTranslationExtensionTranslateShaderCodeExt::default(),
+//!     )
+//!     .unwrap();
+//! let fs = context
+//!     .naga_translation_extension_translate_shader_code(
+//!         naga_translation::NagaTranslationStage::Fragment,
+//!         naga_translation::NagaTranslationInput::Wgsl,
+//!         fs,
+//!         naga_translation::NagaTranslationExtensionTranslateShaderCodeExt::default(),
+//!     )
+//!     .unwrap();
 //!
 //! let program = context
 //!     .new_program(
@@ -47,9 +79,9 @@
 //!                 ShaderType::Vertex(VertexBufferInput {
 //!                     args: vec![VertexInputArgCount(3)],
 //!                 }),
-//!                 vs,
+//!                 &vs,
 //!             ),
-//!             (ShaderType::Fragment, fs),
+//!             (ShaderType::Fragment, &fs),
 //!         ]),
 //!         &[],
 //!         None,
@@ -77,9 +109,9 @@
 //!
 //! //  Create our render pass.
 //! let mut pass = Pass::new(
-//! //  These width height numbers are arbitrary as well.
-//!     640,
-//!     480,
+//! //  These width height numbers are based on the window.
+//!     todo!(),
+//!     todo!(),
 //!     Some(NewPassExt {
 //!         //  Yes, we would like this to be resizable.
 //!         depends_on_surface_size: Some(()),
@@ -108,6 +140,8 @@
 //!
 //! //  Pretend that this is our render loop.
 //! loop {
+//!     //  Make sure to call [`Context::surface_extension_set_surface_size`] when the window resizes.
+//!
 //!     let mut submit = Submit::new();
 //!
 //!     //  Prepare to submit our compiled pass.
@@ -136,7 +170,10 @@
 //!
 //! ```
 //!
-//! > Sorry for the massive code dump!
+//! Sorry for the massive code dump!
+//!
+//! Once again, If you want a more comprehensive set of examples, [look here](https://github.com/davnotdev/mepeyew/tree/main/examples).
+//!
 
 pub mod prelude;
 

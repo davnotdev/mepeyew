@@ -5,7 +5,7 @@ use super::*;
 pub fn supported_extensions() -> &'static [ExtensionType] {
     &[
         ExtensionType::Surface,
-        ExtensionType::WebGpuInit,
+        ExtensionType::WebGpuInitFromWindow,
         #[cfg(feature = "naga_translation")]
         ExtensionType::NagaTranslation,
     ]

@@ -1,5 +1,5 @@
 #[derive(Clone)]
-pub struct WebGpuInit {
+pub struct WebGpuInitFromWindow {
     /// Created using these lines in javascript land.
     /// ```javascript
     /// let adapter = await navigator.gpu.requestAdapter();

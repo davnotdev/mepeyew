@@ -73,6 +73,7 @@ pub enum Api {
     WebGpu,
 }
 
+#[allow(clippy::large_enum_variant)]
 pub enum Context {
     #[cfg(all(
         not(all(target_arch = "wasm32", target_os = "unknown")),

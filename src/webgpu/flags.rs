@@ -1,4 +1,5 @@
 //  https://webgpu.rocks/reference/typedef/gpubufferusageflags/#idl-gpubufferusageflags
+#[allow(unused)]
 #[repr(u32)]
 pub enum GpuBufferUsageFlags {
     MapRead = 0x0001,
@@ -12,7 +13,8 @@ pub enum GpuBufferUsageFlags {
     InDirect = 0x0100,
     QueryResolve = 0x0200,
 }
-
+//  https://webgpu.rocks/reference/typedef/gpushaderstageflags/#idl-gpushaderstageflags
+#[allow(unused)]
 #[repr(u8)]
 pub enum GpuShaderStageFlags {
     VERTEX = 0x1,
@@ -21,6 +23,7 @@ pub enum GpuShaderStageFlags {
 }
 
 //  https://webgpu.rocks/reference/typedef/gputextureusageflags/#idl-gputextureusageflags
+#[allow(unused)]
 #[repr(u32)]
 pub enum GpuTextureUsageFlags {
     CopySrc = 0x01,

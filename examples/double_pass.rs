@@ -30,12 +30,13 @@ fn main() {
                     display: window.raw_display_handle(),
                     window: window.raw_window_handle(),
                 }),
+                Extension::NagaTranslation,
             ],
         ),
         (
             Api::WebGpu,
             &[
-                Extension::WebGpuInit(webgpu_init::WebGpuInit {
+                Extension::WebGpuInitFromWindow(webgpu_init::WebGpuInitFromWindow {
                     adapter: String::from("mepeyewAdapter"),
                     device: String::from("mepeyewDevice"),
                     canvas_id: Some(String::from("canvas")),
@@ -46,6 +47,7 @@ fn main() {
                     display: window.raw_display_handle(),
                     window: window.raw_window_handle(),
                 }),
+                Extension::NagaTranslation,
             ],
         ),
     ])
@@ -125,7 +127,7 @@ fn main() {
             &ShaderSet::shaders(&[
                 (
                     ShaderType::Vertex(VertexBufferInput {
-                        args: vec![VertexInputArgCount(3), VertexInputArgCount(2)],
+                        args: vec![VertexInputArgCount(3)],
                     }),
                     &vs_pass_2,
                 ),
@@ -146,10 +148,10 @@ fn main() {
 
     #[rustfmt::skip]
     let vertex_data_pass_2: Vec<VertexBufferElement> = vec![
-        -0.5,  0.5, 0.0, 0.0, 1.0,
-        -0.5, -0.5, 0.0, 0.0, 0.0,
-         0.5,  0.5, 0.0, 1.0, 1.0,
-         0.5, -0.5, 0.0, 1.0, 0.0,
+        -0.5,  0.5, 0.0,
+        -0.5, -0.5, 0.0,
+         0.5,  0.5, 0.0,
+         0.5, -0.5, 0.0,
     ];
 
     #[rustfmt::skip]

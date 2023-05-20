@@ -5,7 +5,6 @@
 pub mod gpu_power_level;
 pub mod memory_flush;
 
-#[cfg(all(feature = "webgpu", target_arch = "wasm32", target_os = "unknown"))]
 pub mod webgpu_init;
 
 #[cfg(feature = "surface_extension")]
@@ -18,7 +17,6 @@ use super::*;
 
 //  TODO EXT: List of future extensions:
 //  - Named Buffers
-//  - ForceSPIRV
 //  - Raytracing
 
 #[derive(Clone)]
@@ -31,14 +29,17 @@ pub enum Extension {
     /// Api dependent debug logs.
     NativeDebug,
     /// Explicitly clear out unused gpu memory.
+    /// Invoke using [`Context::memory_flush_extension_flush_memory`].
     MemoryFlush,
+    /// Currently required to initialize the WebGpu Context.
+    WebGpuInitFromWindow(webgpu_init::WebGpuInitFromWindow),
     /// Rendering to the screen.
     /// Enable this unless you plan to run headlessly.
+    /// Be sure to invoke [Context::surface_extension_set_surface_size] properly.
     #[cfg(feature = "surface_extension")]
     Surface(surface::SurfaceConfiguration),
-    /// Required to initialize the WebGpu Context.
-    #[cfg(all(feature = "webgpu", target_arch = "wasm32", target_os = "unknown"))]
-    WebGpuInit(webgpu_init::WebGpuInit),
+    /// Translate from one shader language to another via [`naga`](https://github.com/gfx-rs/naga).
+    /// Invoke using [`Context::naga_translation_extension_translate_shader_code`].
     #[cfg(feature = "naga_translation")]
     NagaTranslation,
 }
@@ -50,8 +51,7 @@ pub enum ExtensionType {
     GpuPowerLevel,
     NativeDebug,
     MemoryFlush,
-    #[cfg(all(feature = "webgpu", target_arch = "wasm32", target_os = "unknown"))]
-    WebGpuInit,
+    WebGpuInitFromWindow,
     #[cfg(feature = "surface_extension")]
     Surface,
     #[cfg(feature = "naga_translation")]
@@ -65,8 +65,7 @@ impl Extension {
             Self::GpuPowerLevel(_) => ExtensionType::GpuPowerLevel,
             Self::NativeDebug => ExtensionType::NativeDebug,
             Self::MemoryFlush => ExtensionType::MemoryFlush,
-            #[cfg(all(feature = "webgpu", target_arch = "wasm32", target_os = "unknown"))]
-            Self::WebGpuInit(_) => ExtensionType::WebGpuInit,
+            Self::WebGpuInitFromWindow(_) => ExtensionType::WebGpuInitFromWindow,
             #[cfg(feature = "surface_extension")]
             Self::Surface(_) => ExtensionType::Surface,
             #[cfg(feature = "naga_translation")]

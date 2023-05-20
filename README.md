@@ -50,9 +50,10 @@ The API is designed to be stable, but I can't guarentee anything of course.
 - [x] Shader Attachments
 - [x] Documentation
 - [x] v0.1 Release!
-- [ ] WGSL and Naga
-- [ ] WebGPU
-- [ ] Stencil Buffers
+- [x] WGSL and Naga
+- [x] WebGPU
+- [ ] (Tested) Depth Buffers
+- [ ] (Tested) Stencil Buffers
 - [ ] MSAA
 - [ ] Compute
 - [ ] v0.2 Release!
