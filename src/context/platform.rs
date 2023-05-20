@@ -16,16 +16,15 @@ fn platform_prefered() -> Vec<Api> {
     ]
 }
 
-// TODO FIX: For development purposes.
-// #[cfg(all(not(target_os = "macos"), target_family = "unix"))]
-// fn platform_prefered() -> Vec<Api> {
-//     vec![
-//         #[cfg(feature = "vulkan")]
-//         Api::Vulkan,
-//     ]
-// }
+#[cfg(all(not(target_os = "macos"), target_family = "unix"))]
+fn platform_prefered() -> Vec<Api> {
+    vec![
+        #[cfg(feature = "vulkan")]
+        Api::Vulkan,
+    ]
+}
 
-#[cfg(all(feature = "webgpu"))]
+#[cfg(all(target_arch = "wasm32", target_os = "unknown"))]
 fn platform_prefered() -> Vec<Api> {
     vec![Api::WebGpu]
 }
@@ -56,12 +55,15 @@ impl Context {
                 .find_map(|(eapi, extensions)| (api == *eapi).then_some(*extensions))
                 .unwrap_or(&[]);
             match api {
-                #[cfg(feature = "vulkan")]
+                #[cfg(all(
+                    not(all(target_arch = "wasm32", target_os = "unknown")),
+                    feature = "vulkan"
+                ))]
                 Api::Vulkan => match VkContext::new(api_extensions) {
                     Ok(context) => return Ok(Context::Vulkan(context)),
                     Err(fail) => fails.push(fail),
                 },
-                #[cfg(feature = "webgpu")]
+                #[cfg(all(feature = "webgpu", target_arch = "wasm32", target_os = "unknown"))]
                 Api::WebGpu => match WebGpuContext::new(api_extensions) {
                     Ok(context) => return Ok(Context::WebGpu(context)),
                     Err(fail) => fails.push(fail),

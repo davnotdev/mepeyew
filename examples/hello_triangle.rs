@@ -7,7 +7,7 @@ use winit::{
 };
 
 fn main() {
-    #[cfg(feature = "webgpu")]
+    #[cfg(all(feature = "webgpu", target_arch = "wasm32", target_os = "unknown"))]
     wasm::init();
 
     let event_loop = EventLoop::new();
@@ -31,6 +31,7 @@ fn main() {
                 Extension::NagaTranslation,
             ],
         ),
+        #[cfg(all(feature = "webgpu", target_arch = "wasm32", target_os = "unknown"))]
         (
             Api::WebGpu,
             &[
@@ -179,7 +180,7 @@ fn main() {
     });
 }
 
-#[cfg(feature = "webgpu")]
+#[cfg(all(feature = "webgpu", target_arch = "wasm32", target_os = "unknown"))]
 mod wasm {
     pub fn init() {
         std::panic::set_hook(Box::new(console_error_panic_hook::hook));

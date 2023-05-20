@@ -4,6 +4,8 @@
 
 pub mod gpu_power_level;
 pub mod memory_flush;
+
+#[cfg(all(feature = "webgpu", target_arch = "wasm32", target_os = "unknown"))]
 pub mod webgpu_init;
 
 #[cfg(feature = "surface_extension")]
@@ -35,7 +37,7 @@ pub enum Extension {
     #[cfg(feature = "surface_extension")]
     Surface(surface::SurfaceConfiguration),
     /// Required to initialize the WebGpu Context.
-    #[cfg(feature = "webgpu")]
+    #[cfg(all(feature = "webgpu", target_arch = "wasm32", target_os = "unknown"))]
     WebGpuInit(webgpu_init::WebGpuInit),
     #[cfg(feature = "naga_translation")]
     NagaTranslation,
@@ -48,7 +50,7 @@ pub enum ExtensionType {
     GpuPowerLevel,
     NativeDebug,
     MemoryFlush,
-    #[cfg(feature = "webgpu")]
+    #[cfg(all(feature = "webgpu", target_arch = "wasm32", target_os = "unknown"))]
     WebGpuInit,
     #[cfg(feature = "surface_extension")]
     Surface,
@@ -63,6 +65,7 @@ impl Extension {
             Self::GpuPowerLevel(_) => ExtensionType::GpuPowerLevel,
             Self::NativeDebug => ExtensionType::NativeDebug,
             Self::MemoryFlush => ExtensionType::MemoryFlush,
+            #[cfg(all(feature = "webgpu", target_arch = "wasm32", target_os = "unknown"))]
             Self::WebGpuInit(_) => ExtensionType::WebGpuInit,
             #[cfg(feature = "surface_extension")]
             Self::Surface(_) => ExtensionType::Surface,

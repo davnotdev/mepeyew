@@ -2,9 +2,12 @@ use super::error::*;
 
 #[allow(unused_imports)]
 use super::mock::*;
-#[cfg(feature = "vulkan")]
+#[cfg(all(
+    not(all(target_arch = "wasm32", target_os = "unknown")),
+    feature = "vulkan"
+))]
 use super::vulkan::*;
-#[cfg(feature = "webgpu")]
+#[cfg(all(feature = "webgpu", target_arch = "wasm32", target_os = "unknown"))]
 use super::webgpu::*;
 
 pub mod extensions;
@@ -71,13 +74,16 @@ pub enum Api {
 }
 
 pub enum Context {
-    #[cfg(feature = "vulkan")]
+    #[cfg(all(
+        not(all(target_arch = "wasm32", target_os = "unknown")),
+        feature = "vulkan"
+    ))]
     Vulkan(VkContext),
-    #[cfg(not(feature = "vulkan"))]
+    #[cfg(any(target_arch = "wasm32", target_os = "unknown", not(feature = "vulkan")))]
     Vulkan(MockContext),
-    #[cfg(feature = "webgpu")]
+    #[cfg(all(target_arch = "wasm32", target_os = "unknown"))]
     WebGpu(WebGpuContext),
-    #[cfg(not(feature = "webgpu"))]
+    #[cfg(not(all(feature = "webgpu", target_arch = "wasm32", target_os = "unknown")))]
     WebGpu(MockContext),
 }
 

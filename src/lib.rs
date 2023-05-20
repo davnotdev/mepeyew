@@ -144,7 +144,10 @@ pub mod context;
 mod error;
 mod mock;
 
-#[cfg(feature = "vulkan")]
+#[cfg(all(
+    not(all(target_arch = "wasm32", target_os = "unknown")),
+    feature = "vulkan"
+))]
 mod vulkan;
-#[cfg(feature = "webgpu")]
+#[cfg(all(feature = "webgpu", target_arch = "wasm32", target_os = "unknown"))]
 mod webgpu;
