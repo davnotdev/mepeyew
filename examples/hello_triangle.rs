@@ -28,48 +28,42 @@ fn main() {
                     display: window.raw_display_handle(),
                     window: window.raw_window_handle(),
                 }),
+                Extension::NagaTranslation,
             ],
         ),
         (
             Api::WebGpu,
-            &[Extension::WebGpuInit(webgpu_init::WebGpuInit {
-                adapter: String::from("mepeyewAdapter"),
-                device: String::from("mepeyewDevice"),
-                canvas_id: Some(String::from("canvas")),
-            })],
+            &[
+                Extension::WebGpuInit(webgpu_init::WebGpuInit {
+                    adapter: String::from("mepeyewAdapter"),
+                    device: String::from("mepeyewDevice"),
+                    canvas_id: Some(String::from("canvas")),
+                }),
+                Extension::NagaTranslation,
+            ],
         ),
     ])
     .unwrap();
 
-    // let vs = include_bytes!("shaders/hello_triangle/vs.spv");
-    // let fs = include_bytes!("shaders/hello_triangle/fs.spv");
-    let vs_code = r#"
-        struct VertexOutput {
-            @builtin(position) position : vec4<f32>,
-            @location(0) color : vec3<f32>,
-        }
+    let vs = include_bytes!("shaders/hello_triangle/vs.wgsl");
+    let fs = include_bytes!("shaders/hello_triangle/fs.wgsl");
 
-        @vertex
-        fn main(
-            @location(0) position : vec3<f32>,
-            @location(1) color : vec3<f32>
-        ) -> VertexOutput {
-            var output: VertexOutput;
-            output.position = vec4<f32>(position, 1.0);
-            output.color = color;
-            return output;
-        }"#;
-
-    let fs_code = r#"
-        @fragment
-        fn main(
-            @location(0) color: vec3<f32>
-        ) -> @location(0) vec4<f32> {
-            return vec4(color, 1.0);
-        }"#;
-
-    let vs = vs_code.as_bytes();
-    let fs = fs_code.as_bytes();
+    let vs = context
+        .naga_translation_extension_translate_shader_code(
+            naga_translation::NagaTranslationStage::Vertex,
+            naga_translation::NagaTranslationInput::Wgsl,
+            vs,
+            naga_translation::NagaTranslationExtensionTranslateShaderCodeExt::default(),
+        )
+        .unwrap();
+    let fs = context
+        .naga_translation_extension_translate_shader_code(
+            naga_translation::NagaTranslationStage::Fragment,
+            naga_translation::NagaTranslationInput::Wgsl,
+            fs,
+            naga_translation::NagaTranslationExtensionTranslateShaderCodeExt::default(),
+        )
+        .unwrap();
 
     let program = context
         .new_program(
@@ -78,9 +72,9 @@ fn main() {
                     ShaderType::Vertex(VertexBufferInput {
                         args: vec![VertexInputArgCount(3), VertexInputArgCount(3)],
                     }),
-                    vs,
+                    &vs,
                 ),
-                (ShaderType::Fragment, fs),
+                (ShaderType::Fragment, &fs),
             ]),
             &[],
             None,

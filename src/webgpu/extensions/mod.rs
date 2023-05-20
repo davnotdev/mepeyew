@@ -6,6 +6,8 @@ pub fn supported_extensions() -> &'static [ExtensionType] {
     &[
         ExtensionType::Surface,
         ExtensionType::WebGpuInit,
+        #[cfg(feature = "naga_translation")]
+        ExtensionType::NagaTranslation,
     ]
 }
 

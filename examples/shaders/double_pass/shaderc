@@ -1,9 +1,0 @@
-#!/bin/sh
-
-set -e
-
-glslc vs_pass_1.vert -o vs_pass_1.spv
-glslc vs_pass_2.vert -o vs_pass_2.spv
-glslc fs_pass_1.frag -o fs_pass_1.spv
-glslc fs_pass_2.frag -o fs_pass_2.spv
-

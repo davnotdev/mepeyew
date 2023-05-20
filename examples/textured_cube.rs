@@ -42,37 +42,25 @@ fn main() {
     ])
     .unwrap();
 
-    // let vs = include_bytes!("shaders/textured_cube/vs.spv");
-    // let fs = include_bytes!("shaders/textured_cube/fs.spv");
-    let vs_code = r#"
-        struct VertexOutput {
-            @builtin(position) position : vec4<f32>,
-            @location(0) texture_coord : vec2<f32>,
-        }
+    let vs = include_bytes!("shaders/textured_cube/vs.wgsl");
+    let fs = include_bytes!("shaders/textured_cube/fs.wgsl");
 
-        @vertex
-        fn main(
-            @location(0) position : vec3<f32>,
-            @location(1) texture_coord : vec2<f32>
-        ) -> VertexOutput {
-            var output: VertexOutput;
-            output.position = vec4<f32>(position, 1.0);
-            output.texture_coord = texture_coord;
-            return output;
-        }"#;
-
-    let fs_code = r#"
-        @group(0) @binding(0) var my_texture: texture_2d<f32>;
-        @group(0) @binding(1) var my_sampler: sampler;
-
-        @fragment
-        fn main(
-            @location(0) texture_coord: vec2<f32>
-        ) -> @location(0) vec4<f32> {
-            return textureSample(my_texture, my_sampler, texture_coord);
-        }"#;
-    let vs = vs_code.as_bytes();
-    let fs = fs_code.as_bytes();
+    let vs = context
+        .naga_translation_extension_translate_shader_code(
+            naga_translation::NagaTranslationStage::Vertex,
+            naga_translation::NagaTranslationInput::Wgsl,
+            vs,
+            naga_translation::NagaTranslationExtensionTranslateShaderCodeExt::default(),
+        )
+        .unwrap();
+    let fs = context
+        .naga_translation_extension_translate_shader_code(
+            naga_translation::NagaTranslationStage::Fragment,
+            naga_translation::NagaTranslationInput::Wgsl,
+            fs,
+            naga_translation::NagaTranslationExtensionTranslateShaderCodeExt::default(),
+        )
+        .unwrap();
 
     let sampler = context.get_sampler(None).unwrap();
 
@@ -124,9 +112,9 @@ fn main() {
                     ShaderType::Vertex(VertexBufferInput {
                         args: vec![VertexInputArgCount(3), VertexInputArgCount(2)],
                     }),
-                    vs,
+                    &vs,
                 ),
-                (ShaderType::Fragment, fs),
+                (ShaderType::Fragment, &fs),
             ]),
             &[texture_uniform, sampler_uniform],
             None,

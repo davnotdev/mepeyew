@@ -1,5 +1,7 @@
-use super::context::*;
-use super::error::{gpu_api_err, GResult, GpuError};
+use super::{
+    context::{self, *},
+    error::{gpu_api_err, GResult, GpuError},
+};
 use js_sys::*;
 use std::collections::HashSet;
 use wasm_bindgen::prelude::*;

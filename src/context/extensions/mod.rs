@@ -9,6 +9,9 @@ pub mod webgpu_init;
 #[cfg(feature = "surface_extension")]
 pub mod surface;
 
+#[cfg(feature = "naga_translation")]
+pub mod naga_translation;
+
 use super::*;
 
 //  TODO EXT: List of future extensions:
@@ -34,6 +37,8 @@ pub enum Extension {
     /// Required to initialize the WebGpu Context.
     #[cfg(feature = "webgpu")]
     WebGpuInit(webgpu_init::WebGpuInit),
+    #[cfg(feature = "naga_translation")]
+    NagaTranslation,
 }
 
 /// Look at [`Extension`] for details on each extension.
@@ -43,10 +48,12 @@ pub enum ExtensionType {
     GpuPowerLevel,
     NativeDebug,
     MemoryFlush,
-    #[cfg(feature = "surface_extension")]
-    Surface,
     #[cfg(feature = "webgpu")]
     WebGpuInit,
+    #[cfg(feature = "surface_extension")]
+    Surface,
+    #[cfg(feature = "naga_translation")]
+    NagaTranslation,
 }
 
 impl Extension {
@@ -56,9 +63,11 @@ impl Extension {
             Self::GpuPowerLevel(_) => ExtensionType::GpuPowerLevel,
             Self::NativeDebug => ExtensionType::NativeDebug,
             Self::MemoryFlush => ExtensionType::MemoryFlush,
+            Self::WebGpuInit(_) => ExtensionType::WebGpuInit,
             #[cfg(feature = "surface_extension")]
             Self::Surface(_) => ExtensionType::Surface,
-            Self::WebGpuInit(_) => ExtensionType::WebGpuInit,
+            #[cfg(feature = "naga_translation")]
+            Self::NagaTranslation => ExtensionType::NagaTranslation,
         }
     }
 }

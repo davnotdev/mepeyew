@@ -12,6 +12,7 @@ pub fn supported_extensions() -> &'static [ExtensionType] {
         ExtensionType::GpuPowerLevel,
         ExtensionType::NativeDebug,
         ExtensionType::MemoryFlush,
+        ExtensionType::NagaTranslation,
     ]
 }
 

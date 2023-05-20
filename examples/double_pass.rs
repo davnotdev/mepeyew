@@ -51,59 +51,43 @@ fn main() {
     ])
     .unwrap();
 
-    // let vs_pass_1 = include_bytes!("shaders/double_pass/vs_pass_1.spv");
-    // let vs_pass_2 = include_bytes!("shaders/double_pass/vs_pass_2.spv");
-    // let fs_pass_1 = include_bytes!("shaders/double_pass/fs_pass_1.spv");
-    // let fs_pass_2 = include_bytes!("shaders/double_pass/fs_pass_2.spv");
+    let vs_pass_1 = include_bytes!("shaders/double_pass/vs_pass_1.wgsl");
+    let vs_pass_2 = include_bytes!("shaders/double_pass/vs_pass_2.wgsl");
+    let fs_pass_1 = include_bytes!("shaders/double_pass/fs_pass_1.wgsl");
+    let fs_pass_2 = include_bytes!("shaders/double_pass/fs_pass_2.wgsl");
 
-    let vs_pass_1_code = r#"
-        @vertex
-        fn main(
-            @location(0) position : vec3<f32>,
-        ) -> @builtin(position) vec4<f32> {
-            return vec4(position, 1.0);
-        }"#;
-
-    let fs_pass_1_code = r#"
-        @fragment
-        fn main() -> @location(0) vec4<f32> {
-            return vec4(0.0, 0.0, 1.0, 1.0);
-        }"#;
-    let vs_pass_2_code = r#"
-        struct VertexOutput {
-            @builtin(position) position : vec4<f32>,
-            @location(0) texture_coord : vec2<f32>,
-        }
-
-        @vertex
-        fn main(
-            @location(0) position : vec3<f32>,
-            @location(1) texture_coord : vec2<f32>
-        ) -> VertexOutput {
-            var output: VertexOutput;
-            output.position = vec4<f32>(position, 1.0);
-            output.texture_coord = texture_coord;
-            return output;
-        }"#;
-
-    let fs_pass_2_code = r#"
-        @group(0) @binding(0) var pass_color: texture_2d<f32>;
-
-        @fragment
-        fn main(
-            @builtin(position) coords: vec4<f32>,
-        ) -> @location(0) vec4<f32> {
-            return textureLoad(
-                pass_color,
-                vec2<i32>(floor(coords.xy)),
-                0
-            ).xyzw;
-        }"#;
-
-    let vs_pass_1 = vs_pass_1_code.as_bytes();
-    let vs_pass_2 = vs_pass_2_code.as_bytes();
-    let fs_pass_1 = fs_pass_1_code.as_bytes();
-    let fs_pass_2 = fs_pass_2_code.as_bytes();
+    let vs_pass_1 = context
+        .naga_translation_extension_translate_shader_code(
+            naga_translation::NagaTranslationStage::Vertex,
+            naga_translation::NagaTranslationInput::Wgsl,
+            vs_pass_1,
+            naga_translation::NagaTranslationExtensionTranslateShaderCodeExt::default(),
+        )
+        .unwrap();
+    let fs_pass_1 = context
+        .naga_translation_extension_translate_shader_code(
+            naga_translation::NagaTranslationStage::Fragment,
+            naga_translation::NagaTranslationInput::Wgsl,
+            fs_pass_1,
+            naga_translation::NagaTranslationExtensionTranslateShaderCodeExt::default(),
+        )
+        .unwrap();
+    let vs_pass_2 = context
+        .naga_translation_extension_translate_shader_code(
+            naga_translation::NagaTranslationStage::Vertex,
+            naga_translation::NagaTranslationInput::Wgsl,
+            vs_pass_2,
+            naga_translation::NagaTranslationExtensionTranslateShaderCodeExt::default(),
+        )
+        .unwrap();
+    let fs_pass_2 = context
+        .naga_translation_extension_translate_shader_code(
+            naga_translation::NagaTranslationStage::Fragment,
+            naga_translation::NagaTranslationInput::Wgsl,
+            fs_pass_2,
+            naga_translation::NagaTranslationExtensionTranslateShaderCodeExt::default(),
+        )
+        .unwrap();
 
     let pass_output_attachment_image = context
         .new_attachment_image(
@@ -127,9 +111,9 @@ fn main() {
                     ShaderType::Vertex(VertexBufferInput {
                         args: vec![VertexInputArgCount(3)],
                     }),
-                    vs_pass_1,
+                    &vs_pass_1,
                 ),
-                (ShaderType::Fragment, fs_pass_1),
+                (ShaderType::Fragment, &fs_pass_1),
             ]),
             &[],
             None,
@@ -143,9 +127,9 @@ fn main() {
                     ShaderType::Vertex(VertexBufferInput {
                         args: vec![VertexInputArgCount(3), VertexInputArgCount(2)],
                     }),
-                    vs_pass_2,
+                    &vs_pass_2,
                 ),
-                (ShaderType::Fragment, fs_pass_2),
+                (ShaderType::Fragment, &fs_pass_2),
             ]),
             &[pass_output_uniform],
             None,
@@ -231,8 +215,7 @@ fn main() {
         .unwrap();
 
     event_loop.run(move |event, _, control_flow| {
-        // control_flow.set_poll();
-        control_flow.set_wait();
+        control_flow.set_poll();
 
         match event {
             Event::WindowEvent {
