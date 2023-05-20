@@ -8,13 +8,8 @@ impl WebGpuContext {
         format: TextureFormat,
         ext: Option<NewTextureExt>,
     ) -> GResult<TextureId> {
-        let texture = WebGpuTexture::new(
-            &self.device,
-            width,
-            height,
-            format,
-            ext.unwrap_or_default(),
-        );
+        let texture =
+            WebGpuTexture::new(&self.device, width, height, format, ext.unwrap_or_default());
         self.textures.push(texture);
 
         Ok(TextureId::from_id(self.textures.len() - 1))
@@ -22,12 +17,13 @@ impl WebGpuContext {
 
     pub fn resize_texture(
         &mut self,
-        _texture: TextureId,
+        _texture_id: TextureId,
         _width: usize,
         _height: usize,
         _ext: Option<ResizeTextureExt>,
     ) -> GResult<()> {
-        todo!()
+        //  TODO CHK: Texture resizing doesn't seem neccessary.
+        Ok(())
     }
 
     pub fn upload_texture(
@@ -45,10 +41,14 @@ impl WebGpuContext {
         let size = Array::new();
         size.push(&JsValue::from(texture.width));
         size.push(&JsValue::from(texture.height));
+
+        let mut layout = GpuImageDataLayout::new();
+        layout.offset(0.0).bytes_per_row(texture.width as u32 * 4);
+
         queue.write_texture_with_u8_array_and_u32_sequence(
             &GpuImageCopyTexture::new(&texture.texture),
             data,
-            &GpuImageDataLayout::new(),
+            &layout,
             &size,
         );
 
@@ -58,7 +58,7 @@ impl WebGpuContext {
 
 pub struct WebGpuTexture {
     texture: GpuTexture,
-    texture_view: GpuTextureView,
+    pub texture_view: GpuTextureView,
     width: usize,
     height: usize,
 }
@@ -72,7 +72,7 @@ impl WebGpuTexture {
         _ext: NewTextureExt,
     ) -> Self {
         let format = match format {
-            TextureFormat::Rgba => GpuTextureFormat::Rgba8uint,
+            TextureFormat::Rgba => GpuTextureFormat::Rgba8unorm,
         };
 
         let size = Array::new();
@@ -80,7 +80,7 @@ impl WebGpuTexture {
         size.push(&JsValue::from(height));
 
         let usage =
-            GpuTextureUsageFlags::CopyDst as u32 | GpuTextureUsageFlags::RenderAttachment as u32;
+            GpuTextureUsageFlags::CopyDst as u32 | GpuTextureUsageFlags::TextureBinding as u32;
 
         let texture_info = GpuTextureDescriptor::new(format, &size, usage);
         let texture = device.create_texture(&texture_info);

@@ -9,7 +9,7 @@ impl WebGpuContext {
         uniforms: &[ShaderUniform],
         ext: Option<NewProgramExt>,
     ) -> GResult<ProgramId> {
-        let program = WebGpuProgram::new(&self.device, shaders, uniforms, ext)?;
+        let program = WebGpuProgram::new(self, shaders, uniforms, ext)?;
         self.programs.push(program);
         Ok(ProgramId::from_id(self.programs.len() - 1))
     }
@@ -26,18 +26,20 @@ pub struct WebGpuProgram {
 
 impl WebGpuProgram {
     pub fn new(
-        device: &GpuDevice,
+        context: &WebGpuContext,
         shaders: &ShaderSet,
         uniforms: &[ShaderUniform],
         ext: Option<NewProgramExt>,
     ) -> GResult<Self> {
-        let (ty, vertex) =
-            take_single_shader(device, shaders, |ty| matches!(ty, ShaderType::Vertex(_)))?
-                .ok_or(gpu_api_err!("webgpu did not get a vertex shader"))?;
+        let (ty, vertex) = take_single_shader(&context.device, shaders, |ty| {
+            matches!(ty, ShaderType::Vertex(_))
+        })?
+        .ok_or(gpu_api_err!("webgpu did not get a vertex shader"))?;
 
-        let fragment =
-            take_single_shader(device, shaders, |ty| matches!(ty, ShaderType::Fragment))?
-                .map(|(_, shader)| shader);
+        let fragment = take_single_shader(&context.device, shaders, |ty| {
+            matches!(ty, ShaderType::Fragment)
+        })?
+        .map(|(_, shader)| shader);
 
         let vertex_buffer_layout_attributes = Array::new();
 
@@ -86,7 +88,13 @@ impl WebGpuProgram {
                     GpuShaderStageFlags::VERTEX as u8 | GpuShaderStageFlags::FRAGMENT as u8
                 }
                 ShaderUniformType::Texture(_) => {
-                    unimplemented!();
+                    let layout = GpuTextureBindingLayout::new();
+                    entry.texture(&layout);
+                    GpuShaderStageFlags::FRAGMENT as u8
+                }
+                ShaderUniformType::Sampler(_) => {
+                    let layout = GpuSamplerBindingLayout::new();
+                    entry.sampler(&layout);
                     GpuShaderStageFlags::FRAGMENT as u8
                 }
                 ShaderUniformType::InputAttachment(_) => {
@@ -108,20 +116,38 @@ impl WebGpuProgram {
                     entries.push(binding);
                 });
                 let bind_group_layout_info = GpuBindGroupLayoutDescriptor::new(&entries);
-                device.create_bind_group_layout(&bind_group_layout_info)
+                context
+                    .device
+                    .create_bind_group_layout(&bind_group_layout_info)
             })
             .collect::<Vec<_>>();
 
         let mut bind_groups = (0..BINDING_GROUP_COUNT).map(|_| vec![]).collect::<Vec<_>>();
 
-        uniforms.iter().for_each(|uniform| {
-            let entry = GpuBindGroupEntry::new(uniform.binding as u32, &JsValue::null());
+        uniforms.iter().try_for_each(|uniform| {
+            let mut entry = GpuBindGroupEntry::new(uniform.binding as u32, &JsValue::null());
             match uniform.ty {
-                ShaderUniformType::UniformBuffer(_) => {
-                    unimplemented!()
+                ShaderUniformType::UniformBuffer(ubo_id) => {
+                    let ubo = context.ubos.get(ubo_id.id()).ok_or(gpu_api_err!(
+                        "program uniform buffer id {:?} does not exist",
+                        ubo_id
+                    ))?;
+                    let buffer = GpuBufferBinding::new(&ubo.buffer);
+                    entry.resource(&buffer);
                 }
-                ShaderUniformType::Texture(_) => {
-                    unimplemented!()
+                ShaderUniformType::Texture(texture_id) => {
+                    let texture = context.textures.get(texture_id.id()).ok_or(gpu_api_err!(
+                        "program uniform texture id {:?} does not exist",
+                        texture_id
+                    ))?;
+                    entry.resource(&texture.texture_view);
+                }
+                ShaderUniformType::Sampler(sampler_id) => {
+                    let sampler = context.sampler_cache.get(sampler_id).ok_or(gpu_api_err!(
+                        "program uniform sampler id {:?} does not exist",
+                        sampler_id
+                    ))?;
+                    entry.resource(&sampler);
                 }
                 ShaderUniformType::InputAttachment(_) => {
                     unimplemented!()
@@ -129,7 +155,9 @@ impl WebGpuProgram {
             }
 
             bind_groups[uniform.frequency as usize].push(entry);
-        });
+
+            Ok(())
+        })?;
 
         let bind_groups = bind_groups
             .into_iter()
@@ -141,7 +169,7 @@ impl WebGpuProgram {
                 });
                 let layout = &bind_group_layouts[idx];
                 let bind_group_info = GpuBindGroupDescriptor::new(&entries, &layout);
-                device.create_bind_group(&bind_group_info)
+                context.device.create_bind_group(&bind_group_info)
             })
             .collect::<Vec<_>>();
 

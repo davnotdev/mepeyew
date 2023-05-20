@@ -47,7 +47,7 @@ fn main() {
     let vs_code = r#"
         struct VertexOutput {
             @builtin(position) position : vec4<f32>,
-            @location(1) texture_coord : vec2<f32>,
+            @location(0) texture_coord : vec2<f32>,
         }
 
         @vertex
@@ -57,14 +57,13 @@ fn main() {
         ) -> VertexOutput {
             var output: VertexOutput;
             output.position = vec4<f32>(position, 1.0);
-            output.color = color;
             output.texture_coord = texture_coord;
             return output;
         }"#;
 
     let fs_code = r#"
-        @group(0) @binding(0) var my_sampler: sampler;
-        @group(0) @binding(1) var my_texture: texture_2d<f32>;
+        @group(0) @binding(0) var my_texture: texture_2d<f32>;
+        @group(0) @binding(1) var my_sampler: sampler;
 
         @fragment
         fn main(
