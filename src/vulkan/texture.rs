@@ -8,13 +8,7 @@ impl VkContext {
         format: TextureFormat,
         ext: Option<NewTextureExt>,
     ) -> GResult<TextureId> {
-        let texture = VkTexture::new(
-            self,
-            width,
-            height,
-            format,
-            ext.unwrap_or_default(),
-        )?;
+        let texture = VkTexture::new(self, width, height, format, ext.unwrap_or_default())?;
         self.textures.push(texture);
         Ok(TextureId::from_id(self.textures.len() - 1))
     }
@@ -36,8 +30,6 @@ impl VkContext {
 pub struct VkTexture {
     width: usize,
     height: usize,
-    format: TextureFormat,
-    ext: NewTextureExt,
     aspect: vk::ImageAspectFlags,
 
     pub image: VkImage,
@@ -53,7 +45,7 @@ impl VkTexture {
         width: usize,
         height: usize,
         format: TextureFormat,
-        ext: NewTextureExt,
+        _ext: NewTextureExt,
     ) -> GResult<Self> {
         let vkformat = match format {
             // TextureFormat::Rgb => vk::Format::R8G8B8_UNORM,
@@ -102,8 +94,6 @@ impl VkTexture {
             image,
             staging,
             image_view,
-            format,
-            ext,
             drop_queue_ref: Arc::clone(&context.drop_queue),
         })
     }

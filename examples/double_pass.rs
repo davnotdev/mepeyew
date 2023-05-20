@@ -64,7 +64,7 @@ fn main() {
             &ShaderSet::shaders(&[
                 (
                     ShaderType::Vertex(VertexBufferInput {
-                        args: vec![VertexInputArgCount(3), VertexInputArgCount(2)],
+                        args: vec![VertexInputArgCount(3)],
                     }),
                     vs_pass_2,
                 ),
@@ -85,10 +85,10 @@ fn main() {
 
     #[rustfmt::skip]
     let vertex_data_pass_2: Vec<VertexBufferElement> = vec![
-        -0.5,  0.5, 0.0, 0.0, 1.0,
-        -0.5, -0.5, 0.0, 0.0, 0.0,
-         0.5,  0.5, 0.0, 1.0, 1.0,
-         0.5, -0.5, 0.0, 1.0, 0.0,
+        -0.5,  0.5, 0.0,
+        -0.5, -0.5, 0.0,
+         0.5,  0.5, 0.0,
+         0.5, -0.5, 0.0,
     ];
 
     #[rustfmt::skip]
