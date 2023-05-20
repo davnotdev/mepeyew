@@ -19,31 +19,6 @@ impl VkContext {
         Ok(TextureId::from_id(self.textures.len() - 1))
     }
 
-    pub fn resize_texture(
-        &mut self,
-        texture_id: TextureId,
-        width: usize,
-        height: usize,
-        _ext: Option<ResizeTextureExt>,
-    ) -> GResult<()> {
-        let texture = self.textures.get_mut(texture_id.id()).ok_or(gpu_api_err!(
-            "vulkan resize texture {:?} doesn't exist",
-            texture_id
-        ))?;
-
-        let old_format = texture.format;
-        let old_ext = texture.ext;
-
-        let new_texture = VkTexture::new(self, width, height, old_format, old_ext)?;
-
-        let texture = self.textures.get_mut(texture_id.id()).unwrap();
-        let _drop_old_texture = std::mem::replace(texture, new_texture);
-
-        self.update_descriptors()?;
-
-        Ok(())
-    }
-
     pub fn upload_texture(
         &mut self,
         texture: TextureId,

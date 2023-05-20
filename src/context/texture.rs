@@ -35,18 +35,6 @@ impl Context {
         }
     }
 
-    pub fn resize_texture(
-        &mut self,
-        texture: TextureId,
-        width: usize,
-        height: usize,
-        ext: Option<ResizeTextureExt>,
-    ) -> GResult<()> {
-        match self {
-            Self::Vulkan(vk) => vk.resize_texture(texture, width, height, ext),
-        }
-    }
-
     pub fn upload_texture(
         &mut self,
         texture: TextureId,
