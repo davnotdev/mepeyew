@@ -42,7 +42,6 @@ impl Context {
     ///             Extension::Surface(surface::SurfaceConfiguration {
     ///                 ...
     ///             }),
-    ///         Extension::ShaderReflection,
     ///         ],
     ///     )]);
     /// ```

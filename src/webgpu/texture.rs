@@ -5,7 +5,6 @@ impl WebGpuContext {
         &mut self,
         width: usize,
         height: usize,
-        sampler: SamplerId,
         format: TextureFormat,
         ext: Option<NewTextureExt>,
     ) -> GResult<TextureId> {
@@ -13,7 +12,6 @@ impl WebGpuContext {
             &self.device,
             width,
             height,
-            sampler,
             format,
             ext.unwrap_or_default(),
         );
@@ -59,7 +57,6 @@ impl WebGpuContext {
 }
 
 pub struct WebGpuTexture {
-    sampler: SamplerId,
     texture: GpuTexture,
     texture_view: GpuTextureView,
     width: usize,
@@ -71,7 +68,6 @@ impl WebGpuTexture {
         device: &GpuDevice,
         width: usize,
         height: usize,
-        sampler: SamplerId,
         format: TextureFormat,
         _ext: NewTextureExt,
     ) -> Self {
@@ -91,7 +87,6 @@ impl WebGpuTexture {
         let texture_view = texture.create_view();
 
         WebGpuTexture {
-            sampler,
             texture,
             texture_view,
             width,

@@ -1,6 +1,6 @@
 mod extensions;
 
-use super::context::{extensions as context_extensions, *};
+use super::context::*;
 use super::error::GResult;
 
 ///  This is used when disabling backends.
@@ -47,7 +47,6 @@ impl MockContext {
         &mut self,
         _width: usize,
         _height: usize,
-        _sampler: SamplerId,
         _format: TextureFormat,
         _ext: Option<NewTextureExt>,
     ) -> GResult<TextureId> {

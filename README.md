@@ -15,6 +15,9 @@ trying to give you as much power as possible!
 
 ## Basic Usage
 
+> Warning! 
+> Currently, this project is going through many changes and isn't stable! 🚧
+
 Add this to your `Cargo.toml`:
 
 ### Desktop Platform Use
@@ -49,4 +52,7 @@ The API is designed to be stable, but I can't guarentee anything of course.
 - [x] v0.1 Release!
 - [ ] WGLSL and Naga
 - [ ] WebGPU
+- [ ] Stencil Buffers
+- [ ] MSAA
 - [ ] Compute
+- [ ] v0.2 Release!

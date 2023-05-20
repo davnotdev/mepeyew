@@ -6,8 +6,6 @@ pub mod gpu_power_level;
 pub mod memory_flush;
 pub mod webgpu_init;
 
-#[cfg(feature = "shader_reflection_extension")]
-pub mod shader_reflection;
 #[cfg(feature = "surface_extension")]
 pub mod surface;
 
@@ -33,9 +31,6 @@ pub enum Extension {
     /// Enable this unless you plan to run headlessly.
     #[cfg(feature = "surface_extension")]
     Surface(surface::SurfaceConfiguration),
-    /// Auto-infer out a [`ShaderType`].
-    #[cfg(feature = "shader_reflection_extension")]
-    ShaderReflection,
     /// Required to initialize the WebGpu Context.
     #[cfg(feature = "webgpu")]
     WebGpuInit(webgpu_init::WebGpuInit),
@@ -50,8 +45,6 @@ pub enum ExtensionType {
     MemoryFlush,
     #[cfg(feature = "surface_extension")]
     Surface,
-    #[cfg(feature = "shader_reflection_extension")]
-    ShaderReflection,
     #[cfg(feature = "webgpu")]
     WebGpuInit,
 }
@@ -65,8 +58,6 @@ impl Extension {
             Self::MemoryFlush => ExtensionType::MemoryFlush,
             #[cfg(feature = "surface_extension")]
             Self::Surface(_) => ExtensionType::Surface,
-            #[cfg(feature = "shader_reflection_extension")]
-            Self::ShaderReflection => ExtensionType::ShaderReflection,
             Self::WebGpuInit(_) => ExtensionType::WebGpuInit,
         }
     }
