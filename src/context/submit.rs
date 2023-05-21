@@ -46,7 +46,6 @@ pub struct PassSubmitData {
     pub(crate) pass: CompiledPassId,
     pub(crate) steps_datas: Vec<StepSubmitData>,
 
-
     pub(crate) clear_colors: HashMap<PassLocalAttachment, ClearColor>,
     pub(crate) clear_depths: HashMap<PassLocalAttachment, ClearDepthStencil>,
 }
@@ -69,13 +68,22 @@ impl PassSubmitData {
 
     //  TODO EXT: Validate attachment type.
 
-    /// Ensure that the `surface_attachment_load_op` from [`NewPassExt`] was set.
+    /// If you plan on clearing the surface attachment, ensure that the [`NewPassExt::surface_attachment_load_op`] was set.
     pub fn set_attachment_clear_color(
         &mut self,
         attachment_ref: PassLocalAttachment,
         clear_color: ClearColor,
     ) -> &mut Self {
         self.clear_colors.insert(attachment_ref, clear_color);
+        self
+    }
+
+    pub fn set_attachment_clear_depth_stencil(
+        &mut self,
+        attachment_ref: PassLocalAttachment,
+        clear_depth_stencil: ClearDepthStencil,
+    ) -> &mut Self {
+        self.clear_depths.insert(attachment_ref, clear_depth_stencil);
         self
     }
 }

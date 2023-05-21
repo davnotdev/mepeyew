@@ -164,14 +164,14 @@ fn new_render_pass(ctx: &VkContext, pass: &Pass) -> GResult<vk::RenderPass> {
                                 vk::ImageLayout::COLOR_ATTACHMENT_OPTIMAL
                             }
                         }
-                        PassInputType::Depth(_) => vk::ImageLayout::DEPTH_ATTACHMENT_OPTIMAL,
+                        PassInputType::Depth(_) => vk::ImageLayout::DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
                     })
                     .build(),
                 vk::AttachmentReference::builder()
                     .attachment(attachment.local_attachment_idx as u32)
                     .layout(match attachment.ty {
                         PassInputType::Color(_) => vk::ImageLayout::COLOR_ATTACHMENT_OPTIMAL,
-                        PassInputType::Depth(_) => vk::ImageLayout::DEPTH_ATTACHMENT_OPTIMAL,
+                        PassInputType::Depth(_) => vk::ImageLayout::DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
                     })
                     .build(),
             ))
@@ -181,7 +181,7 @@ fn new_render_pass(ctx: &VkContext, pass: &Pass) -> GResult<vk::RenderPass> {
     //  These values must outlive subpasses.
     let mut each_total_input_attachments = vec![];
     let mut each_color_input_attachments = vec![];
-    let mut each_depth_input_attachments = vec![];
+    let mut each_depth_ptrs = vec![];
 
     let subpasses = pass
         .steps
@@ -204,25 +204,21 @@ fn new_render_pass(ctx: &VkContext, pass: &Pass) -> GResult<vk::RenderPass> {
                 })
                 .collect::<Vec<_>>();
 
-            let depth_input_attachment = step
-                .write_depth
-                .map(|write_depth| pass_input_attachments[write_depth.id()].1);
-
-            let partial = vk::SubpassDescription::builder()
+            let mut subpass = vk::SubpassDescription::builder()
                 .pipeline_bind_point(vk::PipelineBindPoint::GRAPHICS)
                 .input_attachments(&input_attachments)
-                .color_attachments(&color_input_attachments);
-            let partial = if let Some(depth) = &depth_input_attachment {
-                partial.depth_stencil_attachment(depth)
-            } else {
-                partial
-            };
+                .color_attachments(&color_input_attachments)
+                .build();
 
-            let subpass = partial.build();
+            if let Some(depth) = step.write_depth {
+                let depth = Box::new(pass_input_attachments[depth.id()].1);
+                subpass.p_depth_stencil_attachment =
+                    depth.as_ref() as *const vk::AttachmentReference;
+                each_depth_ptrs.push(depth);
+            }
 
             each_total_input_attachments.push(input_attachments);
             each_color_input_attachments.push(color_input_attachments);
-            each_depth_input_attachments.push(depth_input_attachment);
 
             subpass
         })

@@ -24,6 +24,7 @@ naga_translation = ["dep:naga"]
 
 [dev-dependencies]
 winit = "0.28.1"
+nalgebra-glm = "0.18"
 stb_image_rust = "2.27.2"
 console_error_panic_hook = "0.1"
 

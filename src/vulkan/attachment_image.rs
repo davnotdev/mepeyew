@@ -43,7 +43,10 @@ impl VkAttachmentImage {
         attachment_usage: AttachmentImageUsage,
         ext: NewAttachmentImageExt,
     ) -> GResult<Self> {
-        let format = VK_COLOR_ATTACHMENT_FORMAT;
+        let format = match attachment_usage {
+            AttachmentImageUsage::ColorAttachment => VK_COLOR_ATTACHMENT_FORMAT,
+            AttachmentImageUsage::DepthAttachment => VK_DEPTH_ATTACHMENT_FORMAT,
+        };
         let usages = vk::ImageUsageFlags::INPUT_ATTACHMENT
             | match attachment_usage {
                 AttachmentImageUsage::ColorAttachment => vk::ImageUsageFlags::COLOR_ATTACHMENT,

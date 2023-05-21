@@ -45,8 +45,9 @@ The API is designed to be stable, but I can't guarentee anything of course.
 - [x] v0.1 Release!
 - [x] WGSL and Naga
 - [x] WebGPU
-- [ ] (Tested) Depth Buffers
+- [x] (Tested) Depth Buffers
 - [ ] (Tested) Stencil Buffers
 - [ ] MSAA
+- [ ] More Attachment Formats
 - [ ] Compute
 - [ ] v0.2 Release!

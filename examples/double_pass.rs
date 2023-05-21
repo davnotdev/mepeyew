@@ -3,17 +3,17 @@ use raw_window_handle::{HasRawDisplayHandle, HasRawWindowHandle};
 use winit::{
     event::{Event, WindowEvent},
     event_loop::EventLoop,
-    window::WindowBuilder,
+    window::{Window, WindowBuilder},
 };
 
 fn main() {
-    #[cfg(feature = "webgpu")]
+    #[cfg(all(feature = "webgpu", target_arch = "wasm32", target_os = "unknown"))]
     wasm::init();
 
     let event_loop = EventLoop::new();
     let window = WindowBuilder::new().build(&event_loop).unwrap();
 
-    let window_size = window.inner_size();
+    let window_size = get_window_size(&window);
 
     //
     //  --- Begin Setup Code ---
@@ -25,8 +25,8 @@ fn main() {
             &[
                 Extension::NativeDebug,
                 Extension::Surface(surface::SurfaceConfiguration {
-                    width: window_size.width as usize,
-                    height: window_size.height as usize,
+                    width: window_size.0,
+                    height: window_size.1,
                     display: window.raw_display_handle(),
                     window: window.raw_window_handle(),
                 }),
@@ -42,8 +42,8 @@ fn main() {
                     canvas_id: Some(String::from("canvas")),
                 }),
                 Extension::Surface(surface::SurfaceConfiguration {
-                    width: window_size.width as usize,
-                    height: window_size.height as usize,
+                    width: window_size.0,
+                    height: window_size.1,
                     display: window.raw_display_handle(),
                     window: window.raw_window_handle(),
                 }),
@@ -93,8 +93,8 @@ fn main() {
 
     let pass_output_attachment_image = context
         .new_attachment_image(
-            window_size.width as usize,
-            window_size.height as usize,
+            window_size.0,
+            window_size.1,
             AttachmentImageUsage::ColorAttachment,
             None,
         )
@@ -171,8 +171,8 @@ fn main() {
         .unwrap();
 
     let mut pass = Pass::new(
-        window_size.width as usize,
-        window_size.height as usize,
+        window_size.0,
+        window_size.1,
         Some(NewPassExt {
             depends_on_surface_size: Some(()),
             surface_attachment_load_op: Some(PassInputLoadOpColorType::Clear),
@@ -211,10 +211,6 @@ fn main() {
     //
     //  --- End Setup Code ---
     //
-
-    context
-        .surface_extension_set_surface_size(window_size.width as usize, window_size.height as usize)
-        .unwrap();
 
     event_loop.run(move |event, _, control_flow| {
         control_flow.set_poll();
@@ -284,9 +280,38 @@ fn main() {
     });
 }
 
-#[cfg(feature = "webgpu")]
+#[allow(unused_variables)]
+fn get_window_size(window: &Window) -> (usize, usize) {
+    #[cfg(all(target_arch = "wasm32", target_os = "unknown"))]
+    return wasm::get_window_size();
+
+    #[cfg(not(all(target_arch = "wasm32", target_os = "unknown")))]
+    {
+        let size = window.inner_size();
+        (size.width as usize, size.height as usize)
+    }
+}
+
+#[cfg(all(feature = "webgpu", target_arch = "wasm32", target_os = "unknown"))]
 mod wasm {
+    use wasm_bindgen::prelude::*;
+
     pub fn init() {
         std::panic::set_hook(Box::new(console_error_panic_hook::hook));
+    }
+
+    pub fn get_window_size() -> (usize, usize) {
+        let window = web_sys::window().unwrap();
+        let canvas = window
+            .document()
+            .unwrap()
+            .get_element_by_id("canvas")
+            .unwrap()
+            .dyn_into::<web_sys::HtmlCanvasElement>()
+            .unwrap();
+        (
+            canvas.client_width() as usize,
+            canvas.client_height() as usize,
+        )
     }
 }

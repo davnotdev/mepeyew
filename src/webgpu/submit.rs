@@ -82,7 +82,7 @@ fn submit_pass(
         .enumerate()
         .try_for_each(|(step_idx, (step, step_data))| {
             let color_attachments = Array::new();
-            let depth_attachments = Array::new();
+            let mut depth_attachment = None;
 
             let surface_view = context
                 .surface
@@ -110,14 +110,9 @@ fn submit_pass(
                 match &attachment.ty {
                     PassInputType::Color(load_op) => {
                         let op = match load_op {
-                                            //  Yes, it's expected behavior to only clear on the first step.
-                                            PassInputLoadOpColorType::Clear
-                                                // if step_idx == 0
-                                                => {
-                                                GpuLoadOp::Clear
-                                            }
-                                            _ => GpuLoadOp::Load,
-                                        };
+                            PassInputLoadOpColorType::Clear => GpuLoadOp::Clear,
+                            _ => GpuLoadOp::Load,
+                        };
 
                         let mut color_attachment = GpuRenderPassColorAttachment::new(
                             op,
@@ -150,7 +145,52 @@ fn submit_pass(
                 Ok(())
             })?;
 
-            let pass_info = GpuRenderPassDescriptor::new(&color_attachments);
+            if let Some(write_depth) = step.write_depth {
+                let attachment =
+                    pass.original_pass
+                        .attachments
+                        .get(write_depth.id())
+                        .ok_or(gpu_api_err!(
+                            "webgpu submit write depth {:?} does not exist",
+                            write_depth
+                        ))?;
+
+                let local_attachment_idx = write_depth.id();
+                let mut depth_stencil_attachment = GpuRenderPassDepthStencilAttachment::new(
+                    &pass.attachment_views[local_attachment_idx],
+                );
+                let local_attachment_id =
+                    PassLocalAttachment::from_id(attachment.local_attachment_idx);
+                let depth_clear_val =
+                    pass_submit
+                        .clear_depths
+                        .get(&local_attachment_id)
+                        .ok_or(gpu_api_err!(
+                            "webpgpu clear depth stencil for attachment index {:?} not set",
+                            local_attachment_id
+                        ))?;
+                match &attachment.ty {
+                    PassInputType::Depth(load_op) => {
+                        depth_stencil_attachment
+                            .depth_store_op(GpuStoreOp::Store)
+                            .depth_load_op(match load_op {
+                                PassInputLoadOpDepthStencilType::Clear => GpuLoadOp::Clear,
+                                _ => GpuLoadOp::Load,
+                            })
+                            .depth_clear_value(depth_clear_val.depth);
+                    }
+                    _ => unreachable!(),
+                }
+
+                depth_attachment = Some(depth_stencil_attachment);
+            }
+
+            let mut pass_info = GpuRenderPassDescriptor::new(&color_attachments);
+
+            if let Some(depth_attachment) = depth_attachment {
+                pass_info.depth_stencil_attachment(&depth_attachment);
+            }
+
             let pass_encoder = command_encoder.begin_render_pass(&pass_info);
             pass_encoder.set_pipeline(&pass.pipelines[step_idx]);
 
