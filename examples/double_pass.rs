@@ -190,7 +190,7 @@ fn main() {
         pass_step
             .add_vertex_buffer(vbo_pass_1)
             .set_index_buffer(ibo)
-            .set_program(program_pass_1)
+            .add_program(program_pass_1)
             .add_write_color(pass_1_output);
 
         pass_step.get_step_dependency()
@@ -200,10 +200,10 @@ fn main() {
         pass_step
             .add_vertex_buffer(vbo_pass_2)
             .set_index_buffer(ibo)
-            .set_program(program_pass_2)
+            .add_program(program_pass_2)
             .add_write_color(surface_attachment)
             .read_local_attachment(pass_1_output)
-            .set_wait_for_color_from_step(first_dep, ShaderType::Fragment);
+            .set_wait_for_color_from_step(first_dep, ShaderStage::Fragment);
     }
 
     let compiled_pass = context.compile_pass(&pass, None).unwrap();
@@ -239,7 +239,7 @@ fn main() {
 
                 {
                     let mut step_submit = StepSubmitData::new();
-                    step_submit.draw_indexed(0, index_data.len());
+                    step_submit.draw_indexed(program_pass_1, 0, index_data.len());
 
                     pass_submit.set_attachment_clear_color(
                         pass_1_output,
@@ -254,7 +254,7 @@ fn main() {
                 }
                 {
                     let mut step_submit = StepSubmitData::new();
-                    step_submit.draw_indexed(0, index_data.len());
+                    step_submit.draw_indexed(program_pass_2, 0, index_data.len());
 
                     pass_submit.set_attachment_clear_color(
                         surface_attachment,

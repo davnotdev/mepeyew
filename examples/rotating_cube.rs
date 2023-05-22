@@ -237,7 +237,7 @@ fn main() {
         pass_step
             .add_vertex_buffer(vbo)
             .set_index_buffer(ibo)
-            .set_program(program)
+            .add_program(program)
             .set_write_depth(depth_attachment)
             .add_write_color(output_attachment);
     }
@@ -317,7 +317,7 @@ fn main() {
                 {
                     let mut step_submit = StepSubmitData::new();
 
-                    step_submit.draw_indexed(0, index_data.len());
+                    step_submit.draw_indexed(program, 0, index_data.len());
 
                     pass_submit.set_attachment_clear_color(
                         output_attachment,
