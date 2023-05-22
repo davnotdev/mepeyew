@@ -15,15 +15,20 @@ pub struct ClearDepthStencil {
     pub stencil: u32,
 }
 
+pub enum DrawType {
+    Draw,
+    DrawIndexed,
+}
+
 pub struct Draw {
-    pub first: usize,
-    pub count: usize,
+    pub(crate) ty: DrawType,
+    pub(crate) first: usize,
+    pub(crate) count: usize,
 }
 
 #[derive(Default)]
 pub struct StepSubmitData {
-    pub(crate) draws: Vec<Draw>,
-    pub(crate) draws_indexed: Vec<Draw>,
+    pub(crate) draws: Vec<(ProgramId, Draw)>,
 }
 
 impl StepSubmitData {
@@ -31,13 +36,27 @@ impl StepSubmitData {
         Self::default()
     }
 
-    pub fn draw(&mut self, first: usize, count: usize) -> &mut Self {
-        self.draws.push(Draw { first, count });
+    pub fn draw(&mut self, program: ProgramId, first: usize, count: usize) -> &mut Self {
+        self.draws.push((
+            program,
+            Draw {
+                ty: DrawType::Draw,
+                first,
+                count,
+            },
+        ));
         self
     }
 
-    pub fn draw_indexed(&mut self, first: usize, count: usize) -> &mut Self {
-        self.draws_indexed.push(Draw { first, count });
+    pub fn draw_indexed(&mut self, program: ProgramId, first: usize, count: usize) -> &mut Self {
+        self.draws.push((
+            program,
+            Draw {
+                ty: DrawType::DrawIndexed,
+                first,
+                count,
+            },
+        ));
         self
     }
 }

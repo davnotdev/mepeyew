@@ -2,7 +2,7 @@ use super::*;
 use std::mem::ManuallyDrop;
 
 pub const VK_COLOR_ATTACHMENT_FORMAT: vk::Format = vk::Format::R8G8B8A8_SRGB;
-pub const VK_DEPTH_ATTACHMENT_FORMAT: vk::Format = vk::Format::D32_SFLOAT;
+pub const VK_DEPTH_ATTACHMENT_FORMAT: vk::Format = vk::Format::D32_SFLOAT_S8_UINT;
 
 pub struct VkImage {
     pub image: vk::Image,

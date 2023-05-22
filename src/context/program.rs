@@ -66,11 +66,15 @@ pub struct ShaderUniform {
     pub frequency: ShaderUniformFrequencyHint,
 }
 
-/// This value can be inferred using the shader reflection extension.
-/// See [`Extension`].
 #[derive(Debug, Clone)]
 pub enum ShaderType {
     Vertex(VertexBufferInput),
+    Fragment,
+}
+
+#[derive(Debug, Clone)]
+pub enum ShaderStage {
+    Vertex,
     Fragment,
 }
 
@@ -88,10 +92,12 @@ pub struct NewProgramExt {
     /// [learnopengl.com](https://learnopengl.com/Advanced-OpenGL/Depth-testing) has a nice
     /// article on this concept.
     pub enable_depth_test: Option<()>,
+    /// Enable depth writing.
+    pub enable_depth_write: Option<()>,
     /// See [`ShaderDepthCompareOp`].
     pub depth_compare_op: Option<ShaderCompareOp>,
 
-    //  TODO docs.
+    //  TODO docs. Perhaps we may even want this to become one struct.
     pub enable_stencil_test: Option<()>,
     pub stencil_compare_op: Option<ShaderCompareOp>,
     pub stencil_fail: Option<ShaderStencilOp>,

@@ -258,45 +258,55 @@ impl VkContext {
                         &vbo_offsets,
                     );
 
-                    //  Program
-                    self.core.dev.cmd_bind_pipeline(
-                        graphics_command_buffer,
-                        vk::PipelineBindPoint::GRAPHICS,
-                        pass.pipelines[step_idx],
-                    );
-
-                    //  Descriptor Sets
-                    //  TODO OPT: Maybe don't do this.
-                    let program = self.programs.get(step.program.unwrap().id()).unwrap();
-                    self.core.dev.cmd_bind_descriptor_sets(
-                        graphics_command_buffer,
-                        vk::PipelineBindPoint::GRAPHICS,
-                        program.layout,
-                        0,
-                        &program.descriptors.descriptor_sets,
-                        &[],
-                    );
-
                     //  Draw
                     for step in pass_data.steps_datas.iter() {
-                        for draw in step.draws.iter() {
-                            self.core.dev.cmd_draw(
+                        for (program_id, draw) in step.draws.iter() {
+                            //  Program
+                            self.core.dev.cmd_bind_pipeline(
                                 graphics_command_buffer,
-                                draw.count as u32,
-                                1,
-                                draw.first as u32,
-                                0,
+                                vk::PipelineBindPoint::GRAPHICS,
+                                *pass.pipelines[step_idx]
+                                    .get(&program_id)
+                                    .ok_or(gpu_api_err!(
+                                        "vulkan submit draw missing program id {:?}",
+                                        program_id
+                                    ))?,
                             );
-                        }
-                        for draw_indexed in step.draws_indexed.iter() {
-                            self.core.dev.cmd_draw_indexed(
+
+                            //  Descriptor Sets
+                            //  TODO OPT: Maybe don't do this.
+                            let program = self.programs.get(program_id.id()).unwrap();
+                            self.core.dev.cmd_bind_descriptor_sets(
                                 graphics_command_buffer,
-                                draw_indexed.count as u32,
-                                1,
-                                draw_indexed.first as u32,
+                                vk::PipelineBindPoint::GRAPHICS,
+                                program.layout,
                                 0,
-                                0,
+                                &program.descriptors.descriptor_sets,
+                                &[],
                             );
+
+                            //  Draw
+                            match draw.ty {
+                                DrawType::Draw => {
+                                    self.core.dev.cmd_draw(
+                                        graphics_command_buffer,
+                                        draw.count as u32,
+                                        1,
+                                        draw.first as u32,
+                                        0,
+                                    );
+                                }
+                                DrawType::DrawIndexed => {
+                                    self.core.dev.cmd_draw_indexed(
+                                        graphics_command_buffer,
+                                        draw.count as u32,
+                                        1,
+                                        draw.first as u32,
+                                        0,
+                                        0,
+                                    );
+                                }
+                            }
                         }
                     }
 

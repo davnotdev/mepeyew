@@ -6,13 +6,14 @@ pub struct PassStep {
 
     pub(crate) vertex_buffers: Vec<VertexBufferId>,
     pub(crate) index_buffer: Option<IndexBufferId>,
-    pub(crate) program: Option<ProgramId>,
+
+    pub(crate) programs: Vec<ProgramId>,
 
     pub(crate) write_colors: Vec<PassLocalAttachment>,
     pub(crate) write_depth: Option<PassLocalAttachment>,
 
-    pub(crate) wait_for_color_from: Option<(PassStepDependency, ShaderType)>,
-    pub(crate) wait_for_depth_from: Option<(PassStepDependency, ShaderType)>,
+    pub(crate) wait_for_color_from: Option<(PassStepDependency, ShaderStage)>,
+    pub(crate) wait_for_depth_from: Option<(PassStepDependency, ShaderStage)>,
 
     pub(crate) read_attachment: Vec<PassLocalAttachment>,
 }
@@ -30,8 +31,8 @@ impl PassStep {
         self
     }
 
-    pub fn set_program(&mut self, program: ProgramId) -> &mut Self {
-        self.program = Some(program);
+    pub fn add_program(&mut self, program: ProgramId) -> &mut Self {
+        self.programs.push(program);
         self
     }
 
@@ -40,7 +41,7 @@ impl PassStep {
     pub fn set_wait_for_color_from_step(
         &mut self,
         dependency: PassStepDependency,
-        shader_usage: ShaderType,
+        shader_usage: ShaderStage,
     ) -> &mut Self {
         self.wait_for_color_from = Some((dependency, shader_usage));
         self
@@ -51,7 +52,7 @@ impl PassStep {
     pub fn set_wait_for_depth_from_step(
         &mut self,
         dependency: PassStepDependency,
-        shader_usage: ShaderType,
+        shader_usage: ShaderStage,
     ) -> &mut Self {
         self.wait_for_depth_from = Some((dependency, shader_usage));
         self

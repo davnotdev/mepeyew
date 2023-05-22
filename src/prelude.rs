@@ -4,8 +4,8 @@ pub use super::context::{
     NewAttachmentImageExt, NewIndexBufferExt, NewPassExt, NewProgramExt, NewTextureExt,
     NewVertexBufferExt, Pass, PassInputLoadOpColorType, PassInputLoadOpDepthStencilType, PassStep,
     PassSubmitData, ProgramId, SamplerFilter, SamplerId, SamplerMode, ShaderCompareOp, ShaderSet,
-    ShaderStencilOp, ShaderType, ShaderUniform, ShaderUniformFrequencyHint, ShaderUniformType,
-    StepSubmitData, Submit, SubmitExt, TextureFormat, UniformBufferId, UploadTextureExt,
-    VertexBufferElement, VertexBufferId, VertexBufferInput, VertexInputArgCount,
+    ShaderStage, ShaderStencilOp, ShaderType, ShaderUniform, ShaderUniformFrequencyHint,
+    ShaderUniformType, StepSubmitData, Submit, SubmitExt, TextureFormat, UniformBufferId,
+    UploadTextureExt, VertexBufferElement, VertexBufferId, VertexBufferInput, VertexInputArgCount,
 };
 pub use super::error::{GResult, GpuError};

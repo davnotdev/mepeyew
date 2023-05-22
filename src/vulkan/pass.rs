@@ -1,8 +1,9 @@
 use super::*;
+use std::collections::HashMap;
 
 pub struct VkCompiledPass {
     pub render_pass: vk::RenderPass,
-    pub pipelines: Vec<vk::Pipeline>,
+    pub pipelines: Vec<HashMap<ProgramId, vk::Pipeline>>,
     pub framebuffer: VkFramebuffer,
     pub render_extent: vk::Extent2D,
 
@@ -41,21 +42,22 @@ impl VkCompiledPass {
             .iter()
             .enumerate()
             .map(|(subpass_idx, step)| {
-                let program = context
-                    .programs
-                    .get(
-                        step.program
-                            .ok_or(gpu_api_err!("vulkan pass step has no shader"))?
-                            .id(),
-                    )
-                    .unwrap();
-                program.new_graphics_pipeline(
-                    &context.core.dev,
-                    render_pass,
-                    render_extent,
-                    subpass_idx,
-                    &program.ext,
-                )
+                step.programs
+                    .iter()
+                    .map(|&program_id| {
+                        let program = context.programs.get(program_id.id()).unwrap();
+                        Ok((
+                            program_id,
+                            program.new_graphics_pipeline(
+                                &context.core.dev,
+                                render_pass,
+                                render_extent,
+                                subpass_idx,
+                                &program.ext,
+                            )?,
+                        ))
+                    })
+                    .collect::<GResult<HashMap<_, _>>>()
             })
             .collect::<GResult<Vec<_>>>()?;
 
@@ -282,8 +284,8 @@ fn new_render_pass(ctx: &VkContext, pass: &Pass) -> GResult<vk::RenderPass> {
                             .dst_subpass(subpass_idx as u32)
                             .src_stage_mask(vk::PipelineStageFlags::COLOR_ATTACHMENT_OUTPUT)
                             .dst_stage_mask(match shader_stage_usage {
-                                ShaderType::Vertex(_) => vk::PipelineStageFlags::VERTEX_SHADER,
-                                ShaderType::Fragment => vk::PipelineStageFlags::FRAGMENT_SHADER,
+                                ShaderStage::Vertex => vk::PipelineStageFlags::VERTEX_SHADER,
+                                ShaderStage::Fragment => vk::PipelineStageFlags::FRAGMENT_SHADER,
                             })
                             .src_access_mask(vk::AccessFlags::COLOR_ATTACHMENT_WRITE)
                             .dst_access_mask(vk::AccessFlags::SHADER_READ);
@@ -291,7 +293,7 @@ fn new_render_pass(ctx: &VkContext, pass: &Pass) -> GResult<vk::RenderPass> {
                     }),
                 step.wait_for_depth_from
                     .as_ref()
-                    .map(|(wait_for_depth, shader_stage_usage)| {
+                    .map(|(wait_for_depth, _)| {
                         let subpass_dep = vk::SubpassDependency::builder()
                             .src_subpass(wait_for_depth.id() as u32)
                             .dst_subpass(subpass_idx as u32)
@@ -338,9 +340,11 @@ impl Drop for VkCompiledPass {
             .unwrap()
             .push(Box::new(move |dev, _| unsafe {
                 dev.destroy_render_pass(render_pass, None);
-                pipelines
-                    .iter()
-                    .for_each(|&pipeline| dev.destroy_pipeline(pipeline, None));
+                pipelines.iter().for_each(|pipelines| {
+                    pipelines.values().for_each(|&pipeline| {
+                        dev.destroy_pipeline(pipeline, None);
+                    })
+                });
             }))
     }
 }

@@ -99,12 +99,13 @@ pub use pass::{
 };
 pub use pass_step::PassStep;
 pub use program::{
-    NewProgramExt, ShaderCompareOp, ShaderSet, ShaderStencilOp, ShaderType, ShaderUniform,
-    ShaderUniformFrequencyHint, ShaderUniformType,
+    NewProgramExt, ShaderCompareOp, ShaderSet, ShaderStage, ShaderStencilOp, ShaderType,
+    ShaderUniform, ShaderUniformFrequencyHint, ShaderUniformType,
 };
 pub use sampler::{GetSamplerExt, SamplerFilter, SamplerMode};
 pub use submit::{
-    ClearColor, ClearDepthStencil, Draw, PassSubmitData, StepSubmitData, Submit, SubmitExt,
+    ClearColor, ClearDepthStencil, Draw, DrawType, PassSubmitData, StepSubmitData, Submit,
+    SubmitExt,
 };
 pub use texture::{
     AttachmentImageUsage, NewAttachmentImageExt, NewTextureExt, ResizeTextureExt, TextureFormat,
