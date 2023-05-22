@@ -153,9 +153,26 @@ fn new_render_pass(ctx: &VkContext, pass: &Pass) -> GResult<vk::RenderPass> {
                         },
                     })
                     .store_op(vk::AttachmentStoreOp::STORE)
-                    .stencil_load_op(vk::AttachmentLoadOp::DONT_CARE)
-                    .stencil_store_op(vk::AttachmentStoreOp::DONT_CARE)
-                    .initial_layout(vk::ImageLayout::UNDEFINED)
+                    .stencil_load_op(match &attachment.ty {
+                        PassInputType::Depth(load_op) => match load_op {
+                            PassInputLoadOpDepthStencilType::Load => vk::AttachmentLoadOp::LOAD,
+                            PassInputLoadOpDepthStencilType::Clear => vk::AttachmentLoadOp::CLEAR,
+                        },
+                        _ => vk::AttachmentLoadOp::DONT_CARE,
+                    })
+                    .stencil_store_op(vk::AttachmentStoreOp::STORE)
+                    .initial_layout(
+                    match &attachment.ty {
+                        PassInputType::Color(load_op) => match load_op {
+                            PassInputLoadOpColorType::Load => vk::ImageLayout::COLOR_ATTACHMENT_OPTIMAL,
+                            PassInputLoadOpColorType::Clear => vk::ImageLayout::UNDEFINED,
+                        },
+                        PassInputType::Depth(load_op) => match load_op {
+                            PassInputLoadOpDepthStencilType::Load => vk::ImageLayout::DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
+                            PassInputLoadOpDepthStencilType::Clear => vk::ImageLayout::UNDEFINED,
+                        },
+                    }
+                        )
                     .final_layout(match attachment.ty {
                         PassInputType::Color(_) => {
                             if attachment.local_attachment_idx == 0 && pass.surface_attachment {
@@ -278,14 +295,15 @@ fn new_render_pass(ctx: &VkContext, pass: &Pass) -> GResult<vk::RenderPass> {
                         let subpass_dep = vk::SubpassDependency::builder()
                             .src_subpass(wait_for_depth.id() as u32)
                             .dst_subpass(subpass_idx as u32)
+                            //  TODO CHK: Is this valid use?
                             .src_stage_mask(
                                 vk::PipelineStageFlags::EARLY_FRAGMENT_TESTS
                                     | vk::PipelineStageFlags::LATE_FRAGMENT_TESTS,
                             )
-                            .dst_stage_mask(match shader_stage_usage {
-                                ShaderType::Vertex(_) => vk::PipelineStageFlags::VERTEX_SHADER,
-                                ShaderType::Fragment => vk::PipelineStageFlags::FRAGMENT_SHADER,
-                            })
+                            .dst_stage_mask(
+                                vk::PipelineStageFlags::EARLY_FRAGMENT_TESTS
+                                    | vk::PipelineStageFlags::LATE_FRAGMENT_TESTS,
+                            )
                             .src_access_mask(vk::AccessFlags::DEPTH_STENCIL_ATTACHMENT_WRITE)
                             .dst_access_mask(vk::AccessFlags::DEPTH_STENCIL_ATTACHMENT_READ);
                         subpass_dep.build()

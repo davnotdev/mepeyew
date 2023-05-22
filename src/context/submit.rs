@@ -83,7 +83,8 @@ impl PassSubmitData {
         attachment_ref: PassLocalAttachment,
         clear_depth_stencil: ClearDepthStencil,
     ) -> &mut Self {
-        self.clear_depths.insert(attachment_ref, clear_depth_stencil);
+        self.clear_depths
+            .insert(attachment_ref, clear_depth_stencil);
         self
     }
 }

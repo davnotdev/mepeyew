@@ -3,8 +3,8 @@ pub use super::context::{
     ClearDepthStencil, Context, GetSamplerExt, IndexBufferElement, IndexBufferId,
     NewAttachmentImageExt, NewIndexBufferExt, NewPassExt, NewProgramExt, NewTextureExt,
     NewVertexBufferExt, Pass, PassInputLoadOpColorType, PassInputLoadOpDepthStencilType, PassStep,
-    PassSubmitData, ProgramId, SamplerFilter, SamplerId, SamplerMode, ShaderDepthCompareOp,
-    ShaderSet, ShaderType, ShaderUniform, ShaderUniformFrequencyHint, ShaderUniformType,
+    PassSubmitData, ProgramId, SamplerFilter, SamplerId, SamplerMode, ShaderCompareOp, ShaderSet,
+    ShaderStencilOp, ShaderType, ShaderUniform, ShaderUniformFrequencyHint, ShaderUniformType,
     StepSubmitData, Submit, SubmitExt, TextureFormat, UniformBufferId, UploadTextureExt,
     VertexBufferElement, VertexBufferId, VertexBufferInput, VertexInputArgCount,
 };

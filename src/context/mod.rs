@@ -99,7 +99,7 @@ pub use pass::{
 };
 pub use pass_step::PassStep;
 pub use program::{
-    NewProgramExt, ShaderDepthCompareOp, ShaderSet, ShaderType, ShaderUniform,
+    NewProgramExt, ShaderCompareOp, ShaderSet, ShaderStencilOp, ShaderType, ShaderUniform,
     ShaderUniformFrequencyHint, ShaderUniformType,
 };
 pub use sampler::{GetSamplerExt, SamplerFilter, SamplerMode};

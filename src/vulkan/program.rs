@@ -135,21 +135,54 @@ impl VkProgram {
             .build();
 
         //  Depth Stencil
+        fn stencil_op_into_vk(op: ShaderStencilOp) -> vk::StencilOp {
+            match op {
+                ShaderStencilOp::Keep => vk::StencilOp::KEEP,
+                ShaderStencilOp::Zero => vk::StencilOp::ZERO,
+                ShaderStencilOp::Replace => vk::StencilOp::REPLACE,
+                ShaderStencilOp::IncrementClamp => vk::StencilOp::INCREMENT_AND_CLAMP,
+                ShaderStencilOp::DecrementClamp => vk::StencilOp::DECREMENT_AND_CLAMP,
+                ShaderStencilOp::Invert => vk::StencilOp::INVERT,
+                ShaderStencilOp::IncrementWrap => vk::StencilOp::INCREMENT_AND_WRAP,
+                ShaderStencilOp::DecrementWrap => vk::StencilOp::DECREMENT_AND_WRAP,
+            }
+        }
+
+        fn compare_op_into_vk(op: ShaderCompareOp) -> vk::CompareOp {
+            match op {
+                ShaderCompareOp::Never => vk::CompareOp::NEVER,
+                ShaderCompareOp::Less => vk::CompareOp::LESS,
+                ShaderCompareOp::Equal => vk::CompareOp::EQUAL,
+                ShaderCompareOp::LessOrEqual => vk::CompareOp::LESS_OR_EQUAL,
+                ShaderCompareOp::Greater => vk::CompareOp::GREATER,
+                ShaderCompareOp::NotEqual => vk::CompareOp::NOT_EQUAL,
+                ShaderCompareOp::GreaterOrEqual => vk::CompareOp::GREATER_OR_EQUAL,
+                ShaderCompareOp::Always => vk::CompareOp::ALWAYS,
+            }
+        }
+
+        let stencil_op_state = vk::StencilOpState::builder()
+            .compare_op(compare_op_into_vk(
+                ext.stencil_compare_op.unwrap_or_default(),
+            ))
+            .fail_op(stencil_op_into_vk(ext.stencil_fail.unwrap_or_default()))
+            .pass_op(stencil_op_into_vk(ext.stencil_pass.unwrap_or_default()))
+            .depth_fail_op(stencil_op_into_vk(
+                ext.stencil_depth_fail.unwrap_or_default(),
+            ))
+            .reference(ext.stencil_reference.unwrap_or_default())
+            .compare_mask(ext.stencil_compare_mask.unwrap_or_default())
+            .write_mask(ext.stencil_write_mask.unwrap_or_default())
+            .build();
+
         let depth_create = vk::PipelineDepthStencilStateCreateInfo::builder()
             .depth_test_enable(ext.enable_depth_test.is_some())
             .depth_write_enable(ext.enable_depth_test.is_some())
-            .depth_compare_op(match ext.depth_compare_op.unwrap_or_default() {
-                ShaderDepthCompareOp::Never => vk::CompareOp::NEVER,
-                ShaderDepthCompareOp::Less => vk::CompareOp::LESS,
-                ShaderDepthCompareOp::Equal => vk::CompareOp::EQUAL,
-                ShaderDepthCompareOp::LessOrEqual => vk::CompareOp::LESS_OR_EQUAL,
-                ShaderDepthCompareOp::Greater => vk::CompareOp::GREATER,
-                ShaderDepthCompareOp::NotEqual => vk::CompareOp::NOT_EQUAL,
-                ShaderDepthCompareOp::GreaterOrEqual => vk::CompareOp::GREATER_OR_EQUAL,
-                ShaderDepthCompareOp::Always => vk::CompareOp::ALWAYS,
-            })
+            .depth_compare_op(compare_op_into_vk(ext.depth_compare_op.unwrap_or_default()))
             .depth_bounds_test_enable(false)
-            .stencil_test_enable(false)
+            .stencil_test_enable(ext.enable_stencil_test.is_some())
+            .front(stencil_op_state)
+            .back(stencil_op_state)
             .min_depth_bounds(0.0)
             .max_depth_bounds(1.0)
             .build();

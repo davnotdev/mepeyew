@@ -22,11 +22,8 @@ pub enum ShaderUniformFrequencyHint {
     Static = 3,
 }
 
-/// Used in [`NewProgramExt`] to configure depth testing.
-/// [learnopengl.com](https://learnopengl.com/Advanced-OpenGL/Depth-testing) has a nice article
-/// about this topic.
 #[derive(Default, Clone, Copy)]
-pub enum ShaderDepthCompareOp {
+pub enum ShaderCompareOp {
     Never,
     #[default]
     Less,
@@ -36,6 +33,20 @@ pub enum ShaderDepthCompareOp {
     NotEqual,
     GreaterOrEqual,
     Always,
+}
+
+//  TODO docs.
+#[derive(Default, Clone, Copy)]
+pub enum ShaderStencilOp {
+    #[default]
+    Keep,
+    Zero,
+    Replace,
+    IncrementClamp,
+    DecrementClamp,
+    Invert,
+    IncrementWrap,
+    DecrementWrap,
 }
 
 #[derive(Clone, Copy)]
@@ -74,10 +85,21 @@ impl<'a> ShaderSet<'a> {
 #[derive(Default)]
 pub struct NewProgramExt {
     /// Enable depth testing.
-    /// [learnopengl.com](https://learnopengl.com/Advanced-OpenGL/Depth-testing) has a nice article
+    /// [learnopengl.com](https://learnopengl.com/Advanced-OpenGL/Depth-testing) has a nice
+    /// article on this concept.
     pub enable_depth_test: Option<()>,
     /// See [`ShaderDepthCompareOp`].
-    pub depth_compare_op: Option<ShaderDepthCompareOp>,
+    pub depth_compare_op: Option<ShaderCompareOp>,
+
+    //  TODO docs.
+    pub enable_stencil_test: Option<()>,
+    pub stencil_compare_op: Option<ShaderCompareOp>,
+    pub stencil_fail: Option<ShaderStencilOp>,
+    pub stencil_pass: Option<ShaderStencilOp>,
+    pub stencil_depth_fail: Option<ShaderStencilOp>,
+    pub stencil_reference: Option<u32>,
+    pub stencil_compare_mask: Option<u32>,
+    pub stencil_write_mask: Option<u32>,
 }
 
 impl Context {

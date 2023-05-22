@@ -11,10 +11,11 @@ impl WebGpuContext {
         let buffer = WebGpuBuffer::new(
             &self.device,
             size as u32,
-            GpuBufferUsageFlags::Vertex as u32 | match storage_type {
-                BufferStorageType::Dynamic => GpuBufferUsageFlags::CopyDst as u32,
-                _ => 0
-            },
+            GpuBufferUsageFlags::Vertex as u32
+                | match storage_type {
+                    BufferStorageType::Dynamic => GpuBufferUsageFlags::CopyDst as u32,
+                    _ => 0,
+                },
             unsafe { std::slice::from_raw_parts(data.as_ptr() as *const u8, size) },
         );
         self.vbos.push(buffer);
@@ -31,10 +32,11 @@ impl WebGpuContext {
         let buffer = WebGpuBuffer::new(
             &self.device,
             size as u32,
-            GpuBufferUsageFlags::Index as u32 | match storage_type {
-                BufferStorageType::Dynamic => GpuBufferUsageFlags::CopyDst as u32,
-                _ => 0
-            },
+            GpuBufferUsageFlags::Index as u32
+                | match storage_type {
+                    BufferStorageType::Dynamic => GpuBufferUsageFlags::CopyDst as u32,
+                    _ => 0,
+                },
             unsafe { std::slice::from_raw_parts(data.as_ptr() as *const u8, size) },
         );
         self.ibos.push(buffer);
