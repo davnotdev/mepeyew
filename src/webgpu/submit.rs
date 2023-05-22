@@ -186,27 +186,10 @@ fn submit_pass(
             }
 
             let mut pass_info = GpuRenderPassDescriptor::new(&color_attachments);
+            let pass_encoder = command_encoder.begin_render_pass(&pass_info);
 
             if let Some(depth_attachment) = depth_attachment {
                 pass_info.depth_stencil_attachment(&depth_attachment);
-            }
-
-            let pass_encoder = command_encoder.begin_render_pass(&pass_info);
-            pass_encoder.set_pipeline(&pass.pipelines[step_idx]);
-
-            if let Some(program) = step.program {
-                let program = context.programs.get(program.id()).ok_or(gpu_api_err!(
-                    "webgpu submit program id {:?} does not exist",
-                    step.program
-                ))?;
-
-                program
-                    .bind_groups
-                    .iter()
-                    .enumerate()
-                    .for_each(|(slot_idx, bind_group)| {
-                        pass_encoder.set_bind_group(slot_idx as u32, bind_group);
-                    })
             }
 
             step.vertex_buffers
@@ -230,21 +213,42 @@ fn submit_pass(
                 pass_encoder.set_index_buffer(&ibo.buffer, GpuIndexFormat::Uint32);
             }
 
-            step_data.draws.iter().for_each(|draw| {
-                pass_encoder.draw_with_instance_count_and_first_vertex(
-                    draw.count as u32,
-                    1,
-                    draw.first as u32,
-                );
-            });
+            step_data.draws.iter().try_for_each(|(program_id, draw)| {
+                pass_encoder.set_pipeline(pass.pipelines[step_idx].get(&program_id).ok_or(
+                    gpu_api_err!("webgpu submit draw missing program id {:?}", program_id),
+                )?);
 
-            step_data.draws_indexed.iter().for_each(|draw| {
-                pass_encoder.draw_indexed_with_instance_count_and_first_index(
-                    draw.count as u32,
-                    1,
-                    draw.first as u32,
-                );
-            });
+                let program = context.programs.get(program_id.id()).ok_or(gpu_api_err!(
+                    "webgpu submit program id {:?} does not exist",
+                    program_id
+                ))?;
+
+                program
+                    .bind_groups
+                    .iter()
+                    .enumerate()
+                    .for_each(|(slot_idx, bind_group)| {
+                        pass_encoder.set_bind_group(slot_idx as u32, bind_group);
+                    });
+                match draw.ty {
+                    DrawType::Draw => {
+                        pass_encoder.draw_with_instance_count_and_first_vertex(
+                            draw.count as u32,
+                            1,
+                            draw.first as u32,
+                        );
+                    }
+                    DrawType::DrawIndexed => {
+                        pass_encoder.draw_indexed_with_instance_count_and_first_index(
+                            draw.count as u32,
+                            1,
+                            draw.first as u32,
+                        );
+                    }
+                }
+
+                Ok(())
+            })?;
 
             pass_encoder.end();
 
