@@ -95,7 +95,7 @@ pub use buffer::{
 pub use extensions::{Extension, ExtensionType};
 pub use pass::{
     CompilePassExt, NewPassExt, Pass, PassAttachment, PassInputLoadOpColorType,
-    PassInputLoadOpDepthStencilType, PassInputType,
+    PassInputLoadOpDepthStencilType, PassInputType, PassMsaaSampleCount,
 };
 pub use pass_step::PassStep;
 pub use program::{

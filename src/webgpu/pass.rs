@@ -19,11 +19,14 @@ pub struct WebGpuCompiledPass {
     pub original_pass: Pass,
     pub pipelines: Vec<HashMap<ProgramId, GpuRenderPipeline>>,
     pub attachment_views: Vec<GpuTextureView>,
+    pub resolve_attachment_views: Vec<GpuTextureView>,
 }
 
 impl WebGpuCompiledPass {
     pub fn new(context: &WebGpuContext, pass: &Pass, ext: Option<CompilePassExt>) -> GResult<Self> {
         let ext = ext.unwrap_or_default();
+
+        let mut resolve_attachment_views = vec![];
 
         let pipelines = pass
             .steps
@@ -128,10 +131,63 @@ impl WebGpuCompiledPass {
                                 WEBGPU_COLOR_ATTACHMENT_FORMAT
                             };
                             targets.push(&GpuColorTargetState::new(format));
+
+                            if let Some(sample_count) = ext.msaa_samples {
+                                let sample_count = match sample_count {
+                                    PassMsaaSampleCount::Sample1 => 1,
+                                    PassMsaaSampleCount::Sample2 => 2,
+                                    PassMsaaSampleCount::Sample4 => 4,
+                                    PassMsaaSampleCount::Sample8 => 8,
+                                    PassMsaaSampleCount::Sample16 => 16,
+                                    PassMsaaSampleCount::Sample32 => 32,
+                                    PassMsaaSampleCount::Sample64 => 64,
+                                };
+                                let mut multisample = GpuMultisampleState::new();
+                                multisample.count(sample_count);
+                                pipeline_info.multisample(&multisample);
+
+                                let format = if pass.surface_attachment {
+                                    context
+                                        .surface
+                                        .as_ref()
+                                        .ok_or(gpu_api_err!("webgpu surface does not exist, WebGpuInit extension was probably not called."))?
+                                        .present_format
+                                } else {
+                                    WEBGPU_COLOR_ATTACHMENT_FORMAT
+                                };
+
+                                let size = Array::new();
+                                size.push(&JsValue::from(pass.render_width));
+                                size.push(&JsValue::from(pass.render_height));
+
+                                let usage = GpuTextureUsageFlags::RenderAttachment as u32;
+
+                                let mut resolve_texture_info = GpuTextureDescriptor::new(format, &size, usage);
+                                resolve_texture_info.sample_count(sample_count);
+                                let resolve_texture = context.device.create_texture(&resolve_texture_info);
+                                let resolve_texture_view = resolve_texture.create_view();
+                                resolve_attachment_views.push(resolve_texture_view);
+                            }
+
                             Ok(())
                         })?;
                         let fragment = GpuFragmentState::new("main", fragment_module, &targets);
                         pipeline_info.fragment(&fragment);
+                    }
+
+                    if let Some(sample_count) = ext.msaa_samples {
+                        let sample_count = match sample_count {
+                            PassMsaaSampleCount::Sample1 => 1,
+                            PassMsaaSampleCount::Sample2 => 2,
+                            PassMsaaSampleCount::Sample4 => 4,
+                            PassMsaaSampleCount::Sample8 => 8,
+                            PassMsaaSampleCount::Sample16 => 16,
+                            PassMsaaSampleCount::Sample32 => 32,
+                            PassMsaaSampleCount::Sample64 => 64,
+                        };
+                        let mut multisample = GpuMultisampleState::new();
+                        multisample.count(sample_count);
+                        pipeline_info.multisample(&multisample);
                     }
 
                     Ok((program_id, context.device.create_render_pipeline(&pipeline_info)))
@@ -163,6 +219,7 @@ impl WebGpuCompiledPass {
             ext,
             pipelines,
             attachment_views,
+            resolve_attachment_views,
             original_pass: pass.clone(),
         })
     }

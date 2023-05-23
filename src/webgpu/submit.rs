@@ -116,9 +116,21 @@ fn submit_pass(
 
                         let mut color_attachment = GpuRenderPassColorAttachment::new(
                             op,
-                            GpuStoreOp::Store,
-                            attachment_view,
+                            if pass.ext.msaa_samples.is_some() {
+                                GpuStoreOp::Discard
+                            } else {
+                                GpuStoreOp::Store
+                            },
+                            if pass.ext.msaa_samples.is_some() {
+                                &pass.resolve_attachment_views[step_idx]
+                            } else {
+                                attachment_view
+                            },
                         );
+
+                        if pass.ext.msaa_samples.is_some() {
+                            color_attachment.resolve_target(attachment_view);
+                        }
 
                         if op == GpuLoadOp::Clear {
                             let local_attachment_id =
@@ -237,7 +249,8 @@ fn submit_pass(
                     .for_each(|(slot_idx, bind_group)| {
                         pass_encoder.set_bind_group(slot_idx as u32, bind_group);
                     });
-                pass_encoder.set_stencil_reference(program.ext.stencil_reference.unwrap_or_default());
+                pass_encoder
+                    .set_stencil_reference(program.ext.stencil_reference.unwrap_or_default());
                 match draw.ty {
                     DrawType::Draw => {
                         pass_encoder.draw_with_instance_count_and_first_vertex(
