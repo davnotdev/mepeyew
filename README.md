@@ -15,9 +15,11 @@ trying to give you as much power as possible!
 
 ## Basic Usage
 
-> Warning! 
+> :warning: Warning! 
 >
-> Currently, this project is going through many changes and isn't stable! 🚧
+> Currently, this project is going through many changes and isn't stable!
+>
+> As of v0.1, you can assume that every version bump will break things.
 
 Add this to your `Cargo.toml`:
 
