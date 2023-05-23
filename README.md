@@ -46,7 +46,7 @@ The API is designed to be stable, but I can't guarentee anything of course.
 - [x] WGSL and Naga
 - [x] WebGPU
 - [x] (Tested) Depth Buffers
-- [ ] (Tested) Stencil Buffers
+- [x] (Tested) Stencil Buffers
 - [ ] MSAA
 - [ ] More Attachment Formats
 - [ ] Compute

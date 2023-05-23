@@ -17,7 +17,7 @@ use surface::WebGpuSurface;
 use texture::WebGpuTexture;
 
 pub const WEBGPU_COLOR_ATTACHMENT_FORMAT: GpuTextureFormat = GpuTextureFormat::Rgba8unorm;
-pub const WEBGPU_DEPTH_ATTACHMENT_FORMAT: GpuTextureFormat = GpuTextureFormat::Depth32float;
+pub const WEBGPU_DEPTH_ATTACHMENT_FORMAT: GpuTextureFormat = GpuTextureFormat::Depth24plusStencil8;
 
 mod attachment_image;
 mod buffer;

@@ -67,11 +67,10 @@ impl WebGpuCompiledPass {
                     pipeline_info
                         .primitive(&primitive);
 
-                    if program.ext.enable_depth_test.is_some() {
+                    if program.ext.enable_depth_write.is_some() || program.ext.enable_stencil_test.is_some() {
                         let mut depth_stencil = GpuDepthStencilState::new(WEBGPU_DEPTH_ATTACHMENT_FORMAT);
-                        depth_stencil
-                            .depth_write_enabled(true)
-                            .depth_compare(match program.ext.depth_compare_op.unwrap_or_default() {
+                        fn compare_op_into_webgpu(compare_op: ShaderCompareOp) -> GpuCompareFunction {
+                            match compare_op {
                                 ShaderCompareOp::Never => GpuCompareFunction::Never,
                                 ShaderCompareOp::Less => GpuCompareFunction::Less,
                                 ShaderCompareOp::Equal => GpuCompareFunction::Equal,
@@ -80,7 +79,34 @@ impl WebGpuCompiledPass {
                                 ShaderCompareOp::NotEqual => GpuCompareFunction::NotEqual,
                                 ShaderCompareOp::GreaterOrEqual => GpuCompareFunction::GreaterEqual,
                                 ShaderCompareOp::Always => GpuCompareFunction::Always,
-                            });
+                            }
+                        }
+                        fn stencil_op_into_webgpu(stencil_op: ShaderStencilOp) -> GpuStencilOperation {
+                            match stencil_op {
+                                ShaderStencilOp::Keep => GpuStencilOperation::Keep,
+                                ShaderStencilOp::Zero => GpuStencilOperation::Zero,
+                                ShaderStencilOp::Replace => GpuStencilOperation::Replace,
+                                ShaderStencilOp::IncrementClamp => GpuStencilOperation::IncrementClamp,
+                                ShaderStencilOp::DecrementClamp => GpuStencilOperation::DecrementClamp,
+                                ShaderStencilOp::Invert => GpuStencilOperation::Invert,
+                                ShaderStencilOp::IncrementWrap => GpuStencilOperation::IncrementWrap,
+                                ShaderStencilOp::DecrementWrap => GpuStencilOperation::DecrementWrap,
+                            }
+                        }
+                        let mut stencil_state = GpuStencilFaceState::new();
+                        stencil_state
+                            .compare(compare_op_into_webgpu(program.ext.stencil_compare_op.unwrap_or_default()))
+                            .depth_fail_op(stencil_op_into_webgpu(program.ext.stencil_depth_fail.unwrap_or_default()))
+                            .fail_op(stencil_op_into_webgpu(program.ext.stencil_fail.unwrap_or_default()))
+                            .pass_op(stencil_op_into_webgpu(program.ext.stencil_pass.unwrap_or_default()));
+                        depth_stencil
+                            .depth_write_enabled(program.ext.enable_depth_write.is_some())
+                            .depth_compare(compare_op_into_webgpu(program.ext.depth_compare_op.unwrap_or_default()))
+                            .stencil_back(&stencil_state)
+                            .stencil_front(&stencil_state)
+                            .stencil_read_mask(program.ext.stencil_compare_mask.unwrap_or_default())
+                            .stencil_write_mask(program.ext.stencil_write_mask.unwrap_or_default());
+
                         pipeline_info.depth_stencil(&depth_stencil);
                     }
 

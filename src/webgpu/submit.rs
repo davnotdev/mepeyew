@@ -177,7 +177,13 @@ fn submit_pass(
                                 PassInputLoadOpDepthStencilType::Clear => GpuLoadOp::Clear,
                                 _ => GpuLoadOp::Load,
                             })
-                            .depth_clear_value(depth_clear_val.depth);
+                            .depth_clear_value(depth_clear_val.depth)
+                            .stencil_load_op(match load_op {
+                                PassInputLoadOpDepthStencilType::Clear => GpuLoadOp::Clear,
+                                _ => GpuLoadOp::Load,
+                            })
+                            .stencil_store_op(GpuStoreOp::Store)
+                            .stencil_clear_value(depth_clear_val.stencil);
                     }
                     _ => unreachable!(),
                 }
@@ -186,11 +192,12 @@ fn submit_pass(
             }
 
             let mut pass_info = GpuRenderPassDescriptor::new(&color_attachments);
-            let pass_encoder = command_encoder.begin_render_pass(&pass_info);
 
             if let Some(depth_attachment) = depth_attachment {
                 pass_info.depth_stencil_attachment(&depth_attachment);
             }
+
+            let pass_encoder = command_encoder.begin_render_pass(&pass_info);
 
             step.vertex_buffers
                 .iter()
@@ -230,6 +237,7 @@ fn submit_pass(
                     .for_each(|(slot_idx, bind_group)| {
                         pass_encoder.set_bind_group(slot_idx as u32, bind_group);
                     });
+                pass_encoder.set_stencil_reference(program.ext.stencil_reference.unwrap_or_default());
                 match draw.ty {
                     DrawType::Draw => {
                         pass_encoder.draw_with_instance_count_and_first_vertex(

@@ -152,6 +152,7 @@ fn main() {
             &[data_uniform, texture_uniform, sampler_uniform],
             Some(NewProgramExt {
                 enable_depth_test: Some(()),
+                enable_depth_write: Some(()),
                 ..Default::default()
             }),
         )
