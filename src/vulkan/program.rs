@@ -57,6 +57,7 @@ impl VkProgram {
         render_pass: vk::RenderPass,
         extent: vk::Extent2D,
         subpass: usize,
+        sample_count: Option<vk::SampleCountFlags>,
         ext: &NewProgramExt,
     ) -> GResult<vk::Pipeline> {
         //  Vertex Input State Info
@@ -99,7 +100,7 @@ impl VkProgram {
         //  Multisample Info
         let multisample_create = vk::PipelineMultisampleStateCreateInfo::builder()
             .sample_shading_enable(false)
-            .rasterization_samples(vk::SampleCountFlags::TYPE_1)
+            .rasterization_samples(sample_count.unwrap_or(vk::SampleCountFlags::TYPE_1))
             .min_sample_shading(1.0)
             .sample_mask(&[])
             .alpha_to_coverage_enable(false)

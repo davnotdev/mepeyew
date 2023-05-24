@@ -51,7 +51,17 @@ impl WebGpuAttachmentImage {
         let usage = GpuTextureUsageFlags::RenderAttachment as u32
             | GpuTextureUsageFlags::TextureBinding as u32;
 
-        let texture_info = GpuTextureDescriptor::new(format, &size, usage);
+        let mut texture_info = GpuTextureDescriptor::new(format, &size, usage);
+        texture_info.sample_count(match ext.msaa_samples.unwrap_or_default() {
+            MsaaSampleCount::Sample1 => 1,
+            MsaaSampleCount::Sample2 => 2,
+            MsaaSampleCount::Sample4 => 4,
+            MsaaSampleCount::Sample8 => 8,
+            MsaaSampleCount::Sample16 => 16,
+            MsaaSampleCount::Sample32 => 32,
+            MsaaSampleCount::Sample64 => 64,
+        });
+
         let texture = device.create_texture(&texture_info);
         let texture_view = texture.create_view();
 

@@ -96,6 +96,8 @@ impl VkContext {
         )?));
 
         //  Resize Dependent Passes
+        //  TODO
+        let e = unsafe { &mut *(self as *mut VkContext) };
         let patches = self
             .compiled_passes
             .iter()
@@ -105,7 +107,7 @@ impl VkContext {
                 let mut original_pass = compiled_pass.original_pass.clone();
                 original_pass.render_width = width;
                 original_pass.render_height = height;
-                let new_pass = VkCompiledPass::new(self, &original_pass)?;
+                let new_pass = VkCompiledPass::new(e, &original_pass, &compiled_pass.original_ext)?;
                 Ok((idx, new_pass))
             })
             .collect::<GResult<Vec<_>>>()?;

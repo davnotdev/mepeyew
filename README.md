@@ -13,7 +13,7 @@ trying to give you as much power as possible!
 
 > The classic hello triangle!
 
-## Basic Usage
+## Getting Started
 
 > :warning: Warning! 
 >
@@ -27,13 +27,13 @@ Add this to your `Cargo.toml`:
 mepeyew = "0.1"
 ```
 
-### Code
+### Examples
 
 Hey, welcome to the world of graphics programming.
 I'm deeply sorry, but in this strange world, there is no such thing as "basic usage".
 I'd like to put the classic triangle example code, but that would completely fill your screen.
-Instead, I'd recommend checking [out this example in the docs](https://docs.rs/mepeyew/).
-Or, for a more comprehensive set of examples, [checkout out the examples here on github](https://github.com/davnotdev/mepeyew/tree/main/examples).
+Instead, I'd recommend checking [out this quick example in the docs](https://docs.rs/mepeyew/).
+Or, for a more comprehensive set of examples, [check out out the examples here on github](https://github.com/davnotdev/mepeyew/tree/main/examples).
 
 ## Road Map
 
@@ -49,7 +49,9 @@ The API is designed to be stable, but I can't guarentee anything of course.
 - [x] WebGPU
 - [x] (Tested) Depth Buffers
 - [x] (Tested) Stencil Buffers
-- [ ] MSAA
+- [x] MSAA
 - [ ] More Attachment Formats
+- [ ] Dynamic Viewport + Scissor
 - [ ] Compute
+- [ ] More Documentation
 - [ ] v0.2 Release!

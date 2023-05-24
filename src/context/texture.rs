@@ -20,7 +20,9 @@ pub struct ResizeTextureExt {}
 #[derive(Default, Clone, Copy)]
 pub struct UploadTextureExt {}
 #[derive(Default, Clone, Copy)]
-pub struct NewAttachmentImageExt {}
+pub struct NewAttachmentImageExt {
+    pub msaa_samples: Option<MsaaSampleCount>,
+}
 
 impl Context {
     pub fn new_texture(

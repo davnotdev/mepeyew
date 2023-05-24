@@ -116,19 +116,19 @@ fn submit_pass(
 
                         let mut color_attachment = GpuRenderPassColorAttachment::new(
                             op,
-                            if pass.ext.msaa_samples.is_some() {
+                            if pass.ext.enable_msaa.is_some() {
                                 GpuStoreOp::Discard
                             } else {
                                 GpuStoreOp::Store
                             },
-                            if pass.ext.msaa_samples.is_some() {
+                            if pass.ext.enable_msaa.is_some() {
                                 &pass.resolve_attachment_views[step_idx]
                             } else {
                                 attachment_view
                             },
                         );
 
-                        if pass.ext.msaa_samples.is_some() {
+                        if pass.ext.enable_msaa.is_some() {
                             color_attachment.resolve_target(attachment_view);
                         }
 

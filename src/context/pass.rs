@@ -19,7 +19,7 @@ pub enum PassInputLoadOpDepthStencilType {
 }
 
 #[derive(Default, Debug, Clone, Copy)]
-pub enum PassMsaaSampleCount {
+pub enum MsaaSampleCount {
     #[default]
     Sample1,
     Sample2,
@@ -130,7 +130,8 @@ impl Pass {
 #[derive(Default, Clone)]
 pub struct CompilePassExt {
     //  TODO: Docs
-    pub msaa_samples: Option<PassMsaaSampleCount>,
+    pub enable_msaa: Option<()>,
+    pub msaa_samples: Option<MsaaSampleCount>,
 }
 
 impl Context {

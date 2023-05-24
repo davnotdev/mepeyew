@@ -181,10 +181,19 @@ impl VkContext {
                 let pass = self.compiled_passes.get(pass_data.pass.id()).unwrap();
 
                 //  Clear Values
-                let mut clear_values = vec![vk::ClearValue::default(); pass.attachment_count];
+                let mut clear_values = vec![
+                    vk::ClearValue::default();
+                    pass.attachment_count + pass.resolve_image_offsets.len()
+                ];
 
                 for (&attachment, clear) in pass_data.clear_colors.iter() {
-                    clear_values[attachment.id()] = vk::ClearValue {
+                    let resolved_idx = if pass.resolve_image_offsets.is_empty() {
+                        attachment.id()
+                    } else {
+                        pass.attachment_count + pass.resolve_image_offsets[&attachment.id()]
+                    };
+
+                    clear_values[resolved_idx] = vk::ClearValue {
                         color: vk::ClearColorValue {
                             float32: [clear.r, clear.g, clear.b, clear.a],
                         },
@@ -266,7 +275,7 @@ impl VkContext {
                                 graphics_command_buffer,
                                 vk::PipelineBindPoint::GRAPHICS,
                                 *pass.pipelines[step_idx]
-                                    .get(&program_id)
+                                    .get(program_id)
                                     .ok_or(gpu_api_err!(
                                         "vulkan submit draw missing program id {:?}",
                                         program_id

@@ -125,7 +125,8 @@ fn main() {
         .compile_pass(
             &pass,
             Some(CompilePassExt {
-                msaa_samples: Some(PassMsaaSampleCount::Sample4),
+                enable_msaa: Some(()),
+                msaa_samples: Some(MsaaSampleCount::Sample4),
                 ..Default::default()
             }),
         )

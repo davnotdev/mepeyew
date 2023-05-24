@@ -10,6 +10,7 @@ impl VkFramebuffer {
         context: &VkContext,
         render_pass: vk::RenderPass,
         images: &[AttachmentImageId],
+        resolve_images: &[vk::ImageView],
         width: usize,
         height: usize,
         use_swapchain: bool,
@@ -30,6 +31,7 @@ impl VkFramebuffer {
                         context,
                         render_pass,
                         images,
+                        resolve_images,
                         width,
                         height,
                         Some(image_view),
@@ -42,6 +44,7 @@ impl VkFramebuffer {
                 context,
                 render_pass,
                 images,
+                resolve_images,
                 width,
                 height,
                 None,
@@ -69,6 +72,7 @@ impl VkSingleFramebuffer {
         context: &VkContext,
         render_pass: vk::RenderPass,
         images: &[AttachmentImageId],
+        resolve_images: &[vk::ImageView],
         width: usize,
         height: usize,
         swapchain_image_view: Option<vk::ImageView>,
@@ -85,6 +89,12 @@ impl VkSingleFramebuffer {
                 .unwrap();
             image_views.push(attachment_image.image_view);
         });
+
+        resolve_images
+            .iter()
+            .for_each(|&additional_attachment_view| {
+                image_views.push(additional_attachment_view);
+            });
 
         let framebuffer_create = vk::FramebufferCreateInfo::builder()
             .render_pass(render_pass)

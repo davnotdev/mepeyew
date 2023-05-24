@@ -167,7 +167,7 @@ fn main() {
                 ),
                 (ShaderType::Fragment, &fs),
             ]),
-            &[data_uniform.clone(), texture_uniform, sampler_uniform],
+            &[data_uniform, texture_uniform, sampler_uniform],
             Some(NewProgramExt {
                 enable_depth_test: Some(()),
                 enable_depth_write: Some(()),

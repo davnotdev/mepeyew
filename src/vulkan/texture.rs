@@ -63,6 +63,7 @@ impl VkTexture {
             vkformat,
             vkusages,
             aspect,
+            vk::SampleCountFlags::TYPE_1,
             vk::Extent3D {
                 width: width as u32,
                 height: height as u32,

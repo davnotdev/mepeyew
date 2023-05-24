@@ -66,6 +66,15 @@ impl VkAttachmentImage {
             format,
             usages,
             aspect,
+            match ext.msaa_samples.unwrap_or_default() {
+                MsaaSampleCount::Sample1 => vk::SampleCountFlags::TYPE_1,
+                MsaaSampleCount::Sample2 => vk::SampleCountFlags::TYPE_2,
+                MsaaSampleCount::Sample4 => vk::SampleCountFlags::TYPE_4,
+                MsaaSampleCount::Sample8 => vk::SampleCountFlags::TYPE_8,
+                MsaaSampleCount::Sample16 => vk::SampleCountFlags::TYPE_16,
+                MsaaSampleCount::Sample32 => vk::SampleCountFlags::TYPE_32,
+                MsaaSampleCount::Sample64 => vk::SampleCountFlags::TYPE_64,
+            },
             vk::Extent3D {
                 width: width as u32,
                 height: height as u32,
