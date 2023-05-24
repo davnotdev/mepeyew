@@ -126,8 +126,8 @@ impl WebGpuContext {
             } else {
                 device_pixel_ratio
             };
-            canvas.set_width((canvas.client_width() * device_pixel_ratio as i32) as u32);
-            canvas.set_height((canvas.client_height() * device_pixel_ratio as i32) as u32);
+            canvas.set_width((canvas.client_width() as f64 * device_pixel_ratio) as u32);
+            canvas.set_height((canvas.client_height() as f64 * device_pixel_ratio) as u32);
             let present_format = navigator.gpu().get_preferred_canvas_format();
 
             let canvas_config_info = GpuCanvasConfiguration::new(&device, present_format);

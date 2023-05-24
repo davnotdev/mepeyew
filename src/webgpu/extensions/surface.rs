@@ -6,10 +6,21 @@ impl WebGpuContext {
         _width: usize,
         _height: usize,
     ) -> GResult<()> {
-        let surface = self.surface.as_ref().unwrap();
         //  The width and height values are typically wrong when using winit.
-        let width = surface.canvas.client_width() as usize;
-        let height = surface.canvas.client_height() as usize;
+        let surface = self.surface.as_ref().unwrap();
+        let window = window().unwrap();
+
+        let device_pixel_ratio = window.device_pixel_ratio();
+        let device_pixel_ratio = if device_pixel_ratio == 0.0 {
+            1.0
+        } else {
+            device_pixel_ratio
+        };
+        let width = (surface.canvas.client_width() as f64 * device_pixel_ratio) as usize;
+        let height = (surface.canvas.client_height() as f64 * device_pixel_ratio) as usize;
+
+        surface.canvas.set_width(width as u32);
+        surface.canvas.set_height(height as u32);
 
         //  Resize Attachment Images.
         for attachment_image in self.attachment_images.iter_mut() {

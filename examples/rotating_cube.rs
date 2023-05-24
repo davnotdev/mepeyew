@@ -51,6 +51,12 @@ fn main() {
                     device: String::from("mepeyewDevice"),
                     canvas_id: Some(String::from("canvas")),
                 }),
+                Extension::Surface(surface::SurfaceConfiguration {
+                    width: window_size.0,
+                    height: window_size.1,
+                    display: window.raw_display_handle(),
+                    window: window.raw_window_handle(),
+                }),
                 Extension::NagaTranslation,
             ],
         ),
@@ -273,6 +279,9 @@ fn main() {
             }
             Event::MainEventsCleared => {
                 let window_size = get_window_size(&window);
+                context
+                    .surface_extension_set_surface_size(window_size.0 as usize, window_size.1 as usize)
+                    .unwrap();
 
                 #[cfg(not(any(target_arch = "wasm32", target_os = "unknown")))]
                 let elapsed = start.elapsed().as_millis();

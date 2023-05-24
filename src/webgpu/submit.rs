@@ -244,7 +244,14 @@ fn submit_pass(
                     );
                 }
 
-                if let Some(scissor) = draw.scissor {}
+                if let Some(scissor) = draw.scissor {
+                    pass_encoder.set_scissor_rect(
+                        scissor.x as u32,
+                        scissor.y as u32,
+                        scissor.width as u32,
+                        scissor.height as u32,
+                    );
+                }
 
                 pass_encoder.set_pipeline(pass.pipelines[step_idx].get(&draw.program).ok_or(
                     gpu_api_err!("webgpu submit draw missing program id {:?}", draw.program),

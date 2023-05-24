@@ -30,10 +30,10 @@ pub struct DrawViewport {
 
 #[derive(Clone, Copy)]
 pub struct DrawScissor {
-    x: f32,
-    y: f32,
-    width: f32,
-    height: f32,
+    pub x: usize,
+    pub y: usize,
+    pub width: usize,
+    pub height: usize,
 }
 
 pub struct Draw {

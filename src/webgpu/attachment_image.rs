@@ -74,6 +74,7 @@ impl WebGpuAttachmentImage {
     }
 
     pub fn recreate_with_new_size(&mut self, device: &GpuDevice, width: usize, height: usize) {
+        self.texture.destroy();
         let new_attachment_image = WebGpuAttachmentImage::new(
             device,
             width,
