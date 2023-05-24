@@ -55,7 +55,6 @@ impl VkProgram {
         &self,
         dev: &Device,
         render_pass: vk::RenderPass,
-        extent: vk::Extent2D,
         subpass: usize,
         sample_count: Option<vk::SampleCountFlags>,
         ext: &NewProgramExt,
@@ -121,18 +120,13 @@ impl VkProgram {
 
         //  Viewport State
         let viewport_state = vk::PipelineViewportStateCreateInfo::builder()
-            .viewports(&[vk::Viewport {
-                x: 0.0,
-                y: 0.0,
-                width: extent.width as f32,
-                height: extent.height as f32,
-                min_depth: 0.0,
-                max_depth: 1.0,
-            }])
-            .scissors(&[vk::Rect2D {
-                offset: vk::Offset2D { x: 0, y: 0 },
-                extent,
-            }])
+            .viewports(&[])
+            .scissors(&[])
+            .viewport_count(1)
+            .scissor_count(1)
+            .build();
+        let dynamic_state = vk::PipelineDynamicStateCreateInfo::builder()
+            .dynamic_states(&[vk::DynamicState::VIEWPORT, vk::DynamicState::SCISSOR])
             .build();
 
         //  Depth Stencil
@@ -212,6 +206,7 @@ impl VkProgram {
             .vertex_input_state(&vertex_input_state_create)
             .input_assembly_state(&input_assembly_create)
             .viewport_state(&viewport_state)
+            .dynamic_state(&dynamic_state)
             .rasterization_state(&raster_create)
             .multisample_state(&multisample_create)
             .color_blend_state(&color_blend_create)

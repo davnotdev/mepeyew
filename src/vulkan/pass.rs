@@ -67,7 +67,6 @@ impl VkCompiledPass {
                             program.new_graphics_pipeline(
                                 &context.core.dev,
                                 render_pass,
-                                render_extent,
                                 subpass_idx,
                                 sample_count,
                                 &program.ext,
