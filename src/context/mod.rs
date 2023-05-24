@@ -108,6 +108,6 @@ pub use submit::{
     StepSubmitData, Submit, SubmitExt,
 };
 pub use texture::{
-    AttachmentImageUsage, NewAttachmentImageExt, NewTextureExt, ResizeTextureExt, TextureFormat,
-    UploadTextureExt,
+    AttachmentImageColorFormat, AttachmentImageUsage, NewAttachmentImageExt, NewTextureExt,
+    ResizeTextureExt, TextureFormat, UploadTextureExt,
 };

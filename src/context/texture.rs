@@ -8,6 +8,21 @@ pub enum TextureFormat {
 }
 
 #[derive(Debug, Clone, Copy)]
+pub enum AttachmentImageColorFormat {
+    R8UNorm,
+    R8G8UNorm,
+    //  93% of gpus with vulkan don't support Rgb.
+    //  R8G8B8UNorm,
+    R8G8B8A8UNorm,
+
+    R32SFloat,
+    R32G32SFloat,
+    //  85% of gpus with vulkan don't support Rgb.
+    //  R32G32B32SFloat,
+    R32G32B32A32SFloat,
+}
+
+#[derive(Debug, Clone, Copy)]
 pub enum AttachmentImageUsage {
     ColorAttachment,
     DepthAttachment,
@@ -22,6 +37,7 @@ pub struct UploadTextureExt {}
 #[derive(Default, Clone)]
 pub struct NewAttachmentImageExt {
     pub msaa_samples: Option<MsaaSampleCount>,
+    pub color_format: Option<AttachmentImageColorFormat>,
 }
 
 impl Context {

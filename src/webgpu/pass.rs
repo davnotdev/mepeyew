@@ -125,14 +125,17 @@ impl WebGpuCompiledPass {
                                     "webgpu write color local attachment {:?} does not exist.",
                                     write_color
                                 ))?;
-                            let format = if attachment.output_image.is_none() {
+                            let format = if let Some(output_image) = attachment.output_image {
+                                let attachment = context.attachment_images.get(output_image.id())
+                                    .ok_or(gpu_api_err!("webpgpu compile pass attachment image id {:?} does not exist", output_image))?;
+                                attachment.format
+                            } else {
                                 context
                                     .surface
                                     .as_ref()
                                     .ok_or(gpu_api_err!("webgpu surface does not exist, WebGpuInit extension was probably not called."))?
                                     .present_format
-                            } else {
-                                WEBGPU_COLOR_ATTACHMENT_FORMAT
+
                             };
                             targets.push(&GpuColorTargetState::new(format));
 
@@ -158,7 +161,7 @@ impl WebGpuCompiledPass {
                                             .ok_or(gpu_api_err!("webgpu surface does not exist, WebGpuInit extension was probably not called."))?
                                             .present_format
                                     } else {
-                                        WEBGPU_COLOR_ATTACHMENT_FORMAT
+                                        format
                                     };
 
                                     let size = Array::new();

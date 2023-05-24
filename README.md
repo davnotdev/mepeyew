@@ -4,7 +4,7 @@ Computer graphics has gotten to the point where you can't just draw pixels onto
 the screen directly anymore.
 Instead, rendering APIs are used for drawing in order to efficiently utilize the hardware.
 Each platform has its own set of preferred APIs (DirectX on Windows, Metal on
-MacOS, etc), where each platform has its own little quirks and tricks.
+MacOS, etc), where said platform has its own little quirks and tricks.
 
 Built in rust, `mepeyew` is meant to hide away these quirks in a nice and neat package while
 trying to give you as much power as possible!
@@ -50,10 +50,10 @@ The API is designed to be stable, but I can't guarentee anything of course.
 - [x] Depth Buffers
 - [x] Stencil Buffers
 - [x] MSAA
-- [ ] More Attachment Formats
+- [x] More Attachment Formats
 - [x] Dynamic Viewport + Scissor
 - [ ] Shader Storage Buffer Objects
 - [ ] Compute
 - [ ] More Documentation
-- [ ] (Debug, Clone, Copy)-ify Everything
+- [x] (Debug, Clone, Copy)-ify Everything
 - [ ] v0.2 Release!

@@ -172,7 +172,10 @@ fn new_render_pass(
                             if attachment.local_attachment_idx == 0 && pass.surface_attachment {
                                 swapchain_format.ok_or(gpu_api_err!("vulkan tried to use surface attachment without surface extension"))?
                             } else {
-                                VK_COLOR_ATTACHMENT_FORMAT
+                                let output_image = attachment.output_image.unwrap();
+                                let attachment = ctx.attachment_images.get(output_image.id())
+                                    .ok_or(gpu_api_err!("vulkan compile pass attachment image id {:?} does not exist", output_image))?;
+                                attachment.format
                             }
                         }
                         PassInputType::Depth(_) => VK_DEPTH_ATTACHMENT_FORMAT,

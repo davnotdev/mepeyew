@@ -27,6 +27,7 @@ pub struct WebGpuAttachmentImage {
 
     texture: GpuTexture,
     pub texture_view: GpuTextureView,
+    pub format: GpuTextureFormat,
 }
 
 impl WebGpuAttachmentImage {
@@ -40,7 +41,17 @@ impl WebGpuAttachmentImage {
         let ext = ext.unwrap_or_default();
 
         let format = match attachment_usage {
-            AttachmentImageUsage::ColorAttachment => WEBGPU_COLOR_ATTACHMENT_FORMAT,
+            AttachmentImageUsage::ColorAttachment => ext
+                .color_format
+                .map(|color_format| match color_format {
+                    AttachmentImageColorFormat::R8UNorm => GpuTextureFormat::R8unorm,
+                    AttachmentImageColorFormat::R8G8UNorm => GpuTextureFormat::Rg8unorm,
+                    AttachmentImageColorFormat::R8G8B8A8UNorm => GpuTextureFormat::Rgba8snorm,
+                    AttachmentImageColorFormat::R32SFloat => GpuTextureFormat::R32float,
+                    AttachmentImageColorFormat::R32G32SFloat => GpuTextureFormat::Rg32float,
+                    AttachmentImageColorFormat::R32G32B32A32SFloat => GpuTextureFormat::Rgba32float,
+                })
+                .unwrap_or(WEBGPU_COLOR_ATTACHMENT_FORMAT),
             AttachmentImageUsage::DepthAttachment => WEBGPU_DEPTH_ATTACHMENT_FORMAT,
         };
 
@@ -70,6 +81,7 @@ impl WebGpuAttachmentImage {
             attachment_usage,
             texture,
             texture_view,
+            format,
         }
     }
 
@@ -80,7 +92,7 @@ impl WebGpuAttachmentImage {
             width,
             height,
             self.attachment_usage,
-            Some(self.ext),
+            Some(self.ext.clone()),
         );
         *self = new_attachment_image;
     }

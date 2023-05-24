@@ -27,6 +27,7 @@ pub struct VkAttachmentImage {
     ext: NewAttachmentImageExt,
 
     pub image: VkImage,
+    pub format: vk::Format,
     pub image_view: vk::ImageView,
     pub attachment_usage: AttachmentImageUsage,
 
@@ -44,7 +45,19 @@ impl VkAttachmentImage {
         ext: NewAttachmentImageExt,
     ) -> GResult<Self> {
         let format = match attachment_usage {
-            AttachmentImageUsage::ColorAttachment => VK_COLOR_ATTACHMENT_FORMAT,
+            AttachmentImageUsage::ColorAttachment => ext
+                .color_format
+                .map(|color_format| match color_format {
+                    AttachmentImageColorFormat::R8UNorm => vk::Format::R8G8_UNORM,
+                    AttachmentImageColorFormat::R8G8UNorm => vk::Format::R8G8_UNORM,
+                    AttachmentImageColorFormat::R8G8B8A8UNorm => vk::Format::R8G8B8A8_UNORM,
+                    AttachmentImageColorFormat::R32SFloat => vk::Format::R32_SFLOAT,
+                    AttachmentImageColorFormat::R32G32SFloat => vk::Format::R32G32_SFLOAT,
+                    AttachmentImageColorFormat::R32G32B32A32SFloat => {
+                        vk::Format::R32G32B32A32_SFLOAT
+                    }
+                })
+                .unwrap_or(VK_COLOR_ATTACHMENT_FORMAT),
             AttachmentImageUsage::DepthAttachment => VK_DEPTH_ATTACHMENT_FORMAT,
         };
         let usages = vk::ImageUsageFlags::INPUT_ATTACHMENT
@@ -87,6 +100,7 @@ impl VkAttachmentImage {
         Ok(VkAttachmentImage {
             ext,
             attachment_usage,
+            format,
             image,
             image_view,
             drop_queue_ref: Arc::clone(drop_queue_ref),
@@ -108,7 +122,7 @@ impl VkAttachmentImage {
             width,
             height,
             self.attachment_usage,
-            self.ext,
+            self.ext.clone(),
         )?;
 
         let _drop_old = std::mem::replace(self, new_attachment_image);
