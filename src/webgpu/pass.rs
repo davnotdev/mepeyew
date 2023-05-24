@@ -105,10 +105,14 @@ impl WebGpuCompiledPass {
                         depth_stencil
                             .depth_write_enabled(program.ext.enable_depth_write.is_some())
                             .depth_compare(compare_op_into_webgpu(program.ext.depth_compare_op.unwrap_or_default()))
-                            .stencil_back(&stencil_state)
-                            .stencil_front(&stencil_state)
                             .stencil_read_mask(program.ext.stencil_compare_mask.unwrap_or_default())
                             .stencil_write_mask(program.ext.stencil_write_mask.unwrap_or_default());
+
+                        if program.ext.enable_stencil_test.is_some() {
+                            depth_stencil
+                                .stencil_back(&stencil_state)
+                                .stencil_front(&stencil_state);
+                        }
 
                         pipeline_info.depth_stencil(&depth_stencil);
                     }
