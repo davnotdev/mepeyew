@@ -7,6 +7,7 @@ use naga::{back, front, valid, ShaderStage};
 pub struct NagaTranslationExtensionTranslateShaderCodeExt {}
 
 ///  The type of shader to be translated.
+#[derive(Debug, Clone, Copy)]
 pub enum NagaTranslationStage {
     Vertex,
     Fragment,
@@ -14,12 +15,15 @@ pub enum NagaTranslationStage {
 }
 
 ///  The expected input language.
+#[derive(Debug, Clone, Copy)]
 pub enum NagaTranslationInput {
     Glsl,
     Spirv,
     Wgsl,
 }
 
+///  The expected ouput language.
+#[derive(Debug, Clone, Copy)]
 enum NagaTranslationOutput {
     Spirv,
     Wgsl,

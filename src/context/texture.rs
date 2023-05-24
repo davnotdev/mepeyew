@@ -1,25 +1,25 @@
 use super::*;
 
-#[derive(Clone, Copy)]
+#[derive(Debug, Clone, Copy)]
 pub enum TextureFormat {
     //  80% of gpus with vulkan don't support Rgb.
     //  Rgb,
     Rgba,
 }
 
-#[derive(Clone, Copy)]
+#[derive(Debug, Clone, Copy)]
 pub enum AttachmentImageUsage {
     ColorAttachment,
     DepthAttachment,
 }
 
-#[derive(Default, Clone, Copy)]
+#[derive(Default, Clone)]
 pub struct NewTextureExt {}
-#[derive(Default, Clone, Copy)]
+#[derive(Default, Clone)]
 pub struct ResizeTextureExt {}
-#[derive(Default, Clone, Copy)]
+#[derive(Default, Clone)]
 pub struct UploadTextureExt {}
-#[derive(Default, Clone, Copy)]
+#[derive(Default, Clone)]
 pub struct NewAttachmentImageExt {
     pub msaa_samples: Option<MsaaSampleCount>,
 }

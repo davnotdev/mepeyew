@@ -14,7 +14,7 @@ use super::*;
 /// }
 /// ```
 #[repr(u8)]
-#[derive(Clone, Copy)]
+#[derive(Debug, Clone, Copy)]
 pub enum ShaderUniformFrequencyHint {
     High = 0,
     Mid = 1,
@@ -22,7 +22,7 @@ pub enum ShaderUniformFrequencyHint {
     Static = 3,
 }
 
-#[derive(Default, Clone, Copy)]
+#[derive(Default, Debug, Clone, Copy)]
 pub enum ShaderCompareOp {
     Never,
     #[default]
@@ -36,7 +36,7 @@ pub enum ShaderCompareOp {
 }
 
 //  TODO docs.
-#[derive(Default, Clone, Copy)]
+#[derive(Default, Debug, Clone, Copy)]
 pub enum ShaderStencilOp {
     #[default]
     Keep,
@@ -49,7 +49,7 @@ pub enum ShaderStencilOp {
     DecrementWrap,
 }
 
-#[derive(Clone, Copy)]
+#[derive(Debug, Clone, Copy)]
 pub enum ShaderUniformType {
     Sampler(SamplerId),
     Texture(TextureId),
@@ -57,7 +57,7 @@ pub enum ShaderUniformType {
     InputAttachment(AttachmentImageId),
 }
 
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub struct ShaderUniform {
     pub ty: ShaderUniformType,
     pub binding: usize,
@@ -72,7 +72,7 @@ pub enum ShaderType {
     Fragment,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Copy)]
 pub enum ShaderStage {
     Vertex,
     Fragment,

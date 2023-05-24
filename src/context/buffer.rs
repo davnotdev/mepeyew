@@ -33,11 +33,11 @@ pub type VertexBufferElement = f32;
 ///  The expected type of all index buffers.
 pub type IndexBufferElement = u32;
 
-#[derive(Default)]
+#[derive(Default, Clone)]
 pub struct NewVertexBufferExt {}
-#[derive(Default)]
+#[derive(Default, Clone)]
 pub struct NewIndexBufferExt {}
-#[derive(Default)]
+#[derive(Default, Clone)]
 pub struct NewUniformBufferExt {}
 
 impl Context {

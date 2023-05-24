@@ -1,18 +1,18 @@
 use super::*;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Copy)]
 pub enum PassInputType {
     Color(PassInputLoadOpColorType),
     Depth(PassInputLoadOpDepthStencilType),
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Copy)]
 pub enum PassInputLoadOpColorType {
     Load,
     Clear,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Copy)]
 pub enum PassInputLoadOpDepthStencilType {
     Load,
     Clear,
@@ -49,7 +49,7 @@ pub struct Pass {
     pub(crate) render_height: usize,
 }
 
-#[derive(Default)]
+#[derive(Default, Clone)]
 pub struct NewPassExt {
     /// Have the pass resize with the surface.
     pub depends_on_surface_size: Option<()>,

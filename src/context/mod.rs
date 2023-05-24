@@ -67,7 +67,7 @@ def_id_ty!(PassStepDependency);
 def_id_ty!(PassLocalAttachment);
 def_id_ty!(CompiledPassId);
 
-#[derive(Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Api {
     Vulkan,
     WebGpu,

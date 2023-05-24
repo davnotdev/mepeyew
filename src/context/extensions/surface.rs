@@ -1,7 +1,7 @@
 use super::*;
 use raw_window_handle::{RawDisplayHandle, RawWindowHandle};
 
-#[derive(Clone, Copy)]
+#[derive(Debug, Clone, Copy)]
 pub struct SurfaceConfiguration {
     pub width: usize,
     pub height: usize,

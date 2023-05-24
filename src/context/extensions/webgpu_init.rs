@@ -1,4 +1,4 @@
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub struct WebGpuInitFromWindow {
     /// Created using these lines in javascript land.
     /// ```javascript

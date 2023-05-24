@@ -3,6 +3,7 @@ use std::collections::HashMap;
 
 //  TODO FIX: Assert that no two passes have the output attachment.
 
+#[derive(Debug, Clone, Copy)]
 pub struct ClearColor {
     pub r: f32,
     pub g: f32,
@@ -10,17 +11,19 @@ pub struct ClearColor {
     pub a: f32,
 }
 
+#[derive(Debug, Clone, Copy)]
 pub struct ClearDepthStencil {
     pub depth: f32,
     pub stencil: u32,
 }
 
+#[derive(Debug, Clone, Copy)]
 pub enum DrawType {
     Draw,
     DrawIndexed,
 }
 
-#[derive(Clone, Copy)]
+#[derive(Debug, Clone, Copy)]
 pub struct DrawViewport {
     pub x: f32,
     pub y: f32,
@@ -28,7 +31,7 @@ pub struct DrawViewport {
     pub height: f32,
 }
 
-#[derive(Clone, Copy)]
+#[derive(Debug, Clone, Copy)]
 pub struct DrawScissor {
     pub x: usize,
     pub y: usize,
@@ -36,6 +39,7 @@ pub struct DrawScissor {
     pub height: usize,
 }
 
+#[derive(Debug, Clone, Copy)]
 pub struct Draw {
     pub(crate) ty: DrawType,
     pub(crate) first: usize,
@@ -45,7 +49,7 @@ pub struct Draw {
     pub(crate) scissor: Option<DrawScissor>,
 }
 
-#[derive(Default)]
+#[derive(Default, Debug, Clone)]
 pub struct StepSubmitData {
     pub(crate) draws: Vec<Draw>,
 }
@@ -196,7 +200,7 @@ impl<'transfer> Submit<'transfer> {
     }
 }
 
-#[derive(Default)]
+#[derive(Default, Clone)]
 pub struct SubmitExt {}
 
 impl Context {
