@@ -57,6 +57,38 @@ impl VkContext {
         self.ubos.push(ubo);
         Ok(UniformBufferId::from_id(self.ubos.len() - 1))
     }
+
+    pub fn new_shader_storage_buffer<T>(
+        &mut self,
+        data: &T,
+        _ext: Option<NewShaderStorageBufferExt>,
+    ) -> GResult<ShaderStorageBufferId> {
+        let (buf, staging) = self.new_generic_buffer(
+            std::slice::from_ref(data),
+            BufferStorageType::Dynamic,
+            vk::BufferUsageFlags::STORAGE_BUFFER,
+        )?;
+        let ssbo = VkShaderStorageBuffer {
+            buffer: buf,
+            staging,
+        };
+        self.ssbos.push(ssbo);
+        Ok(ShaderStorageBufferId::from_id(self.ssbos.len() - 1))
+    }
+
+    pub fn read_synced_shader_storage_buffer<T: Copy>(
+        &self,
+        ssbo: ShaderStorageBufferId,
+        _ext: Option<ReadSyncedShaderStorageBufferExt>,
+    ) -> GResult<T> {
+        let ssbo = self.ssbos.get(ssbo.id()).ok_or(gpu_api_err!(
+            "vulkan read synced shader buffer id {:?} does not exist",
+            ssbo
+        ))?;
+        Ok(unsafe {
+            std::ptr::read(ssbo.staging.as_ref().unwrap().mapped_ptr.unwrap() as *const T)
+        })
+    }
 }
 
 pub struct VkVertexBuffer {
@@ -70,6 +102,11 @@ pub struct VkIndexBuffer {
 }
 
 pub struct VkUniformBuffer {
+    pub buffer: VkBuffer,
+    staging: Option<VkBuffer>,
+}
+
+pub struct VkShaderStorageBuffer {
     pub buffer: VkBuffer,
     staging: Option<VkBuffer>,
 }
@@ -163,7 +200,7 @@ impl VkContext {
             &self.drop_queue,
             &mut self.alloc,
             buf_size,
-            vk::BufferUsageFlags::TRANSFER_SRC,
+            vk::BufferUsageFlags::TRANSFER_SRC | vk::BufferUsageFlags::TRANSFER_DST,
             MemoryLocation::CpuToGpu,
         )?;
         staging.map_copy_data(data.as_ptr() as *const u8, buf_size)?;

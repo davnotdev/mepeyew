@@ -19,6 +19,7 @@ impl VkDescriptors {
         //  Descriptor Pool
         let supported_descriptor_types = [
             vk::DescriptorType::UNIFORM_BUFFER,
+            vk::DescriptorType::STORAGE_BUFFER,
             vk::DescriptorType::INPUT_ATTACHMENT,
             vk::DescriptorType::SAMPLED_IMAGE,
             vk::DescriptorType::SAMPLER,
@@ -56,19 +57,35 @@ impl VkDescriptors {
             let binding_info = match uniform.ty {
                 ShaderUniformType::UniformBuffer(_) => vk::DescriptorSetLayoutBinding::builder()
                     .binding(uniform.binding as u32)
-                    .stage_flags(vk::ShaderStageFlags::VERTEX | vk::ShaderStageFlags::FRAGMENT)
+                    .stage_flags(
+                        vk::ShaderStageFlags::VERTEX
+                            | vk::ShaderStageFlags::FRAGMENT
+                            | vk::ShaderStageFlags::COMPUTE,
+                    )
                     .descriptor_type(vk::DescriptorType::UNIFORM_BUFFER)
                     .descriptor_count(1)
                     .build(),
+                ShaderUniformType::ShaderStorageBuffer(_) => {
+                    vk::DescriptorSetLayoutBinding::builder()
+                        .binding(uniform.binding as u32)
+                        .stage_flags(
+                            vk::ShaderStageFlags::VERTEX
+                                | vk::ShaderStageFlags::FRAGMENT
+                                | vk::ShaderStageFlags::COMPUTE,
+                        )
+                        .descriptor_type(vk::DescriptorType::STORAGE_BUFFER)
+                        .descriptor_count(1)
+                        .build()
+                }
                 ShaderUniformType::Texture(_) => vk::DescriptorSetLayoutBinding::builder()
                     .binding(uniform.binding as u32)
-                    .stage_flags(vk::ShaderStageFlags::FRAGMENT)
+                    .stage_flags(vk::ShaderStageFlags::FRAGMENT | vk::ShaderStageFlags::COMPUTE)
                     .descriptor_type(vk::DescriptorType::SAMPLED_IMAGE)
                     .descriptor_count(1)
                     .build(),
                 ShaderUniformType::Sampler(_) => vk::DescriptorSetLayoutBinding::builder()
                     .binding(uniform.binding as u32)
-                    .stage_flags(vk::ShaderStageFlags::FRAGMENT)
+                    .stage_flags(vk::ShaderStageFlags::FRAGMENT | vk::ShaderStageFlags::COMPUTE)
                     .descriptor_type(vk::DescriptorType::SAMPLER)
                     .descriptor_count(1)
                     .build(),
@@ -157,6 +174,31 @@ impl VkDescriptors {
                             .dst_binding(uniform.binding as u32)
                             .dst_array_element(0)
                             .descriptor_type(vk::DescriptorType::UNIFORM_BUFFER)
+                            .buffer_info(&buffer_info_list)
+                            .build());
+
+                        buffer_infos.push(buffer_info_list);
+
+                        ret
+                    }
+                    ShaderUniformType::ShaderStorageBuffer(ssbo_id) => {
+                        let ssbo = context.ssbos.get(ssbo_id.id()).ok_or(gpu_api_err!(
+                            "vulkan shader storage buffer id {:?} does not exist",
+                            ssbo_id
+                        ))?;
+                        let buffer_info = vk::DescriptorBufferInfo::builder()
+                            .buffer(ssbo.buffer.buffer)
+                            .range(ssbo.buffer.size as u64)
+                            .offset(0)
+                            .build();
+
+                        let buffer_info_list = vec![buffer_info];
+
+                        let ret = Ok(vk::WriteDescriptorSet::builder()
+                            .dst_set(self.descriptor_sets[set_idx])
+                            .dst_binding(uniform.binding as u32)
+                            .dst_array_element(0)
+                            .descriptor_type(vk::DescriptorType::STORAGE_BUFFER)
                             .buffer_info(&buffer_info_list)
                             .build());
 

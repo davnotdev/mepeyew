@@ -13,7 +13,7 @@ use std::{
 };
 
 use attachment_image::VkAttachmentImage;
-use buffer::{VkBuffer, VkIndexBuffer, VkUniformBuffer, VkVertexBuffer};
+use buffer::{VkBuffer, VkIndexBuffer, VkShaderStorageBuffer, VkUniformBuffer, VkVertexBuffer};
 use descriptor::VkDescriptors;
 use drop::VkDropQueue;
 use frame::{VkFrame, VkFrameDependent};
@@ -53,6 +53,7 @@ pub struct VkContext {
     vbos: ManuallyDrop<Vec<VkVertexBuffer>>,
     ibos: ManuallyDrop<Vec<VkIndexBuffer>>,
     ubos: ManuallyDrop<Vec<VkUniformBuffer>>,
+    ssbos: ManuallyDrop<Vec<VkShaderStorageBuffer>>,
     textures: ManuallyDrop<Vec<VkTexture>>,
     attachment_images: ManuallyDrop<Vec<VkAttachmentImage>>,
     compiled_passes: ManuallyDrop<Vec<VkCompiledPass>>,
@@ -177,6 +178,7 @@ impl VkContext {
         let vbos = ManuallyDrop::new(vec![]);
         let ibos = ManuallyDrop::new(vec![]);
         let ubos = ManuallyDrop::new(vec![]);
+        let ssbos = ManuallyDrop::new(vec![]);
         let textures = ManuallyDrop::new(vec![]);
         let attachment_images = ManuallyDrop::new(vec![]);
         let compiled_passes = ManuallyDrop::new(vec![]);
@@ -195,6 +197,7 @@ impl VkContext {
             vbos,
             ibos,
             ubos,
+            ssbos,
             textures,
             attachment_images,
             compiled_passes,

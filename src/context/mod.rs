@@ -42,6 +42,8 @@ pub struct IndexBufferId(usize);
 #[derive(Debug, Clone, Copy, Hash, PartialEq, Eq)]
 pub struct UniformBufferId(usize);
 #[derive(Debug, Clone, Copy, Hash, PartialEq, Eq)]
+pub struct ShaderStorageBufferId(usize);
+#[derive(Debug, Clone, Copy, Hash, PartialEq, Eq)]
 pub struct ProgramId(usize);
 #[derive(Debug, Clone, Copy, Hash, PartialEq, Eq)]
 pub struct SamplerId(usize);
@@ -59,6 +61,7 @@ pub struct CompiledPassId(usize);
 def_id_ty!(VertexBufferId);
 def_id_ty!(IndexBufferId);
 def_id_ty!(UniformBufferId);
+def_id_ty!(ShaderStorageBufferId);
 def_id_ty!(ProgramId);
 def_id_ty!(SamplerId);
 def_id_ty!(TextureId);
@@ -89,8 +92,9 @@ pub enum Context {
 }
 
 pub use buffer::{
-    BufferStorageType, IndexBufferElement, NewIndexBufferExt, NewUniformBufferExt,
-    NewVertexBufferExt, VertexBufferElement, VertexBufferInput, VertexInputArgCount,
+    BufferStorageType, IndexBufferElement, NewIndexBufferExt, NewShaderStorageBufferExt,
+    NewUniformBufferExt, NewVertexBufferExt, ReadSyncedShaderStorageBufferExt, VertexBufferElement,
+    VertexBufferInput, VertexInputArgCount,
 };
 pub use extensions::{Extension, ExtensionType};
 pub use pass::{

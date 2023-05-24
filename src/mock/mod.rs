@@ -43,6 +43,22 @@ impl MockContext {
         unimplemented!("No backend chosen")
     }
 
+    pub fn new_shader_storage_buffer<T: Copy>(
+        &mut self,
+        _data: &T,
+        _ext: Option<NewShaderStorageBufferExt>,
+    ) -> GResult<ShaderStorageBufferId> {
+        unimplemented!("No backend chosen")
+    }
+
+    pub fn read_synced_shader_storage_buffer<T: Copy>(
+        &self,
+        _ssbo: ShaderStorageBufferId,
+        _ext: Option<ReadSyncedShaderStorageBufferExt>,
+    ) -> GResult<T> {
+        unimplemented!("No backend chosen")
+    }
+
     pub fn new_texture(
         &mut self,
         _width: usize,

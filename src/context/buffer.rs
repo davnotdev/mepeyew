@@ -22,7 +22,7 @@ pub struct VertexBufferInput {
 }
 
 ///  Whether you plan on dynamically upload to a buffer later on.
-#[derive(Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum BufferStorageType {
     Static,
     Dynamic,
@@ -33,12 +33,16 @@ pub type VertexBufferElement = f32;
 ///  The expected type of all index buffers.
 pub type IndexBufferElement = u32;
 
-#[derive(Default, Clone)]
+#[derive(Default, Debug, Clone)]
 pub struct NewVertexBufferExt {}
-#[derive(Default, Clone)]
+#[derive(Default, Debug, Clone)]
 pub struct NewIndexBufferExt {}
-#[derive(Default, Clone)]
+#[derive(Default, Debug, Clone)]
 pub struct NewUniformBufferExt {}
+#[derive(Default, Debug, Clone)]
+pub struct NewShaderStorageBufferExt {}
+#[derive(Default, Debug, Clone)]
+pub struct ReadSyncedShaderStorageBufferExt {}
 
 impl Context {
     pub fn new_vertex_buffer(
@@ -73,6 +77,29 @@ impl Context {
         match self {
             Self::Vulkan(vk) => vk.new_uniform_buffer::<T>(data, ext),
             Self::WebGpu(wgpu) => wgpu.new_uniform_buffer::<T>(data, ext),
+        }
+    }
+
+    pub fn new_shader_storage_buffer<T: Copy>(
+        &mut self,
+        data: &T,
+        ext: Option<NewShaderStorageBufferExt>,
+    ) -> GResult<ShaderStorageBufferId> {
+        match self {
+            Self::Vulkan(vk) => vk.new_shader_storage_buffer(data, ext),
+            Self::WebGpu(wgpu) => todo!(),
+        }
+    }
+
+    //  TODO docs.
+    pub fn read_synced_shader_storage_buffer<T: Copy>(
+        &self,
+        ssbo: ShaderStorageBufferId,
+        ext: Option<ReadSyncedShaderStorageBufferExt>,
+    ) -> GResult<T> {
+        match self {
+            Self::Vulkan(vk) => vk.read_synced_shader_storage_buffer(ssbo, ext),
+            Self::WebGpu(wgpu) => todo!(),
         }
     }
 }
