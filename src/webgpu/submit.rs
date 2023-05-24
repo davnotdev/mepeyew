@@ -232,14 +232,27 @@ fn submit_pass(
                 pass_encoder.set_index_buffer(&ibo.buffer, GpuIndexFormat::Uint32);
             }
 
-            step_data.draws.iter().try_for_each(|(program_id, draw)| {
-                pass_encoder.set_pipeline(pass.pipelines[step_idx].get(&program_id).ok_or(
-                    gpu_api_err!("webgpu submit draw missing program id {:?}", program_id),
+            step_data.draws.iter().try_for_each(|draw| {
+                if let Some(viewport) = draw.viewport {
+                    pass_encoder.set_viewport(
+                        viewport.x,
+                        viewport.y,
+                        viewport.width,
+                        viewport.height,
+                        0.0,
+                        1.0,
+                    );
+                }
+
+                if let Some(scissor) = draw.scissor {}
+
+                pass_encoder.set_pipeline(pass.pipelines[step_idx].get(&draw.program).ok_or(
+                    gpu_api_err!("webgpu submit draw missing program id {:?}", draw.program),
                 )?);
 
-                let program = context.programs.get(program_id.id()).ok_or(gpu_api_err!(
+                let program = context.programs.get(draw.program.id()).ok_or(gpu_api_err!(
                     "webgpu submit program id {:?} does not exist",
-                    program_id
+                    draw.program
                 ))?;
 
                 program

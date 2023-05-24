@@ -272,7 +272,7 @@ fn main() {
                     .unwrap();
             }
             Event::MainEventsCleared => {
-                let window_size = window.inner_size();
+                let window_size = get_window_size(&window);
 
                 #[cfg(not(any(target_arch = "wasm32", target_os = "unknown")))]
                 let elapsed = start.elapsed().as_millis();
@@ -289,7 +289,7 @@ fn main() {
                 let mut submit = Submit::new();
 
                 let projection = glm::perspective(
-                    window_size.width as f32 / window_size.height as f32,
+                    window_size.0 as f32 / window_size.1 as f32,
                     90.0 * (glm::pi::<f32>() / 180.0),
                     0.1,
                     100.0,
@@ -319,6 +319,13 @@ fn main() {
                     let mut step_submit = StepSubmitData::new();
 
                     step_submit.draw_indexed(program, 0, index_data.len());
+
+                    step_submit.set_draw_viewport(DrawViewport {
+                        x: 0.0,
+                        y: 0.0,
+                        width: window_size.0 as f32,
+                        height: window_size.1 as f32,
+                    });
 
                     pass_submit.set_attachment_clear_color(
                         output_attachment,

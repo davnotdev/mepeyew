@@ -94,8 +94,8 @@ pub use buffer::{
 };
 pub use extensions::{Extension, ExtensionType};
 pub use pass::{
-    CompilePassExt, NewPassExt, Pass, PassAttachment, PassInputLoadOpColorType,
-    PassInputLoadOpDepthStencilType, PassInputType, MsaaSampleCount,
+    CompilePassExt, MsaaSampleCount, NewPassExt, Pass, PassAttachment, PassInputLoadOpColorType,
+    PassInputLoadOpDepthStencilType, PassInputType,
 };
 pub use pass_step::PassStep;
 pub use program::{
@@ -104,8 +104,8 @@ pub use program::{
 };
 pub use sampler::{GetSamplerExt, SamplerFilter, SamplerMode};
 pub use submit::{
-    ClearColor, ClearDepthStencil, Draw, DrawType, PassSubmitData, StepSubmitData, Submit,
-    SubmitExt,
+    ClearColor, ClearDepthStencil, Draw, DrawScissor, DrawType, DrawViewport, PassSubmitData,
+    StepSubmitData, Submit, SubmitExt,
 };
 pub use texture::{
     AttachmentImageUsage, NewAttachmentImageExt, NewTextureExt, ResizeTextureExt, TextureFormat,

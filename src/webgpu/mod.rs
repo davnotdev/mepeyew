@@ -134,6 +134,7 @@ impl WebGpuContext {
             context.configure(&canvas_config_info);
 
             Some(WebGpuSurface {
+                canvas,
                 context,
                 present_format,
             })

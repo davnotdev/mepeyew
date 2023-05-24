@@ -20,15 +20,34 @@ pub enum DrawType {
     DrawIndexed,
 }
 
+#[derive(Clone, Copy)]
+pub struct DrawViewport {
+    pub x: f32,
+    pub y: f32,
+    pub width: f32,
+    pub height: f32,
+}
+
+#[derive(Clone, Copy)]
+pub struct DrawScissor {
+    x: f32,
+    y: f32,
+    width: f32,
+    height: f32,
+}
+
 pub struct Draw {
     pub(crate) ty: DrawType,
     pub(crate) first: usize,
     pub(crate) count: usize,
+    pub(crate) program: ProgramId,
+    pub(crate) viewport: Option<DrawViewport>,
+    pub(crate) scissor: Option<DrawScissor>,
 }
 
 #[derive(Default)]
 pub struct StepSubmitData {
-    pub(crate) draws: Vec<(ProgramId, Draw)>,
+    pub(crate) draws: Vec<Draw>,
 }
 
 impl StepSubmitData {
@@ -36,27 +55,39 @@ impl StepSubmitData {
         Self::default()
     }
 
+    //  TODO docs
+    pub fn set_draw_viewport(&mut self, viewport: DrawViewport) {
+        let idx = self.draws.len() - 1;
+        self.draws[idx].viewport = Some(viewport);
+    }
+
+    //  TODO docs
+    pub fn set_draw_scissor(&mut self, scissor: DrawScissor) {
+        let idx = self.draws.len() - 1;
+        self.draws[idx].scissor = Some(scissor);
+    }
+
     pub fn draw(&mut self, program: ProgramId, first: usize, count: usize) -> &mut Self {
-        self.draws.push((
+        self.draws.push(Draw {
+            ty: DrawType::Draw,
+            first,
+            count,
             program,
-            Draw {
-                ty: DrawType::Draw,
-                first,
-                count,
-            },
-        ));
+            viewport: None,
+            scissor: None,
+        });
         self
     }
 
     pub fn draw_indexed(&mut self, program: ProgramId, first: usize, count: usize) -> &mut Self {
-        self.draws.push((
+        self.draws.push(Draw {
+            ty: DrawType::DrawIndexed,
+            first,
+            count,
             program,
-            Draw {
-                ty: DrawType::DrawIndexed,
-                first,
-                count,
-            },
-        ));
+            viewport: None,
+            scissor: None,
+        });
         self
     }
 }
