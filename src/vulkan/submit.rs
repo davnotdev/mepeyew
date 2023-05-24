@@ -228,7 +228,12 @@ impl VkContext {
                     &render_pass_begin,
                     vk::SubpassContents::INLINE,
                 );
-                for (step_idx, step) in pass.steps.iter().enumerate() {
+                for (step_idx, (step, step_data)) in pass
+                    .steps
+                    .iter()
+                    .zip(pass_data.steps_datas.iter())
+                    .enumerate()
+                {
                     //  Index Buffer
                     if let Some(ibo) = step.index_buffer {
                         let ibo = self.ibos.get(ibo.id()).unwrap();
@@ -268,95 +273,93 @@ impl VkContext {
                     );
 
                     //  Draw
-                    for step in pass_data.steps_datas.iter() {
-                        for draw in step.draws.iter() {
-                            //  Dynamic Viewport / Scissor
-                            let viewport = draw.viewport.unwrap_or(DrawViewport {
-                                x: 0.0,
-                                y: 0.0,
-                                width: pass.original_pass.render_width as f32,
-                                height: pass.original_pass.render_height as f32,
-                            });
-                            let scissor = draw.scissor.unwrap_or(DrawScissor {
-                                x: 0,
-                                y: 0,
-                                width: pass.original_pass.render_width,
-                                height: pass.original_pass.render_height,
-                            });
+                    for draw in step_data.draws.iter() {
+                        //  Dynamic Viewport / Scissor
+                        let viewport = draw.viewport.unwrap_or(DrawViewport {
+                            x: 0.0,
+                            y: 0.0,
+                            width: pass.original_pass.render_width as f32,
+                            height: pass.original_pass.render_height as f32,
+                        });
+                        let scissor = draw.scissor.unwrap_or(DrawScissor {
+                            x: 0,
+                            y: 0,
+                            width: pass.original_pass.render_width,
+                            height: pass.original_pass.render_height,
+                        });
 
-                            self.core.dev.cmd_set_viewport(
-                                graphics_command_buffer,
-                                0,
-                                &[vk::Viewport {
-                                    x: viewport.x,
-                                    y: viewport.y,
-                                    width: viewport.width,
-                                    height: viewport.height,
-                                    min_depth: 0.0,
-                                    max_depth: 1.0,
-                                }],
-                            );
+                        self.core.dev.cmd_set_viewport(
+                            graphics_command_buffer,
+                            0,
+                            &[vk::Viewport {
+                                x: viewport.x,
+                                y: viewport.y,
+                                width: viewport.width,
+                                height: viewport.height,
+                                min_depth: 0.0,
+                                max_depth: 1.0,
+                            }],
+                        );
 
-                            self.core.dev.cmd_set_scissor(
-                                graphics_command_buffer,
-                                0,
-                                &[vk::Rect2D::builder()
-                                    .offset(vk::Offset2D {
-                                        x: scissor.x as i32,
-                                        y: scissor.y as i32,
-                                    })
-                                    .extent(vk::Extent2D {
-                                        width: scissor.width as u32,
-                                        height: scissor.height as u32,
-                                    })
-                                    .build()],
-                            );
+                        self.core.dev.cmd_set_scissor(
+                            graphics_command_buffer,
+                            0,
+                            &[vk::Rect2D::builder()
+                                .offset(vk::Offset2D {
+                                    x: scissor.x as i32,
+                                    y: scissor.y as i32,
+                                })
+                                .extent(vk::Extent2D {
+                                    width: scissor.width as u32,
+                                    height: scissor.height as u32,
+                                })
+                                .build()],
+                        );
 
-                            //  Program
-                            self.core.dev.cmd_bind_pipeline(
-                                graphics_command_buffer,
-                                vk::PipelineBindPoint::GRAPHICS,
-                                *pass.pipelines[step_idx].get(&draw.program).ok_or(
-                                    gpu_api_err!(
-                                        "vulkan submit draw missing program id {:?}",
-                                        draw.program
-                                    ),
-                                )?,
-                            );
+                        //  Program
+                        self.core.dev.cmd_bind_pipeline(
+                            graphics_command_buffer,
+                            vk::PipelineBindPoint::GRAPHICS,
+                            *pass.pipelines[step_idx]
+                                .get(&draw.program)
+                                .ok_or(gpu_api_err!(
+                                    "vulkan submit draw missing program id {:?}",
+                                    draw.program
+                                ))?,
+                        );
 
-                            //  Descriptor Sets
-                            //  TODO OPT: Maybe don't do this.
-                            let program = self.programs.get(draw.program.id()).unwrap();
-                            self.core.dev.cmd_bind_descriptor_sets(
-                                graphics_command_buffer,
-                                vk::PipelineBindPoint::GRAPHICS,
-                                program.layout,
-                                0,
-                                &program.descriptors.descriptor_sets,
-                                &[],
-                            );
+                        //  Descriptor Sets
+                        //  TODO OPT: Maybe don't do this.
+                        let program = self.programs.get(draw.program.id()).unwrap();
+                        self.core.dev.cmd_bind_descriptor_sets(
+                            graphics_command_buffer,
+                            vk::PipelineBindPoint::GRAPHICS,
+                            program.layout,
+                            0,
+                            &program.descriptors.descriptor_sets,
+                            &[],
+                        );
 
-                            //  Draw
-                            match draw.ty {
-                                DrawType::Draw => {
-                                    self.core.dev.cmd_draw(
-                                        graphics_command_buffer,
-                                        draw.count as u32,
-                                        1,
-                                        draw.first as u32,
-                                        0,
-                                    );
-                                }
-                                DrawType::DrawIndexed => {
-                                    self.core.dev.cmd_draw_indexed(
-                                        graphics_command_buffer,
-                                        draw.count as u32,
-                                        1,
-                                        draw.first as u32,
-                                        0,
-                                        0,
-                                    );
-                                }
+                        //  Draw
+                        match draw.ty {
+                            DrawType::Draw => {
+                                self.core.dev.cmd_draw(
+                                    graphics_command_buffer,
+                                    draw.count as u32,
+                                    1,
+                                    draw.first as u32,
+                                    0,
+                                );
+                            }
+                            DrawType::DrawIndexed => {
+                                self.core.dev.cmd_draw_indexed(
+                                    graphics_command_buffer,
+                                    draw.count as u32,
+                                    1,
+                                    draw.first as u32,
+                                    0,
+                                    0,
+                                );
                             }
                         }
                     }

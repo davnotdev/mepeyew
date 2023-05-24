@@ -281,7 +281,6 @@ fn main() {
                     );
                     pass_submit.step(step_submit);
                 }
-
                 submit.pass(pass_submit);
                 context.submit(submit, None).unwrap();
 
