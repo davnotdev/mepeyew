@@ -279,9 +279,6 @@ fn main() {
             }
             Event::MainEventsCleared => {
                 let window_size = get_window_size(&window);
-                context
-                    .surface_extension_set_surface_size(window_size.0 as usize, window_size.1 as usize)
-                    .unwrap();
 
                 #[cfg(not(any(target_arch = "wasm32", target_os = "unknown")))]
                 let elapsed = start.elapsed().as_millis();

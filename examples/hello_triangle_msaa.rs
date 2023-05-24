@@ -41,6 +41,12 @@ fn main() {
                     device: String::from("mepeyewDevice"),
                     canvas_id: Some(String::from("canvas")),
                 }),
+                Extension::Surface(surface::SurfaceConfiguration {
+                    width: window_size.0,
+                    height: window_size.1,
+                    display: window.raw_display_handle(),
+                    window: window.raw_window_handle(),
+                }),
                 Extension::NagaTranslation,
             ],
         ),
