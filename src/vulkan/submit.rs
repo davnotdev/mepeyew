@@ -234,6 +234,68 @@ impl VkContext {
                     .zip(pass_data.steps_datas.iter())
                     .enumerate()
                 {
+                    //  SSBO Copy Backs
+                    step.ssbo_copy_backs.iter().try_for_each(|ssbo_id| {
+                        let ssbo = self.ssbos.get(ssbo_id.id()).ok_or(gpu_api_err!(
+                            "vulkan shader storage buffer sync id {:?} does not exist",
+                            ssbo_id
+                        ))?;
+
+                        let barrier = vk::BufferMemoryBarrier::builder()
+                            .src_access_mask(vk::AccessFlags::SHADER_WRITE)
+                            .dst_access_mask(vk::AccessFlags::TRANSFER_READ)
+                            .dst_access_mask(vk::AccessFlags::TRANSFER_READ)
+                            .buffer(ssbo.buffer.buffer)
+                            .size(vk::WHOLE_SIZE)
+                            .src_queue_family_index(vk::QUEUE_FAMILY_IGNORED)
+                            .dst_queue_family_index(vk::QUEUE_FAMILY_IGNORED)
+                            .build();
+
+                        self.core.dev.cmd_pipeline_barrier(
+                            graphics_command_buffer,
+                            vk::PipelineStageFlags::VERTEX_SHADER
+                                | vk::PipelineStageFlags::FRAGMENT_SHADER
+                                | vk::PipelineStageFlags::COMPUTE_SHADER,
+                            vk::PipelineStageFlags::TRANSFER,
+                            vk::DependencyFlags::empty(),
+                            &[],
+                            &[barrier],
+                            &[],
+                        );
+
+                        let copy_region = vk::BufferCopy::builder()
+                            .size(ssbo.buffer.size as u64)
+                            .build();
+
+                        self.core.dev.cmd_copy_buffer(
+                            graphics_command_buffer,
+                            ssbo.buffer.buffer,
+                            ssbo.staging.as_ref().unwrap().buffer,
+                            &[copy_region],
+                        );
+
+                        let barrier = vk::BufferMemoryBarrier::builder()
+                            .src_access_mask(vk::AccessFlags::TRANSFER_WRITE)
+                            .dst_access_mask(vk::AccessFlags::HOST_READ)
+                            .buffer(ssbo.staging.as_ref().unwrap().buffer)
+                            .size(vk::WHOLE_SIZE)
+                            .src_queue_family_index(vk::QUEUE_FAMILY_IGNORED)
+                            .dst_queue_family_index(vk::QUEUE_FAMILY_IGNORED)
+                            .build();
+
+                        self.core.dev.cmd_pipeline_barrier(
+                            graphics_command_buffer,
+                            vk::PipelineStageFlags::TRANSFER,
+                            vk::PipelineStageFlags::HOST,
+                            vk::DependencyFlags::empty(),
+                            &[],
+                            &[barrier],
+                            &[],
+                        );
+
+                        Ok(())
+                    })?;
+
                     //  Index Buffer
                     if let Some(ibo) = step.index_buffer {
                         let ibo = self.ibos.get(ibo.id()).unwrap();

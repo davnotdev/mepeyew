@@ -108,7 +108,7 @@ pub struct VkUniformBuffer {
 
 pub struct VkShaderStorageBuffer {
     pub buffer: VkBuffer,
-    staging: Option<VkBuffer>,
+    pub staging: Option<VkBuffer>,
 }
 
 impl VkVertexBuffer {
