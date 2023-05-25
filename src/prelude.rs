@@ -1,9 +1,9 @@
 pub use super::context::{
     extensions, extensions::*, Api, AttachmentImageColorFormat, AttachmentImageUsage,
     BufferStorageType, ClearColor, ClearDepthStencil, CompilePassExt, Context, DrawScissor,
-    DrawViewport, GetSamplerExt, IndexBufferElement, IndexBufferId, MsaaSampleCount,
-    NewAttachmentImageExt, NewIndexBufferExt, NewPassExt, NewProgramExt, NewShaderStorageBufferExt,
-    NewTextureExt, NewVertexBufferExt, Pass, PassInputLoadOpColorType,
+    DrawViewport, GetSamplerExt, IndexBufferElement, IndexBufferId, MipSamplerFilter,
+    MsaaSampleCount, NewAttachmentImageExt, NewIndexBufferExt, NewPassExt, NewProgramExt,
+    NewShaderStorageBufferExt, NewTextureExt, NewVertexBufferExt, Pass, PassInputLoadOpColorType,
     PassInputLoadOpDepthStencilType, PassStep, PassSubmitData, ProgramId,
     ReadSyncedShaderStorageBufferExt, SamplerFilter, SamplerId, SamplerMode, ShaderCompareOp,
     ShaderSet, ShaderStage, ShaderStencilOp, ShaderType, ShaderUniform, ShaderUniformFrequencyHint,

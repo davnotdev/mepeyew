@@ -106,12 +106,12 @@ pub use program::{
     NewProgramExt, ShaderCompareOp, ShaderSet, ShaderStage, ShaderStencilOp, ShaderType,
     ShaderUniform, ShaderUniformFrequencyHint, ShaderUniformType,
 };
-pub use sampler::{GetSamplerExt, SamplerFilter, SamplerMode};
+pub use sampler::{GetSamplerExt, MipSamplerFilter, SamplerFilter, SamplerMode};
 pub use submit::{
     ClearColor, ClearDepthStencil, Draw, DrawScissor, DrawType, DrawViewport, PassSubmitData,
     StepSubmitData, Submit, SubmitExt,
 };
 pub use texture::{
     AttachmentImageColorFormat, AttachmentImageUsage, NewAttachmentImageExt, NewTextureExt,
-    ResizeTextureExt, TextureFormat, UploadTextureExt,
+    TextureFormat, UploadTextureExt,
 };

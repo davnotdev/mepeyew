@@ -22,6 +22,7 @@ impl VkImage {
         usage: vk::ImageUsageFlags,
         view_aspect: vk::ImageAspectFlags,
         samples: vk::SampleCountFlags,
+        mip_levels: u32,
         extent: vk::Extent3D,
     ) -> GResult<Self> {
         let image_create = vk::ImageCreateInfo::builder()
@@ -29,7 +30,7 @@ impl VkImage {
             .usage(usage)
             .extent(extent)
             .image_type(vk::ImageType::TYPE_2D)
-            .mip_levels(1)
+            .mip_levels(mip_levels as u32)
             .array_layers(1)
             .samples(samples)
             .tiling(vk::ImageTiling::OPTIMAL)

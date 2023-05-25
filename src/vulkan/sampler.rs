@@ -23,6 +23,7 @@ struct SamplerData {
     v_mode: SamplerMode,
     min_lod: Option<HashableF32>,
     max_lod: Option<HashableF32>,
+    mip_filter: MipSamplerFilter,
 }
 
 pub struct VkSamplerCache {
@@ -57,6 +58,7 @@ impl VkSamplerCache {
             let mut sampler_info = vk::SamplerCreateInfo::builder()
                 .min_filter(filter_into_vk(data.min_filter))
                 .mag_filter(filter_into_vk(data.mag_filter))
+                .mipmap_mode(mip_filter_into_vk(data.mip_filter))
                 .address_mode_u(mode_into_vk(data.u_mode))
                 .address_mode_v(mode_into_vk(data.v_mode))
                 .build();
@@ -87,6 +89,13 @@ fn filter_into_vk(filter: SamplerFilter) -> vk::Filter {
     }
 }
 
+fn mip_filter_into_vk(filter: MipSamplerFilter) -> vk::SamplerMipmapMode {
+    match filter {
+        MipSamplerFilter::Linear => vk::SamplerMipmapMode::LINEAR,
+        MipSamplerFilter::Nearest => vk::SamplerMipmapMode::NEAREST,
+    }
+}
+
 fn mode_into_vk(mode: SamplerMode) -> vk::SamplerAddressMode {
     match mode {
         SamplerMode::Repeat => vk::SamplerAddressMode::REPEAT,
@@ -101,6 +110,7 @@ impl VkContext {
         let GetSamplerExt {
             min_filter,
             mag_filter,
+            mip_filter,
             u_mode,
             v_mode,
             min_lod,
@@ -109,6 +119,7 @@ impl VkContext {
         let data = SamplerData {
             min_filter,
             mag_filter,
+            mip_filter,
             u_mode,
             v_mode,
             min_lod: min_lod.map(HashableF32::from_val),

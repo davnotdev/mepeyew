@@ -17,10 +17,20 @@ pub enum SamplerFilter {
     Linear,
 }
 
+//  TODO docs.
+#[derive(Debug, Clone, Copy, Hash, Default, PartialEq, Eq)]
+pub enum MipSamplerFilter {
+    Nearest,
+    #[default]
+    Linear,
+}
+
 #[derive(Default)]
 pub struct GetSamplerExt {
+    //  TODO docs.
     pub min_filter: SamplerFilter,
     pub mag_filter: SamplerFilter,
+    pub mip_filter: MipSamplerFilter,
     pub u_mode: SamplerMode,
     pub v_mode: SamplerMode,
     pub min_lod: Option<f32>,

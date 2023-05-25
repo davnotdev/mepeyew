@@ -29,13 +29,17 @@ pub enum AttachmentImageUsage {
 }
 
 #[derive(Default, Clone)]
-pub struct NewTextureExt {}
+pub struct NewTextureExt {
+    pub mip_levels: Option<u32>,
+}
 #[derive(Default, Clone)]
-pub struct ResizeTextureExt {}
-#[derive(Default, Clone)]
-pub struct UploadTextureExt {}
+pub struct UploadTextureExt {
+    //  TODO docs.
+    pub generate_mipmaps: Option<()>,
+}
 #[derive(Default, Clone)]
 pub struct NewAttachmentImageExt {
+    //  TODO docs.
     pub msaa_samples: Option<MsaaSampleCount>,
     pub color_format: Option<AttachmentImageColorFormat>,
 }
@@ -63,6 +67,13 @@ impl Context {
         match self {
             Self::Vulkan(vk) => vk.upload_texture(texture, data, ext),
             Self::WebGpu(wgpu) => wgpu.upload_texture(texture, data, ext),
+        }
+    }
+
+    pub fn get_texture_max_lod(&self, texture: TextureId) -> GResult<f32> {
+        match self {
+            Self::Vulkan(vk) => vk.get_texture_max_lod(texture),
+            Self::WebGpu(wgpu) => todo!(),
         }
     }
 

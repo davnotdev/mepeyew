@@ -88,6 +88,7 @@ impl VkAttachmentImage {
                 MsaaSampleCount::Sample32 => vk::SampleCountFlags::TYPE_32,
                 MsaaSampleCount::Sample64 => vk::SampleCountFlags::TYPE_64,
             },
+            1,
             vk::Extent3D {
                 width: width as u32,
                 height: height as u32,

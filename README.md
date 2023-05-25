@@ -15,7 +15,7 @@ trying to give you as much power as possible!
 
 ## Getting Started
 
-> :warning: Warning! 
+> :warning: Warning!
 >
 > Currently, this project is going through many changes and isn't stable!
 >
@@ -54,6 +54,8 @@ The API is designed to be stable, but I can't guarentee anything of course.
 - [x] Dynamic Viewport + Scissor
 - [ ] Shader Storage Buffer Objects
 - [ ] Compute
+- [ ] Mipmaps and LOD
+- [ ] Replace Shader Uniform Frequency
 - [ ] More Documentation
 - [x] (Debug, Clone, Copy)-ify Everything
 - [ ] v0.2 Release!
