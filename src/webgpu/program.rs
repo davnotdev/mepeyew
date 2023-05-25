@@ -85,23 +85,41 @@ impl WebGpuProgram {
                     let mut layout = GpuBufferBindingLayout::new();
                     layout.type_(GpuBufferBindingType::Uniform);
                     entry.buffer(&layout);
-                    GpuShaderStageFlags::VERTEX as u8 | GpuShaderStageFlags::FRAGMENT as u8
+                    GpuShaderStageFlags::Vertex as u8
+                        | GpuShaderStageFlags::Fragment as u8
+                        | GpuShaderStageFlags::Compute as u8
+                }
+                ShaderUniformType::ShaderStorageBuffer(_) => {
+                    let mut layout = GpuBufferBindingLayout::new();
+                    layout.type_(GpuBufferBindingType::Storage);
+                    entry.buffer(&layout);
+                    GpuShaderStageFlags::Vertex as u8
+                        | GpuShaderStageFlags::Fragment as u8
+                        | GpuShaderStageFlags::Compute as u8
+                }
+                ShaderUniformType::ShaderStorageBufferReadOnly(_) => {
+                    let mut layout = GpuBufferBindingLayout::new();
+                    layout.type_(GpuBufferBindingType::ReadOnlyStorage);
+                    entry.buffer(&layout);
+                    GpuShaderStageFlags::Vertex as u8
+                        | GpuShaderStageFlags::Fragment as u8
+                        | GpuShaderStageFlags::Compute as u8
                 }
                 ShaderUniformType::Texture(_) => {
                     let layout = GpuTextureBindingLayout::new();
                     entry.texture(&layout);
-                    GpuShaderStageFlags::FRAGMENT as u8
+                    GpuShaderStageFlags::Fragment as u8 | GpuShaderStageFlags::Compute as u8
                 }
                 ShaderUniformType::Sampler(_) => {
                     let layout = GpuSamplerBindingLayout::new();
                     entry.sampler(&layout);
-                    GpuShaderStageFlags::FRAGMENT as u8
+                    GpuShaderStageFlags::Fragment as u8 | GpuShaderStageFlags::Compute as u8
                 }
                 ShaderUniformType::InputAttachment(_) => {
                     let mut layout = GpuTextureBindingLayout::new();
                     layout.sample_type(GpuTextureSampleType::UnfilterableFloat);
                     entry.texture(&layout);
-                    GpuShaderStageFlags::FRAGMENT as u8
+                    GpuShaderStageFlags::Fragment as u8
                 }
             };
 
@@ -135,6 +153,15 @@ impl WebGpuProgram {
                         ubo_id
                     ))?;
                     let buffer = GpuBufferBinding::new(&ubo.buffer);
+                    entry.resource(&buffer);
+                }
+                ShaderUniformType::ShaderStorageBuffer(ssbo_id)
+                | ShaderUniformType::ShaderStorageBufferReadOnly(ssbo_id) => {
+                    let ssbo = context.ubos.get(ssbo_id.id()).ok_or(gpu_api_err!(
+                        "program shader storage buffer id {:?} does not exist",
+                        ssbo_id
+                    ))?;
+                    let buffer = GpuBufferBinding::new(&ssbo.buffer);
                     entry.resource(&buffer);
                 }
                 ShaderUniformType::Texture(texture_id) => {

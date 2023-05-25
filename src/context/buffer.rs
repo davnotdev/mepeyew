@@ -87,7 +87,7 @@ impl Context {
     ) -> GResult<ShaderStorageBufferId> {
         match self {
             Self::Vulkan(vk) => vk.new_shader_storage_buffer(data, ext),
-            Self::WebGpu(wgpu) => todo!(),
+            Self::WebGpu(wgpu) => wgpu.new_shader_storage_buffer(data, ext),
         }
     }
 
@@ -99,7 +99,7 @@ impl Context {
     ) -> GResult<T> {
         match self {
             Self::Vulkan(vk) => vk.read_synced_shader_storage_buffer(ssbo, ext),
-            Self::WebGpu(wgpu) => todo!(),
+            Self::WebGpu(wgpu) => wgpu.read_synced_shader_storage_buffer(ssbo, ext),
         }
     }
 }

@@ -17,9 +17,9 @@ pub enum GpuBufferUsageFlags {
 #[allow(unused)]
 #[repr(u8)]
 pub enum GpuShaderStageFlags {
-    VERTEX = 0x1,
-    FRAGMENT = 0x2,
-    COMPUTE = 0x4,
+    Vertex = 0x1,
+    Fragment = 0x2,
+    Compute = 0x4,
 }
 
 //  https://webgpu.rocks/reference/typedef/gputextureusageflags/#idl-gputextureusageflags

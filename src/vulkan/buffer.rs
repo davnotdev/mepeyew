@@ -66,7 +66,7 @@ impl VkContext {
         let (buf, staging) = self.new_generic_buffer(
             std::slice::from_ref(data),
             BufferStorageType::Dynamic,
-            vk::BufferUsageFlags::STORAGE_BUFFER,
+            vk::BufferUsageFlags::STORAGE_BUFFER | vk::BufferUsageFlags::TRANSFER_SRC,
         )?;
         let ssbo = VkShaderStorageBuffer {
             buffer: buf,

@@ -65,7 +65,8 @@ impl VkDescriptors {
                     .descriptor_type(vk::DescriptorType::UNIFORM_BUFFER)
                     .descriptor_count(1)
                     .build(),
-                ShaderUniformType::ShaderStorageBuffer(_) => {
+                ShaderUniformType::ShaderStorageBuffer(_)
+                | ShaderUniformType::ShaderStorageBufferReadOnly(_) => {
                     vk::DescriptorSetLayoutBinding::builder()
                         .binding(uniform.binding as u32)
                         .stage_flags(
@@ -181,7 +182,8 @@ impl VkDescriptors {
 
                         ret
                     }
-                    ShaderUniformType::ShaderStorageBuffer(ssbo_id) => {
+                    ShaderUniformType::ShaderStorageBuffer(ssbo_id)
+                    | ShaderUniformType::ShaderStorageBufferReadOnly(ssbo_id) => {
                         let ssbo = context.ssbos.get(ssbo_id.id()).ok_or(gpu_api_err!(
                             "vulkan shader storage buffer id {:?} does not exist",
                             ssbo_id
