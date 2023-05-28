@@ -147,7 +147,7 @@ impl WebGpuCompiledPass {
                                     .present_format
 
                             };
-                            let target = GpuColorTargetState::new(format);
+                            let mut target = GpuColorTargetState::new(format);
 
                             if program.ext.enable_blend.is_some() {
                                 fn blend_factor_webgpu(factor: ShaderBlendFactor) -> GpuBlendFactor {
@@ -180,11 +180,11 @@ impl WebGpuCompiledPass {
                                     }
                                 }
 
-                                let color_component = GpuBlendComponent::new();
+                                let mut color_component = GpuBlendComponent::new();
                                 color_component.operation(blend_op_webgpu(program.ext.blend_color_operation.unwrap_or_default()))
                                     .src_factor(blend_factor_webgpu(program.ext.blend_color_src_factor.unwrap_or_default()))
                                     .dst_factor(blend_factor_webgpu(program.ext.blend_color_dst_factor.unwrap_or_default()));
-                                let alpha_component = GpuBlendComponent::new();
+                                let mut alpha_component = GpuBlendComponent::new();
                                 alpha_component.operation(blend_op_webgpu(program.ext.blend_alpha_operation.unwrap_or_default()))
                                     .src_factor(blend_factor_webgpu(program.ext.blend_alpha_src_factor.unwrap_or_default()))
                                     .dst_factor(blend_factor_webgpu(program.ext.blend_alpha_dst_factor.unwrap_or_default()));

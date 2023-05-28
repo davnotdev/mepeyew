@@ -6,6 +6,7 @@ impl WebGpuContext {
         let GetSamplerExt {
             min_filter,
             mag_filter,
+            mip_filter,
             u_mode,
             v_mode,
             min_lod,
@@ -14,6 +15,7 @@ impl WebGpuContext {
         let data = SamplerData {
             min_filter,
             mag_filter,
+            mip_filter,
             u_mode,
             v_mode,
             min_lod: min_lod.map(HashableF32::from_val),
@@ -47,6 +49,7 @@ struct SamplerData {
     v_mode: SamplerMode,
     min_lod: Option<HashableF32>,
     max_lod: Option<HashableF32>,
+    mip_filter: MipSamplerFilter,
 }
 
 pub struct WebGpuSamplerCache {

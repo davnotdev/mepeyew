@@ -78,6 +78,10 @@ impl MockContext {
         unimplemented!("No backend chosen")
     }
 
+    pub fn get_texture_max_lod(&self, _texture: TextureId) -> GResult<f32> {
+        unimplemented!("No backend chosen")
+    }
+
     pub fn new_attachment_image(
         &mut self,
         _initial_width: usize,

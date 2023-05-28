@@ -32,8 +32,8 @@ mepeyew = "0.1"
 Hey, welcome to the world of graphics programming.
 I'm deeply sorry, but in this strange world, there is no such thing as "basic usage".
 I'd like to put the classic triangle example code, but that would completely fill your screen.
-Instead, I'd recommend checking [out this quick example in the docs](https://docs.rs/mepeyew/).
-Or, for a more comprehensive set of examples, [check out out the examples here on github](https://github.com/davnotdev/mepeyew/tree/main/examples).
+Instead, I'd recommend checking [out the examples here on github](https://github.com/davnotdev/mepeyew/tree/main/examples).
+Or, check out this [quick example in the docs](https://docs.rs/mepeyew/).
 
 ## Road Map
 
@@ -53,8 +53,8 @@ The API is designed to be stable, but I can't guarentee anything of course.
 - [x] More Attachment Formats
 - [x] Dynamic Viewport + Scissor
 - [ ] Shader Storage Buffer Objects
-- [ ] Blending + Culling
 - [ ] Compute
+- [x] Blending + Culling
 - [ ] Mipmaps and LOD
 - [x] Replace Shader Uniform Frequency
 - [ ] More Documentation
