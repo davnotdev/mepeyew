@@ -101,8 +101,8 @@ fn main() {
         .unwrap();
 
     let pass_output_uniform = ShaderUniform {
+        set: 0,
         binding: 0,
-        frequency: ShaderUniformFrequencyHint::High,
         ty: ShaderUniformType::InputAttachment(pass_output_attachment_image),
     };
 

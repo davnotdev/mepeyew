@@ -95,9 +95,9 @@ fn main() {
         .unwrap();
 
     let data_uniform = ShaderUniform {
-        ty: ShaderUniformType::UniformBuffer(uniform_buffer),
+        set: 0,
         binding: 0,
-        frequency: ShaderUniformFrequencyHint::High,
+        ty: ShaderUniformType::UniformBuffer(uniform_buffer),
     };
 
     let image_bytes = include_bytes!("resources/marble.jpg");
@@ -131,17 +131,17 @@ fn main() {
         .unwrap();
 
     let texture_uniform = ShaderUniform {
-        ty: ShaderUniformType::Texture(texture),
+        set: 1,
         binding: 0,
-        frequency: ShaderUniformFrequencyHint::Mid,
+        ty: ShaderUniformType::Texture(texture),
     };
 
     let sampler = context.get_sampler(None).unwrap();
 
     let sampler_uniform = ShaderUniform {
-        ty: ShaderUniformType::Sampler(sampler),
+        set: 1,
         binding: 1,
-        frequency: ShaderUniformFrequencyHint::Mid,
+        ty: ShaderUniformType::Sampler(sampler),
     };
 
     let program = context

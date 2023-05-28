@@ -107,14 +107,14 @@ fn main() {
         .unwrap();
 
     let texture_uniform = ShaderUniform {
-        ty: ShaderUniformType::Texture(texture),
+        set: 0,
         binding: 0,
-        frequency: ShaderUniformFrequencyHint::High,
+        ty: ShaderUniformType::Texture(texture),
     };
     let sampler_uniform = ShaderUniform {
-        ty: ShaderUniformType::Sampler(sampler),
+        set: 0,
         binding: 1,
-        frequency: ShaderUniformFrequencyHint::High,
+        ty: ShaderUniformType::Sampler(sampler),
     };
 
     let program = context

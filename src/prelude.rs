@@ -7,8 +7,8 @@ pub use super::context::{
     PassInputLoadOpDepthStencilType, PassStep, PassSubmitData, ProgramId,
     ReadSyncedShaderStorageBufferExt, SamplerFilter, SamplerId, SamplerMode, ShaderBlendFactor,
     ShaderBlendOperation, ShaderCompareOp, ShaderSet, ShaderStage, ShaderStencilOp, ShaderType,
-    ShaderUniform, ShaderUniformFrequencyHint, ShaderUniformType, StepSubmitData, Submit,
-    SubmitExt, TextureFormat, UniformBufferId, UploadTextureExt, VertexBufferElement,
-    VertexBufferId, VertexBufferInput, VertexInputArgCount,
+    ShaderUniform, ShaderUniformType, StepSubmitData, Submit, SubmitExt, TextureFormat,
+    UniformBufferId, UploadTextureExt, VertexBufferElement, VertexBufferId, VertexBufferInput,
+    VertexInputArgCount,
 };
 pub use super::error::{GResult, GpuError};

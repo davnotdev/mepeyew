@@ -125,7 +125,7 @@ impl WebGpuProgram {
 
             entry.visibility(visibility as u32);
 
-            bind_group_layouts[uniform.frequency as usize].push(entry);
+            bind_group_layouts[uniform.set].push(entry);
         });
 
         let bind_group_layouts = bind_group_layouts
@@ -190,7 +190,7 @@ impl WebGpuProgram {
                 }
             }
 
-            bind_groups[uniform.frequency as usize].push(entry);
+            bind_groups[uniform.set].push(entry);
 
             Ok(())
         })?;

@@ -97,7 +97,7 @@ impl VkDescriptors {
                     .descriptor_count(1)
                     .build(),
             };
-            layouts_bindings[uniform.frequency as usize].push(binding_info);
+            layouts_bindings[uniform.set].push(binding_info);
         });
 
         let descriptor_set_layouts: [vk::DescriptorSetLayout; DESCRIPTOR_SET_COUNT] =
@@ -154,136 +154,129 @@ impl VkDescriptors {
         let writes = self
             .shader_uniforms
             .iter()
-            .map(|uniform| {
-                let set_idx = uniform.frequency as usize;
-                match uniform.ty {
-                    ShaderUniformType::UniformBuffer(ubo_id) => {
-                        let ubo = context.ubos.get(ubo_id.id()).ok_or(gpu_api_err!(
-                            "vulkan uniform buffer id {:?} does not exist",
-                            ubo_id
+            .map(|uniform| match uniform.ty {
+                ShaderUniformType::UniformBuffer(ubo_id) => {
+                    let ubo = context.ubos.get(ubo_id.id()).ok_or(gpu_api_err!(
+                        "vulkan uniform buffer id {:?} does not exist",
+                        ubo_id
+                    ))?;
+                    let buffer_info = vk::DescriptorBufferInfo::builder()
+                        .buffer(ubo.buffer.buffer)
+                        .range(ubo.buffer.size as u64)
+                        .offset(0)
+                        .build();
+
+                    let buffer_info_list = vec![buffer_info];
+
+                    let ret = Ok(vk::WriteDescriptorSet::builder()
+                        .dst_set(self.descriptor_sets[uniform.set])
+                        .dst_binding(uniform.binding as u32)
+                        .dst_array_element(0)
+                        .descriptor_type(vk::DescriptorType::UNIFORM_BUFFER)
+                        .buffer_info(&buffer_info_list)
+                        .build());
+
+                    buffer_infos.push(buffer_info_list);
+
+                    ret
+                }
+                ShaderUniformType::ShaderStorageBuffer(ssbo_id)
+                | ShaderUniformType::ShaderStorageBufferReadOnly(ssbo_id) => {
+                    let ssbo = context.ssbos.get(ssbo_id.id()).ok_or(gpu_api_err!(
+                        "vulkan shader storage buffer id {:?} does not exist",
+                        ssbo_id
+                    ))?;
+                    let buffer_info = vk::DescriptorBufferInfo::builder()
+                        .buffer(ssbo.buffer.buffer)
+                        .range(ssbo.buffer.size as u64)
+                        .offset(0)
+                        .build();
+
+                    let buffer_info_list = vec![buffer_info];
+
+                    let ret = Ok(vk::WriteDescriptorSet::builder()
+                        .dst_set(self.descriptor_sets[uniform.set])
+                        .dst_binding(uniform.binding as u32)
+                        .dst_array_element(0)
+                        .descriptor_type(vk::DescriptorType::STORAGE_BUFFER)
+                        .buffer_info(&buffer_info_list)
+                        .build());
+
+                    buffer_infos.push(buffer_info_list);
+
+                    ret
+                }
+                ShaderUniformType::Texture(texture_id) => {
+                    let texture = context.textures.get(texture_id.id()).ok_or(gpu_api_err!(
+                        "vulkan uniform texture id {:?} does not exist",
+                        texture_id
+                    ))?;
+                    let image_info = vk::DescriptorImageInfo::builder()
+                        .image_view(texture.image_view)
+                        .image_layout(vk::ImageLayout::SHADER_READ_ONLY_OPTIMAL)
+                        .build();
+
+                    let image_info_list = vec![image_info];
+
+                    let ret = vk::WriteDescriptorSet::builder()
+                        .dst_set(self.descriptor_sets[uniform.set])
+                        .dst_binding(uniform.binding as u32)
+                        .dst_array_element(0)
+                        .descriptor_type(vk::DescriptorType::SAMPLED_IMAGE)
+                        .image_info(&image_info_list)
+                        .build();
+
+                    image_infos.push(image_info_list);
+
+                    Ok(ret)
+                }
+                ShaderUniformType::Sampler(sampler_id) => {
+                    let sampler = context.sampler_cache.get(sampler_id).ok_or(gpu_api_err!(
+                        "vulkan uniform sampler id {:?} does not exist",
+                        sampler_id
+                    ))?;
+                    let image_info = vk::DescriptorImageInfo::builder().sampler(sampler).build();
+
+                    let image_info_list = vec![image_info];
+
+                    let ret = vk::WriteDescriptorSet::builder()
+                        .dst_set(self.descriptor_sets[uniform.set])
+                        .dst_binding(uniform.binding as u32)
+                        .dst_array_element(0)
+                        .descriptor_type(vk::DescriptorType::SAMPLER)
+                        .image_info(&image_info_list)
+                        .build();
+
+                    image_infos.push(image_info_list);
+
+                    Ok(ret)
+                }
+                ShaderUniformType::InputAttachment(attachment_image_id) => {
+                    let attachment_image = context
+                        .attachment_images
+                        .get(attachment_image_id.id())
+                        .ok_or(gpu_api_err!(
+                            "vulkan uniform attachment image id {:?} does not exist",
+                            attachment_image_id
                         ))?;
-                        let buffer_info = vk::DescriptorBufferInfo::builder()
-                            .buffer(ubo.buffer.buffer)
-                            .range(ubo.buffer.size as u64)
-                            .offset(0)
-                            .build();
+                    let image_info = vk::DescriptorImageInfo::builder()
+                        .image_view(attachment_image.image_view)
+                        .image_layout(vk::ImageLayout::SHADER_READ_ONLY_OPTIMAL)
+                        .build();
 
-                        let buffer_info_list = vec![buffer_info];
+                    let image_info_list = vec![image_info];
 
-                        let ret = Ok(vk::WriteDescriptorSet::builder()
-                            .dst_set(self.descriptor_sets[set_idx])
-                            .dst_binding(uniform.binding as u32)
-                            .dst_array_element(0)
-                            .descriptor_type(vk::DescriptorType::UNIFORM_BUFFER)
-                            .buffer_info(&buffer_info_list)
-                            .build());
+                    let ret = vk::WriteDescriptorSet::builder()
+                        .dst_set(self.descriptor_sets[uniform.set])
+                        .dst_binding(uniform.binding as u32)
+                        .dst_array_element(0)
+                        .descriptor_type(vk::DescriptorType::INPUT_ATTACHMENT)
+                        .image_info(&image_info_list)
+                        .build();
 
-                        buffer_infos.push(buffer_info_list);
+                    image_infos.push(image_info_list);
 
-                        ret
-                    }
-                    ShaderUniformType::ShaderStorageBuffer(ssbo_id)
-                    | ShaderUniformType::ShaderStorageBufferReadOnly(ssbo_id) => {
-                        let ssbo = context.ssbos.get(ssbo_id.id()).ok_or(gpu_api_err!(
-                            "vulkan shader storage buffer id {:?} does not exist",
-                            ssbo_id
-                        ))?;
-                        let buffer_info = vk::DescriptorBufferInfo::builder()
-                            .buffer(ssbo.buffer.buffer)
-                            .range(ssbo.buffer.size as u64)
-                            .offset(0)
-                            .build();
-
-                        let buffer_info_list = vec![buffer_info];
-
-                        let ret = Ok(vk::WriteDescriptorSet::builder()
-                            .dst_set(self.descriptor_sets[set_idx])
-                            .dst_binding(uniform.binding as u32)
-                            .dst_array_element(0)
-                            .descriptor_type(vk::DescriptorType::STORAGE_BUFFER)
-                            .buffer_info(&buffer_info_list)
-                            .build());
-
-                        buffer_infos.push(buffer_info_list);
-
-                        ret
-                    }
-                    ShaderUniformType::Texture(texture_id) => {
-                        let texture = context.textures.get(texture_id.id()).ok_or(gpu_api_err!(
-                            "vulkan uniform texture id {:?} does not exist",
-                            texture_id
-                        ))?;
-                        let set_idx = uniform.frequency as usize;
-                        let image_info = vk::DescriptorImageInfo::builder()
-                            .image_view(texture.image_view)
-                            .image_layout(vk::ImageLayout::SHADER_READ_ONLY_OPTIMAL)
-                            .build();
-
-                        let image_info_list = vec![image_info];
-
-                        let ret = vk::WriteDescriptorSet::builder()
-                            .dst_set(self.descriptor_sets[set_idx])
-                            .dst_binding(uniform.binding as u32)
-                            .dst_array_element(0)
-                            .descriptor_type(vk::DescriptorType::SAMPLED_IMAGE)
-                            .image_info(&image_info_list)
-                            .build();
-
-                        image_infos.push(image_info_list);
-
-                        Ok(ret)
-                    }
-                    ShaderUniformType::Sampler(sampler_id) => {
-                        let sampler = context.sampler_cache.get(sampler_id).ok_or(gpu_api_err!(
-                            "vulkan uniform sampler id {:?} does not exist",
-                            sampler_id
-                        ))?;
-                        let set_idx = uniform.frequency as usize;
-                        let image_info =
-                            vk::DescriptorImageInfo::builder().sampler(sampler).build();
-
-                        let image_info_list = vec![image_info];
-
-                        let ret = vk::WriteDescriptorSet::builder()
-                            .dst_set(self.descriptor_sets[set_idx])
-                            .dst_binding(uniform.binding as u32)
-                            .dst_array_element(0)
-                            .descriptor_type(vk::DescriptorType::SAMPLER)
-                            .image_info(&image_info_list)
-                            .build();
-
-                        image_infos.push(image_info_list);
-
-                        Ok(ret)
-                    }
-                    ShaderUniformType::InputAttachment(attachment_image_id) => {
-                        let attachment_image = context
-                            .attachment_images
-                            .get(attachment_image_id.id())
-                            .ok_or(gpu_api_err!(
-                                "vulkan uniform attachment image id {:?} does not exist",
-                                attachment_image_id
-                            ))?;
-                        let set_idx = uniform.frequency as usize;
-                        let image_info = vk::DescriptorImageInfo::builder()
-                            .image_view(attachment_image.image_view)
-                            .image_layout(vk::ImageLayout::SHADER_READ_ONLY_OPTIMAL)
-                            .build();
-
-                        let image_info_list = vec![image_info];
-
-                        let ret = vk::WriteDescriptorSet::builder()
-                            .dst_set(self.descriptor_sets[set_idx])
-                            .dst_binding(uniform.binding as u32)
-                            .dst_array_element(0)
-                            .descriptor_type(vk::DescriptorType::INPUT_ATTACHMENT)
-                            .image_info(&image_info_list)
-                            .build();
-
-                        image_infos.push(image_info_list);
-
-                        Ok(ret)
-                    }
+                    Ok(ret)
                 }
             })
             .collect::<GResult<Vec<_>>>()?;
