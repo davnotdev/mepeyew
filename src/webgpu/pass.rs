@@ -137,7 +137,52 @@ impl WebGpuCompiledPass {
                                     .present_format
 
                             };
-                            targets.push(&GpuColorTargetState::new(format));
+                            let target = GpuColorTargetState::new(format);
+
+                            if program.ext.enable_blend.is_some() {
+                                fn blend_factor_webgpu(factor: ShaderBlendFactor) -> GpuBlendFactor {
+                                    match factor {
+                                        ShaderBlendFactor::Zero => GpuBlendFactor::Zero,
+                                        ShaderBlendFactor::One => GpuBlendFactor::One,
+                                        ShaderBlendFactor::SrcColor => GpuBlendFactor::Src,
+                                        ShaderBlendFactor::OneMinusSrcColor => GpuBlendFactor::OneMinusSrc,
+                                        ShaderBlendFactor::SrcAlpha => GpuBlendFactor::SrcAlpha,
+                                        ShaderBlendFactor::OneMinusSrcAlpha => GpuBlendFactor::OneMinusSrcAlpha,
+                                        ShaderBlendFactor::DstColor => GpuBlendFactor::Dst,
+                                        ShaderBlendFactor::OneMinusDstColor => GpuBlendFactor::OneMinusDst,
+                                        ShaderBlendFactor::DstAlpha => GpuBlendFactor::DstAlpha,
+                                        ShaderBlendFactor::OneMinusDstAlpha => GpuBlendFactor::OneMinusDstAlpha,
+                                        ShaderBlendFactor::SrcAlphaSaturated => GpuBlendFactor::SrcAlphaSaturated,
+                                        ShaderBlendFactor::ConstantColor |
+                                            ShaderBlendFactor::ConstantAlpha => GpuBlendFactor::Constant,
+                                        ShaderBlendFactor::OneMinusConstantColor |
+                                            ShaderBlendFactor::OneMinusConstantAlpha => GpuBlendFactor::OneMinusConstant
+                                    }
+                                }
+
+                                fn blend_op_webgpu(op: ShaderBlendOperation) -> GpuBlendOperation {
+                                    match op {
+                                        ShaderBlendOperation::Add => GpuBlendOperation::Add,
+                                        ShaderBlendOperation::Subtract => GpuBlendOperation::Subtract,
+                                        ShaderBlendOperation::ReverseSubtract => GpuBlendOperation::ReverseSubtract,
+                                        ShaderBlendOperation::Min => GpuBlendOperation::Min,
+                                        ShaderBlendOperation::Max => GpuBlendOperation::Max,
+                                    }
+                                }
+
+                                let color_component = GpuBlendComponent::new();
+                                color_component.operation(blend_op_webgpu(program.ext.blend_color_operation.unwrap_or_default()))
+                                    .src_factor(blend_factor_webgpu(program.ext.blend_color_src_factor.unwrap_or_default()))
+                                    .dst_factor(blend_factor_webgpu(program.ext.blend_color_dst_factor.unwrap_or_default()));
+                                let alpha_component = GpuBlendComponent::new();
+                                alpha_component.operation(blend_op_webgpu(program.ext.blend_alpha_operation.unwrap_or_default()))
+                                    .src_factor(blend_factor_webgpu(program.ext.blend_alpha_src_factor.unwrap_or_default()))
+                                    .dst_factor(blend_factor_webgpu(program.ext.blend_alpha_dst_factor.unwrap_or_default()));
+                                let blend_state = GpuBlendState::new(&color_component, &alpha_component);
+                                target.blend(&blend_state);
+                            }
+
+                            targets.push(&target);
 
                             if ext.enable_msaa.is_some() {
                                 if let Some(sample_count) = ext.msaa_samples {

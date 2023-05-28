@@ -15,17 +15,6 @@ impl WebGpuContext {
         Ok(TextureId::from_id(self.textures.len() - 1))
     }
 
-    pub fn resize_texture(
-        &mut self,
-        _texture_id: TextureId,
-        _width: usize,
-        _height: usize,
-        _ext: Option<ResizeTextureExt>,
-    ) -> GResult<()> {
-        //  TODO CHK: Texture resizing doesn't seem neccessary.
-        Ok(())
-    }
-
     pub fn upload_texture(
         &mut self,
         texture: TextureId,
