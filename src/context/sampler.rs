@@ -39,7 +39,7 @@ pub struct GetSamplerExt {
 
     /// Specify the min lod.
     pub min_lod: Option<f32>,
-    /// Specify the max lod. 
+    /// Specify the max lod.
     /// This value can be obtained for textures using [`Context::get_texture_max_lod`]
     pub max_lod: Option<f32>,
 }

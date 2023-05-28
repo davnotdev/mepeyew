@@ -65,7 +65,6 @@ pub enum ShaderCullMode {
     Front,
     #[default]
     Back,
-    FrontAndBack,
 }
 
 //  TODO docs.

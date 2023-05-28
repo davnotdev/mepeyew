@@ -92,7 +92,6 @@ impl VkProgram {
                 match ext.cull_mode.unwrap_or_default() {
                     ShaderCullMode::Front => vk::CullModeFlags::FRONT,
                     ShaderCullMode::Back => vk::CullModeFlags::BACK,
-                    ShaderCullMode::FrontAndBack => vk::CullModeFlags::FRONT_AND_BACK,
                 }
             } else {
                 vk::CullModeFlags::NONE

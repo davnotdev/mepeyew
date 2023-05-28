@@ -62,8 +62,18 @@ impl WebGpuCompiledPass {
 
                     let mut primitive = GpuPrimitiveState::new();
                     primitive
-                        .cull_mode(GpuCullMode::None)
-                        .front_face(GpuFrontFace::Ccw)
+                        .cull_mode(if program.ext.enable_culling.is_some() {
+                            match program.ext.cull_mode.unwrap_or_default() {
+                                ShaderCullMode::Front => GpuCullMode::Front,
+                                ShaderCullMode::Back => GpuCullMode::Back,
+                            }
+                        } else {
+                            GpuCullMode::None
+                        })
+                        .front_face(match program.ext.cull_front_face.unwrap_or_default() {
+                            ShaderCullFrontFace::Clockwise => GpuFrontFace::Cw,
+                            ShaderCullFrontFace::CounterClockwise => GpuFrontFace::Ccw,
+                        })
                         .topology(GpuPrimitiveTopology::TriangleList);
 
                     let mut pipeline_info = GpuRenderPipelineDescriptor::new(&layout, &vertex);
