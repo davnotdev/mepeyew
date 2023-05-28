@@ -107,9 +107,59 @@ impl VkProgram {
             .build();
 
         //  Color Blend Info
+        fn blend_factor_into_vk(factor: ShaderBlendFactor) -> vk::BlendFactor {
+            match factor {
+                ShaderBlendFactor::Zero => vk::BlendFactor::ZERO,
+                ShaderBlendFactor::One => vk::BlendFactor::ONE,
+                ShaderBlendFactor::SrcColor => vk::BlendFactor::SRC_COLOR,
+                ShaderBlendFactor::OneMinusSrcColor => vk::BlendFactor::ONE_MINUS_SRC_COLOR,
+                ShaderBlendFactor::SrcAlpha => vk::BlendFactor::SRC_ALPHA,
+                ShaderBlendFactor::OneMinusSrcAlpha => vk::BlendFactor::ONE_MINUS_SRC_ALPHA,
+                ShaderBlendFactor::DstColor => vk::BlendFactor::DST_COLOR,
+                ShaderBlendFactor::OneMinusDstColor => vk::BlendFactor::ONE_MINUS_DST_COLOR,
+                ShaderBlendFactor::DstAlpha => vk::BlendFactor::DST_ALPHA,
+                ShaderBlendFactor::OneMinusDstAlpha => vk::BlendFactor::ONE_MINUS_DST_ALPHA,
+                ShaderBlendFactor::SrcAlphaSaturated => vk::BlendFactor::SRC_ALPHA_SATURATE,
+                ShaderBlendFactor::ConstantColor => vk::BlendFactor::CONSTANT_COLOR,
+                ShaderBlendFactor::ConstantAlpha => vk::BlendFactor::CONSTANT_ALPHA,
+                ShaderBlendFactor::OneMinusConstantColor => {
+                    vk::BlendFactor::ONE_MINUS_CONSTANT_COLOR
+                }
+                ShaderBlendFactor::OneMinusConstantAlpha => {
+                    vk::BlendFactor::ONE_MINUS_CONSTANT_ALPHA
+                }
+            }
+        }
+        fn blend_op_into_vk(op: ShaderBlendOperation) -> vk::BlendOp {
+            match op {
+                ShaderBlendOperation::Add => vk::BlendOp::ADD,
+                ShaderBlendOperation::Subtract => vk::BlendOp::SUBTRACT,
+                ShaderBlendOperation::ReverseSubtract => vk::BlendOp::REVERSE_SUBTRACT,
+                ShaderBlendOperation::Min => vk::BlendOp::MIN,
+                ShaderBlendOperation::Max => vk::BlendOp::MAX,
+            }
+        }
         let color_blend_state = vk::PipelineColorBlendAttachmentState::builder()
             .color_write_mask(vk::ColorComponentFlags::RGBA)
-            .blend_enable(false)
+            .blend_enable(ext.enable_blend.is_some())
+            .src_color_blend_factor(blend_factor_into_vk(
+                ext.blend_color_src_factor.unwrap_or_default(),
+            ))
+            .dst_color_blend_factor(blend_factor_into_vk(
+                ext.blend_color_dst_factor.unwrap_or_default(),
+            ))
+            .src_alpha_blend_factor(blend_factor_into_vk(
+                ext.blend_alpha_src_factor.unwrap_or_default(),
+            ))
+            .dst_alpha_blend_factor(blend_factor_into_vk(
+                ext.blend_alpha_dst_factor.unwrap_or_default(),
+            ))
+            .color_blend_op(blend_op_into_vk(
+                ext.blend_color_operation.unwrap_or_default(),
+            ))
+            .alpha_blend_op(blend_op_into_vk(
+                ext.blend_alpha_operation.unwrap_or_default(),
+            ))
             .build();
 
         let color_blend_create = vk::PipelineColorBlendStateCreateInfo::builder()

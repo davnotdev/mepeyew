@@ -49,6 +49,38 @@ pub enum ShaderStencilOp {
     DecrementWrap,
 }
 
+//  TODO docs.
+#[derive(Default, Debug, Clone, Copy)]
+pub enum ShaderBlendOperation {
+    #[default]
+    Add,
+    Subtract,
+    ReverseSubtract,
+    Min,
+    Max,
+}
+
+//  TODO docs.
+#[derive(Default, Debug, Clone, Copy)]
+pub enum ShaderBlendFactor {
+    #[default]
+    Zero,
+    One,
+    SrcColor,
+    OneMinusSrcColor,
+    SrcAlpha,
+    OneMinusSrcAlpha,
+    DstColor,
+    OneMinusDstColor,
+    DstAlpha,
+    OneMinusDstAlpha,
+    SrcAlphaSaturated,
+    ConstantColor,
+    ConstantAlpha,
+    OneMinusConstantColor,
+    OneMinusConstantAlpha,
+}
+
 #[derive(Debug, Clone, Copy)]
 pub enum ShaderUniformType {
     Sampler(SamplerId),
@@ -108,6 +140,15 @@ pub struct NewProgramExt {
     pub stencil_reference: Option<u32>,
     pub stencil_compare_mask: Option<u32>,
     pub stencil_write_mask: Option<u32>,
+
+    //  TODO docs.
+    pub enable_blend: Option<()>,
+    pub blend_color_operation: Option<ShaderBlendOperation>,
+    pub blend_color_src_factor: Option<ShaderBlendFactor>,
+    pub blend_color_dst_factor: Option<ShaderBlendFactor>,
+    pub blend_alpha_operation: Option<ShaderBlendOperation>,
+    pub blend_alpha_src_factor: Option<ShaderBlendFactor>,
+    pub blend_alpha_dst_factor: Option<ShaderBlendFactor>,
 }
 
 impl Context {
