@@ -59,6 +59,23 @@ pub enum ShaderBlendFactor {
     OneMinusConstantAlpha,
 }
 
+//  TODO docs.
+#[derive(Default, Debug, Clone, Copy)]
+pub enum ShaderCullMode {
+    Front,
+    #[default]
+    Back,
+    FrontAndBack,
+}
+
+//  TODO docs.
+#[derive(Default, Debug, Clone, Copy)]
+pub enum ShaderCullFrontFace {
+    Clockwise,
+    #[default]
+    CounterClockwise,
+}
+
 #[derive(Debug, Clone, Copy)]
 pub enum ShaderUniformType {
     Sampler(SamplerId),
@@ -125,6 +142,11 @@ pub struct NewProgramExt {
     pub blend_alpha_operation: Option<ShaderBlendOperation>,
     pub blend_alpha_src_factor: Option<ShaderBlendFactor>,
     pub blend_alpha_dst_factor: Option<ShaderBlendFactor>,
+
+    //  TODO docs.
+    pub enable_culling: Option<()>,
+    pub cull_mode: Option<ShaderCullMode>,
+    pub cull_front_face: Option<ShaderCullFrontFace>,
 }
 
 impl Context {

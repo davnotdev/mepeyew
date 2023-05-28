@@ -88,8 +88,19 @@ impl VkProgram {
             .rasterizer_discard_enable(false)
             .polygon_mode(vk::PolygonMode::FILL)
             .line_width(1.0)
-            .cull_mode(vk::CullModeFlags::NONE)
-            .front_face(vk::FrontFace::COUNTER_CLOCKWISE)
+            .cull_mode(if ext.enable_culling.is_some() {
+                match ext.cull_mode.unwrap_or_default() {
+                    ShaderCullMode::Front => vk::CullModeFlags::FRONT,
+                    ShaderCullMode::Back => vk::CullModeFlags::BACK,
+                    ShaderCullMode::FrontAndBack => vk::CullModeFlags::FRONT_AND_BACK,
+                }
+            } else {
+                vk::CullModeFlags::NONE
+            })
+            .front_face(match ext.cull_front_face.unwrap_or_default() {
+                ShaderCullFrontFace::Clockwise => vk::FrontFace::CLOCKWISE,
+                ShaderCullFrontFace::CounterClockwise => vk::FrontFace::COUNTER_CLOCKWISE,
+            })
             .depth_bias_enable(false)
             .depth_bias_constant_factor(0.0)
             .depth_bias_clamp(0.0)
