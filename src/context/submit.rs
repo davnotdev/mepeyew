@@ -59,13 +59,13 @@ impl StepSubmitData {
         Self::default()
     }
 
-    //  TODO docs
+    /// Optionally set the viewport size of the render. using [`DrawViewport`]
     pub fn set_draw_viewport(&mut self, viewport: DrawViewport) {
         let idx = self.draws.len() - 1;
         self.draws[idx].viewport = Some(viewport);
     }
 
-    //  TODO docs
+    /// Optionally set the scissor size of the render using [`DrawScissor`].
     pub fn set_draw_scissor(&mut self, scissor: DrawScissor) {
         let idx = self.draws.len() - 1;
         self.draws[idx].scissor = Some(scissor);

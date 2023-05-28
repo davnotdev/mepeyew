@@ -34,13 +34,17 @@ pub struct NewTextureExt {
 }
 #[derive(Default, Clone)]
 pub struct UploadTextureExt {
-    //  TODO docs.
+    /// Generate mipmips.
+    /// The mipmap count can be contained with [`Context::get_texture_max_lod`]
     pub generate_mipmaps: Option<()>,
 }
 #[derive(Default, Clone)]
 pub struct NewAttachmentImageExt {
-    //  TODO docs.
+    /// Should match the mssa samples used in [`CompilePassExt`].
+    /// Or, the value can be obtained
     pub msaa_samples: Option<MsaaSampleCount>,
+    /// Optionaly specify the format used by the attachment image if the image is used as a color
+    /// attachment.
     pub color_format: Option<AttachmentImageColorFormat>,
 }
 

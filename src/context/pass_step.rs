@@ -78,7 +78,7 @@ impl PassStep {
         self
     }
 
-    //  TODO docs.
+    //  Write the shader storage buffer back into CPU memory after rendering.
     pub fn sync_shader_storage_buffer(&mut self, ssbo: ShaderStorageBufferId) -> &mut Self {
         self.ssbo_copy_backs.push(ssbo);
         self

@@ -53,6 +53,7 @@ The API is designed to be stable, but I can't guarentee anything of course.
 - [x] More Attachment Formats
 - [x] Dynamic Viewport + Scissor
 - [ ] Shader Storage Buffer Objects
+- [ ] Blending + Culling
 - [ ] Compute
 - [ ] Mipmaps and LOD
 - [ ] Replace Shader Uniform Frequency

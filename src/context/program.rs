@@ -35,7 +35,7 @@ pub enum ShaderCompareOp {
     Always,
 }
 
-//  TODO docs.
+///  Used in [`NewProgramExt`] for stencil operations.
 #[derive(Default, Debug, Clone, Copy)]
 pub enum ShaderStencilOp {
     #[default]

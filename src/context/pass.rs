@@ -129,8 +129,9 @@ impl Pass {
 
 #[derive(Default, Clone)]
 pub struct CompilePassExt {
-    //  TODO: Docs
+    ///  Enable multisample anti-aliasing.
     pub enable_msaa: Option<()>,
+    ///  Optionally include the amount of multisample anti-aliasing samples.
     pub msaa_samples: Option<MsaaSampleCount>,
 }
 
