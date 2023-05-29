@@ -55,7 +55,8 @@ The API is designed to be stable, but I can't guarentee anything of course.
 - [ ] Shader Storage Buffer Objects
 - [ ] Compute
 - [x] Blending + Culling
-- [ ] Mipmaps and LOD
+- [x] Mipmaps and LOD
+- [ ] Cubemaps
 - [x] Replace Shader Uniform Frequency
 - [ ] More Documentation
 - [x] (Debug, Clone, Copy)-ify Everything

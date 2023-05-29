@@ -298,6 +298,7 @@ fn new_render_pass(
                     resolve_image.image,
                     resolve_image.format,
                     resolve_image.view_aspect,
+                    1,
                 )?;
 
                 resolve_image_offsets.insert(idx, i_pass_resolve_attachments);

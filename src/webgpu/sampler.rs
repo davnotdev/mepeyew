@@ -98,6 +98,10 @@ impl WebGpuSamplerCache {
             let mut sampler_info = GpuSamplerDescriptor::new();
 
             sampler_info
+                .mipmap_filter(match data.mip_filter {
+                    MipSamplerFilter::Nearest => GpuMipmapFilterMode::Nearest,
+                    MipSamplerFilter::Linear => GpuMipmapFilterMode::Linear,
+                })
                 .min_filter(filter_into_webgpu(data.min_filter))
                 .mag_filter(filter_into_webgpu(data.mag_filter))
                 .address_mode_u(mode_into_webgpu(data.u_mode))

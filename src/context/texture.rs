@@ -1,6 +1,6 @@
 use super::*;
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Hash, PartialEq, Eq, Clone, Copy)]
 pub enum TextureFormat {
     //  80% of gpus with vulkan don't support Rgb.
     //  Rgb,
@@ -77,7 +77,7 @@ impl Context {
     pub fn get_texture_max_lod(&self, texture: TextureId) -> GResult<f32> {
         match self {
             Self::Vulkan(vk) => vk.get_texture_max_lod(texture),
-            Self::WebGpu(wgpu) => todo!(),
+            Self::WebGpu(wgpu) => wgpu.get_texture_max_lod(texture),
         }
     }
 

@@ -12,8 +12,8 @@ pub enum SamplerMode {
 /// [Here's the texture filtering article from wikipedia](https://en.wikipedia.org/wiki/Texture_filtering).
 #[derive(Debug, Clone, Copy, Hash, Default, PartialEq, Eq)]
 pub enum SamplerFilter {
-    #[default]
     Nearest,
+    #[default]
     Linear,
 }
 

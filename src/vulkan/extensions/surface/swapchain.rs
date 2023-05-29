@@ -81,7 +81,15 @@ impl VkSwapchain {
 
         let swapchain_image_views: Vec<vk::ImageView> = swapchain_images
             .into_iter()
-            .map(|img| new_image_view(&core.dev, img, format.format, vk::ImageAspectFlags::COLOR))
+            .map(|img| {
+                new_image_view(
+                    &core.dev,
+                    img,
+                    format.format,
+                    vk::ImageAspectFlags::COLOR,
+                    1,
+                )
+            })
             .collect::<GResult<_>>()?;
 
         Ok(VkSwapchain {

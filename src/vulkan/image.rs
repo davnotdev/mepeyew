@@ -84,6 +84,7 @@ pub fn new_image_view(
     image: vk::Image,
     format: vk::Format,
     aspect: vk::ImageAspectFlags,
+    mip_level: u32,
 ) -> GResult<vk::ImageView> {
     let image_view_create = vk::ImageViewCreateInfo::builder()
         .image(image)
@@ -100,7 +101,7 @@ pub fn new_image_view(
             vk::ImageSubresourceRange::builder()
                 .aspect_mask(aspect)
                 .base_mip_level(0)
-                .level_count(1)
+                .level_count(mip_level)
                 .base_array_layer(0)
                 .layer_count(1)
                 .build(),

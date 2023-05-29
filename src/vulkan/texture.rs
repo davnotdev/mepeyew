@@ -106,7 +106,8 @@ impl VkTexture {
             },
         )?;
 
-        let image_view = new_image_view(&context.core.dev, image.image, vkformat, aspect)?;
+        let image_view =
+            new_image_view(&context.core.dev, image.image, vkformat, aspect, mip_levels)?;
 
         let per_pixel_byte_size = match format {
             // TextureFormat::Rgb => 3,

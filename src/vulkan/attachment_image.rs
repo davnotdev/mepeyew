@@ -96,7 +96,7 @@ impl VkAttachmentImage {
             },
         )?;
 
-        let image_view = new_image_view(dev, image.image, format, aspect)?;
+        let image_view = new_image_view(dev, image.image, format, aspect, 1)?;
 
         Ok(VkAttachmentImage {
             ext,

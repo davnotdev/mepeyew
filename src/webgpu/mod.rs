@@ -14,7 +14,7 @@ use pass::WebGpuCompiledPass;
 use program::WebGpuProgram;
 use sampler::WebGpuSamplerCache;
 use surface::WebGpuSurface;
-use texture::WebGpuTexture;
+use texture::{WebGpuMipmapStateCache, WebGpuTexture};
 
 pub const WEBGPU_COLOR_ATTACHMENT_FORMAT: GpuTextureFormat = GpuTextureFormat::Rgba8unorm;
 pub const WEBGPU_DEPTH_ATTACHMENT_FORMAT: GpuTextureFormat = GpuTextureFormat::Depth24plusStencil8;
@@ -45,6 +45,7 @@ pub struct WebGpuContext {
     textures: Vec<WebGpuTexture>,
     attachment_images: Vec<WebGpuAttachmentImage>,
     sampler_cache: WebGpuSamplerCache,
+    mipmap_state_cache: WebGpuMipmapStateCache,
 }
 
 impl WebGpuContext {
@@ -143,6 +144,8 @@ impl WebGpuContext {
             None
         };
 
+        let mipmap_state_cache = WebGpuMipmapStateCache::new(&device);
+
         Ok(WebGpuContext {
             adapter,
             device,
@@ -158,6 +161,7 @@ impl WebGpuContext {
             textures: vec![],
             attachment_images: vec![],
             sampler_cache: WebGpuSamplerCache::new(),
+            mipmap_state_cache,
         })
     }
 }
