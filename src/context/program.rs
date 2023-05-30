@@ -87,6 +87,8 @@ pub enum ShaderUniformType {
 
 #[derive(Debug, Clone)]
 pub struct ShaderUniform {
+    /// Although most gpus support up to 32 descriptor sets, we currently only allow 8 on the
+    /// vulkan backend for compatibility.
     pub set: usize,
     pub binding: usize,
     pub ty: ShaderUniformType,

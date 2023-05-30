@@ -1,6 +1,6 @@
 use super::*;
 
-const DESCRIPTOR_SET_COUNT: usize = 4;
+const DESCRIPTOR_SET_COUNT: usize = 8;
 
 //  TODO OPT: Aren't descriptor sets frame dependent?
 
