@@ -7,9 +7,14 @@ impl WebGpuContext {
         let submissions = Array::new();
 
         submit.passes.iter().try_for_each(|pass| {
-            submit_pass(self, pass)?.iter().for_each(|submit| {
-                submissions.push(&submit.finish());
-            });
+            match pass {
+                SubmitPassType::Render(pass) => {
+                    submit_pass(self, pass)?.iter().for_each(|submit| {
+                        submissions.push(&submit.finish());
+                    });
+                }
+                _ => unimplemented!()
+            }
             Ok(())
         })?;
 
