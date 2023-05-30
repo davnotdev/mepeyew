@@ -8,6 +8,7 @@ use wasm_bindgen::prelude::*;
 use web_sys::*;
 
 use attachment_image::WebGpuAttachmentImage;
+use bind_groups::WebGpuBindGroups;
 use buffer::WebGpuBuffer;
 use flags::{GpuBufferUsageFlags, GpuShaderStageFlags, GpuTextureUsageFlags};
 use pass::WebGpuCompiledPass;
@@ -20,7 +21,9 @@ pub const WEBGPU_COLOR_ATTACHMENT_FORMAT: GpuTextureFormat = GpuTextureFormat::R
 pub const WEBGPU_DEPTH_ATTACHMENT_FORMAT: GpuTextureFormat = GpuTextureFormat::Depth24plusStencil8;
 
 mod attachment_image;
+mod bind_groups;
 mod buffer;
+mod compute;
 mod extensions;
 mod flags;
 mod pass;

@@ -80,7 +80,7 @@ impl WebGpuContext {
     pub fn read_synced_shader_storage_buffer<T: Copy>(
         &self,
         ssbo: ShaderStorageBufferId,
-        ext: Option<ReadSyncedShaderStorageBufferExt>,
+        _ext: Option<ReadSyncedShaderStorageBufferExt>,
     ) -> GResult<T> {
         let ssbo = self.ssbos.get(ssbo.id()).ok_or(gpu_api_err!(
             "webgpu read synced shader buffer id {:?} does not exist",

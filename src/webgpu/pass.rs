@@ -49,9 +49,9 @@ impl WebGpuCompiledPass {
                     vertex.buffers(&vertex_buffers);
 
                     let mut layout = JsValue::from_str("auto");
-                    if !program.bind_group_layouts.is_empty() {
+                    if !program.bind_groups.bind_group_layouts.is_empty() {
                         let layouts = Array::new();
-                        program.bind_group_layouts.iter().for_each(|layout| {
+                        program.bind_groups.bind_group_layouts.iter().for_each(|layout| {
                             layouts.push(layout);
                         });
 
