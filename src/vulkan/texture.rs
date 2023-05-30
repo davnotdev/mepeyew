@@ -75,9 +75,12 @@ impl VkTexture {
         format: TextureFormat,
         ext: NewTextureExt,
     ) -> GResult<Self> {
-        let mip_levels = ext
-            .mip_levels
-            .unwrap_or(std::cmp::max(width, height).ilog2());
+        let mip_levels = if ext.enable_mipmaps.is_some() {
+            ext.mip_levels
+                .unwrap_or(std::cmp::max(width, height).ilog2())
+        } else {
+            1
+        };
 
         let vkformat = match format {
             // TextureFormat::Rgb => vk::Format::R8G8B8_UNORM,

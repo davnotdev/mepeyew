@@ -28,11 +28,12 @@ pub enum AttachmentImageUsage {
     DepthAttachment,
 }
 
-#[derive(Default, Clone)]
+#[derive(Default, Debug, Clone)]
 pub struct NewTextureExt {
+    pub enable_mipmaps: Option<()>,
     pub mip_levels: Option<u32>,
 }
-#[derive(Default, Clone)]
+#[derive(Default, Debug, Clone)]
 pub struct UploadTextureExt {
     /// Generate mipmips.
     /// The mipmap count can be contained with [`Context::get_texture_max_lod`]

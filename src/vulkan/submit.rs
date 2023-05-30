@@ -471,6 +471,14 @@ impl VkContext {
                         }
 
                         for (program_id, dispatch, dispatch_ty) in pass_data.dispatches.iter() {
+                            compute_pass
+                                .added_programs
+                                .contains(program_id)
+                                .then_some(())
+                                .ok_or(gpu_api_err!(
+                                    "vulkan submit compute program {:?} was not added",
+                                    program_id
+                                ))?;
                             let program =
                                 self.compute_programs
                                     .get(program_id.id())

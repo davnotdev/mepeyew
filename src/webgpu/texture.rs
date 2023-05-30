@@ -80,9 +80,12 @@ impl WebGpuTexture {
         format: TextureFormat,
         ext: NewTextureExt,
     ) -> Self {
-        let mip_levels = ext
-            .mip_levels
-            .unwrap_or(std::cmp::max(width, height).ilog2());
+        let mip_levels = if ext.enable_mipmaps.is_some() {
+            ext.mip_levels
+                .unwrap_or(std::cmp::max(width, height).ilog2())
+        } else {
+            0
+        };
 
         let texture_format = match format {
             TextureFormat::Rgba => GpuTextureFormat::Rgba8unorm,
