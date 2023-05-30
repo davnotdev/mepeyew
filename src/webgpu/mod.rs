@@ -10,6 +10,7 @@ use web_sys::*;
 use attachment_image::WebGpuAttachmentImage;
 use bind_groups::WebGpuBindGroups;
 use buffer::WebGpuBuffer;
+use compute::{WebGpuCompiledComputePass, WebGpuComputeProgram};
 use flags::{GpuBufferUsageFlags, GpuShaderStageFlags, GpuTextureUsageFlags};
 use pass::WebGpuCompiledPass;
 use program::WebGpuProgram;
@@ -44,7 +45,9 @@ pub struct WebGpuContext {
     ubos: Vec<WebGpuBuffer>,
     ssbos: Vec<WebGpuBuffer>,
     programs: Vec<WebGpuProgram>,
+    compute_programs: Vec<WebGpuComputeProgram>,
     compiled_passes: Vec<WebGpuCompiledPass>,
+    compiled_compute_passes: Vec<WebGpuCompiledComputePass>,
     textures: Vec<WebGpuTexture>,
     attachment_images: Vec<WebGpuAttachmentImage>,
     sampler_cache: WebGpuSamplerCache,
@@ -160,7 +163,9 @@ impl WebGpuContext {
             ubos: vec![],
             ssbos: vec![],
             programs: vec![],
+            compute_programs: vec![],
             compiled_passes: vec![],
+            compiled_compute_passes: vec![],
             textures: vec![],
             attachment_images: vec![],
             sampler_cache: WebGpuSamplerCache::new(),

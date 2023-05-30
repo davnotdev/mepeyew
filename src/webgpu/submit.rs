@@ -4,20 +4,18 @@ impl WebGpuContext {
     pub fn submit(&mut self, submit: Submit, _ext: Option<SubmitExt>) -> GResult<()> {
         submit_transfers(self, &submit)?;
 
-        let submissions = Array::new();
+        let command_encoder = self.device.create_command_encoder();
 
         submit.passes.iter().try_for_each(|pass| {
             match pass {
-                SubmitPassType::Render(pass) => {
-                    submit_pass(self, pass)?.iter().for_each(|submit| {
-                        submissions.push(&submit.finish());
-                    });
-                }
-                _ => unimplemented!(),
-            }
+                SubmitPassType::Render(pass) => submit_pass(self, pass, &command_encoder),
+                SubmitPassType::Compute(pass) => submit_compute_pass(self, pass, &command_encoder),
+            }?;
             Ok(())
         })?;
 
+        let submissions = Array::new();
+        submissions.push(&command_encoder.finish());
         self.device.queue().submit(&submissions);
 
         Ok(())
@@ -69,7 +67,8 @@ fn submit_transfers(context: &WebGpuContext, submit: &Submit) -> GResult<()> {
 fn submit_pass(
     context: &WebGpuContext,
     pass_submit: &PassSubmitData,
-) -> GResult<Vec<GpuCommandEncoder>> {
+    command_encoder: &GpuCommandEncoder,
+) -> GResult<()> {
     let pass = context
         .compiled_passes
         .get(pass_submit.pass.id())
@@ -77,8 +76,6 @@ fn submit_pass(
             "webgpu submit pass id {:?} does not exist",
             pass_submit.pass.id()
         ))?;
-
-    let command_encoder = context.device.create_command_encoder();
 
     pass.original_pass
         .steps
@@ -299,5 +296,59 @@ fn submit_pass(
             Ok(())
         })?;
 
-    Ok(vec![command_encoder])
+    Ok(())
+}
+
+fn submit_compute_pass(
+    context: &WebGpuContext,
+    pass_submit: &ComputePassSubmitData,
+    command_encoder: &GpuCommandEncoder,
+) -> GResult<()> {
+    let compute_pass = context
+        .compiled_compute_passes
+        .get(pass_submit.compute_pass.id())
+        .ok_or(gpu_api_err!(
+            "webgpu submit compute pass {:?} does not exist",
+            pass_submit.compute_pass,
+        ))?;
+
+    let pass_encoder = command_encoder.begin_compute_pass();
+
+    for (program_id, dispatch, _dispatch_ty) in pass_submit.dispatches.iter() {
+        compute_pass
+            .added_programs
+            .contains(program_id)
+            .then_some(())
+            .ok_or(gpu_api_err!(
+                "webgpu submit compute program {:?} was not added",
+                program_id
+            ))?;
+
+        let program = context
+            .compute_programs
+            .get(program_id.id())
+            .ok_or(gpu_api_err!(
+                "webgpu submit compute program {:?}",
+                program_id
+            ))?;
+
+        pass_encoder.set_pipeline(&program.pipeline);
+        program
+            .bind_groups
+            .bind_groups
+            .iter()
+            .enumerate()
+            .for_each(|(slot_idx, bind_group)| {
+                pass_encoder.set_bind_group(slot_idx as u32, bind_group);
+            });
+        pass_encoder.dispatch_workgroups_with_workgroup_count_y_and_workgroup_count_z(
+            dispatch.workgroup_count_x as u32,
+            dispatch.workgroup_count_y as u32,
+            dispatch.workgroup_count_z as u32,
+        );
+    }
+
+    pass_encoder.end();
+
+    Ok(())
 }

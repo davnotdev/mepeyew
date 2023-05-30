@@ -1,6 +1,6 @@
 use super::*;
 
-const WEBGPU_BIND_GROUP_COUNT: usize = 8;
+const WEBGPU_BIND_GROUP_COUNT: usize = 4;
 
 pub struct WebGpuBindGroups {
     pub bind_groups: Vec<GpuBindGroup>,

@@ -87,8 +87,7 @@ pub enum ShaderUniformType {
 
 #[derive(Debug, Clone)]
 pub struct ShaderUniform {
-    /// Although most gpus support up to 32 descriptor sets, we currently only allow 8 on the
-    /// vulkan backend for compatibility.
+    /// Although most gpus support up to 32 descriptor sets, WebGpu only allows 4.
     pub set: usize,
     pub binding: usize,
     pub ty: ShaderUniformType,
