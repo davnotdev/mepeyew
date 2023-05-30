@@ -29,7 +29,7 @@ impl VkContext {
     }
 }
 
-fn new_pipeline_layout(
+pub fn new_pipeline_layout(
     dev: &Device,
     descriptor_set_layouts: &[vk::DescriptorSetLayout],
 ) -> GResult<vk::PipelineLayout> {

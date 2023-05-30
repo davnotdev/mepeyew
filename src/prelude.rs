@@ -1,6 +1,7 @@
 pub use super::context::{
     extensions, extensions::*, Api, AttachmentImageColorFormat, AttachmentImageUsage,
-    BufferStorageType, ClearColor, ClearDepthStencil, CompilePassExt, Context, DrawScissor,
+    BufferStorageType, ClearColor, ClearDepthStencil, CompileComputePassExt, CompilePassExt,
+    CompiledComputePassId, CompiledPassId, ComputePass, ComputeProgramId, Context, DrawScissor,
     DrawViewport, GetSamplerExt, IndexBufferElement, IndexBufferId, MipSamplerFilter,
     MsaaSampleCount, NewAttachmentImageExt, NewIndexBufferExt, NewPassExt, NewProgramExt,
     NewShaderStorageBufferExt, NewTextureExt, NewVertexBufferExt, Pass, PassInputLoadOpColorType,

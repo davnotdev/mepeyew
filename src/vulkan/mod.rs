@@ -14,13 +14,14 @@ use std::{
 
 use attachment_image::VkAttachmentImage;
 use buffer::{VkBuffer, VkIndexBuffer, VkShaderStorageBuffer, VkUniformBuffer, VkVertexBuffer};
+use compute::{VkCompiledComputePass, VkComputeProgram};
 use descriptor::VkDescriptors;
 use drop::VkDropQueue;
 use frame::{VkFrame, VkFrameDependent};
 use framebuffer::VkFramebuffer;
 use image::{new_image_view, VkImage, VK_COLOR_ATTACHMENT_FORMAT, VK_DEPTH_ATTACHMENT_FORMAT};
 use pass::VkCompiledPass;
-use program::VkProgram;
+use program::{new_pipeline_layout, VkProgram};
 use sampler::VkSamplerCache;
 use shader::VkShader;
 use submit::VkSubmitData;
@@ -29,6 +30,7 @@ use vkcore::{new_fence, new_semaphore, VkCore, VkCoreConfiguration, VkCoreGpuPre
 
 mod attachment_image;
 mod buffer;
+mod compute;
 mod debug;
 mod descriptor;
 mod drop;
@@ -50,6 +52,7 @@ pub struct VkContext {
     frame: VkFrame,
 
     programs: ManuallyDrop<Vec<VkProgram>>,
+    compute_programs: ManuallyDrop<Vec<VkComputeProgram>>,
     vbos: ManuallyDrop<Vec<VkVertexBuffer>>,
     ibos: ManuallyDrop<Vec<VkIndexBuffer>>,
     ubos: ManuallyDrop<Vec<VkUniformBuffer>>,
@@ -57,6 +60,7 @@ pub struct VkContext {
     textures: ManuallyDrop<Vec<VkTexture>>,
     attachment_images: ManuallyDrop<Vec<VkAttachmentImage>>,
     compiled_passes: ManuallyDrop<Vec<VkCompiledPass>>,
+    compiled_compute_passes: ManuallyDrop<Vec<VkCompiledComputePass>>,
     submit: ManuallyDrop<VkSubmitData>,
     sampler_cache: ManuallyDrop<VkSamplerCache>,
     alloc: ManuallyDrop<Allocator>,
@@ -174,7 +178,8 @@ impl VkContext {
         //  Sampler Cache
         let sampler_cache = VkSamplerCache::new(&drop_queue);
 
-        let shaders = ManuallyDrop::new(vec![]);
+        let programs = ManuallyDrop::new(vec![]);
+        let compute_programs = ManuallyDrop::new(vec![]);
         let vbos = ManuallyDrop::new(vec![]);
         let ibos = ManuallyDrop::new(vec![]);
         let ubos = ManuallyDrop::new(vec![]);
@@ -182,6 +187,7 @@ impl VkContext {
         let textures = ManuallyDrop::new(vec![]);
         let attachment_images = ManuallyDrop::new(vec![]);
         let compiled_passes = ManuallyDrop::new(vec![]);
+        let compiled_compute_passes = ManuallyDrop::new(vec![]);
 
         Ok(VkContext {
             core,
@@ -193,7 +199,8 @@ impl VkContext {
 
             drop_queue: ManuallyDrop::new(drop_queue),
 
-            programs: shaders,
+            programs,
+            compute_programs,
             vbos,
             ibos,
             ubos,
@@ -201,6 +208,7 @@ impl VkContext {
             textures,
             attachment_images,
             compiled_passes,
+            compiled_compute_passes,
 
             enabled_extensions,
             surface_ext: ManuallyDrop::new(surface_ext),

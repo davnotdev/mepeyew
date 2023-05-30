@@ -112,4 +112,21 @@ impl MockContext {
     pub fn submit(&mut self, _submit: Submit, _ext: Option<SubmitExt>) -> GResult<()> {
         unimplemented!("No backend chosen")
     }
+
+    pub fn new_compute_program(
+        &mut self,
+        _code: &[u8],
+        _uniforms: &[ShaderUniform],
+        _ext: Option<NewComputeProgramExt>,
+    ) -> GResult<ComputeProgramId> {
+        unimplemented!("No backend chosen")
+    }
+
+    pub fn compile_compute_pass(
+        &mut self,
+        _compute_pass: ComputePass,
+        _ext: Option<CompileComputePassExt>,
+    ) -> GResult<CompiledComputePassId> {
+        unimplemented!("No backend chosen")
+    }
 }

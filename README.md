@@ -59,5 +59,6 @@ The API is designed to be stable, but I can't guarentee anything of course.
 - [ ] Cubemaps
 - [x] Replace Shader Uniform Frequency
 - [ ] More Documentation
-- [x] (Debug, Clone, Copy)-ify Everything
+- [ ] More Examples
+- [ ] (Debug, Clone, Copy, Hash, PartialEq, Eq)-ify Everything
 - [ ] v0.2 Release!

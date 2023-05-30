@@ -112,7 +112,7 @@ impl<'a> ShaderSet<'a> {
     }
 }
 
-#[derive(Default)]
+#[derive(Default, Clone)]
 pub struct NewProgramExt {
     /// Enable depth testing.
     /// [learnopengl.com](https://learnopengl.com/Advanced-OpenGL/Depth-testing) has a nice

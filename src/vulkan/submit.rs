@@ -178,262 +178,336 @@ impl VkContext {
 
             //  Render.
             for pass_data in submit.passes.iter() {
-                let pass = self.compiled_passes.get(pass_data.pass.id()).unwrap();
+                match pass_data {
+                    SubmitPassType::Render(pass_data) => {
+                        let pass = self.compiled_passes.get(pass_data.pass.id()).unwrap();
 
-                //  Clear Values
-                let mut clear_values = vec![
-                    vk::ClearValue::default();
-                    pass.attachment_count + pass.resolve_image_offsets.len()
-                ];
+                        //  Clear Values
+                        let mut clear_values = vec![
+                            vk::ClearValue::default();
+                            pass.attachment_count
+                                + pass.resolve_image_offsets.len()
+                        ];
 
-                for (&attachment, clear) in pass_data.clear_colors.iter() {
-                    let resolved_idx = if pass.resolve_image_offsets.is_empty() {
-                        attachment.id()
-                    } else {
-                        pass.attachment_count + pass.resolve_image_offsets[&attachment.id()]
-                    };
+                        for (&attachment, clear) in pass_data.clear_colors.iter() {
+                            let resolved_idx = if pass.resolve_image_offsets.is_empty() {
+                                attachment.id()
+                            } else {
+                                pass.attachment_count + pass.resolve_image_offsets[&attachment.id()]
+                            };
 
-                    clear_values[resolved_idx] = vk::ClearValue {
-                        color: vk::ClearColorValue {
-                            float32: [clear.r, clear.g, clear.b, clear.a],
-                        },
-                    };
-                }
+                            clear_values[resolved_idx] = vk::ClearValue {
+                                color: vk::ClearColorValue {
+                                    float32: [clear.r, clear.g, clear.b, clear.a],
+                                },
+                            };
+                        }
 
-                for (&attachment, clear) in pass_data.clear_depths.iter() {
-                    clear_values[attachment.id()] = vk::ClearValue {
-                        depth_stencil: vk::ClearDepthStencilValue {
-                            depth: clear.depth,
-                            stencil: clear.stencil,
-                        },
-                    };
-                }
+                        for (&attachment, clear) in pass_data.clear_depths.iter() {
+                            clear_values[attachment.id()] = vk::ClearValue {
+                                depth_stencil: vk::ClearDepthStencilValue {
+                                    depth: clear.depth,
+                                    stencil: clear.stencil,
+                                },
+                            };
+                        }
 
-                //  Rendering Time!
+                        //  Rendering Time!
 
-                let render_pass_begin = vk::RenderPassBeginInfo::builder()
-                    .render_pass(pass.render_pass)
-                    .clear_values(&clear_values)
-                    .render_area(vk::Rect2D {
-                        offset: vk::Offset2D { x: 0, y: 0 },
-                        extent: pass.render_extent,
-                    })
-                    .framebuffer(
-                        pass.framebuffer
-                            .get_current_framebuffer(swapchain_image_index),
-                    )
-                    .build();
-                self.core.dev.cmd_begin_render_pass(
-                    graphics_command_buffer,
-                    &render_pass_begin,
-                    vk::SubpassContents::INLINE,
-                );
-                for (step_idx, (step, step_data)) in pass
-                    .steps
-                    .iter()
-                    .zip(pass_data.steps_datas.iter())
-                    .enumerate()
-                {
-                    //  Index Buffer
-                    if let Some(ibo) = step.index_buffer {
-                        let ibo = self.ibos.get(ibo.id()).unwrap();
-                        self.core.dev.cmd_bind_index_buffer(
+                        let render_pass_begin = vk::RenderPassBeginInfo::builder()
+                            .render_pass(pass.render_pass)
+                            .clear_values(&clear_values)
+                            .render_area(vk::Rect2D {
+                                offset: vk::Offset2D { x: 0, y: 0 },
+                                extent: pass.render_extent,
+                            })
+                            .framebuffer(
+                                pass.framebuffer
+                                    .get_current_framebuffer(swapchain_image_index),
+                            )
+                            .build();
+                        self.core.dev.cmd_begin_render_pass(
                             graphics_command_buffer,
-                            ibo.buffer.buffer,
-                            0,
-                            match std::mem::size_of::<IndexBufferElement>() {
-                                4 => vk::IndexType::UINT32,
-                                2 => vk::IndexType::UINT16,
-                                _ => unimplemented!("vulkan bad GpuIndexBufferElement type"),
-                            },
-                        )
-                    }
-
-                    //  Vertex Buffers
-                    let vbo_buffers = step
-                        .vertex_buffers
-                        .iter()
-                        .map(|vbo| {
-                            Ok(self
-                                .vbos
-                                .get(vbo.id())
-                                .ok_or(gpu_api_err!("vulkan bad vbo ({})", vbo.id()))?
-                                .buffer
-                                .buffer)
-                        })
-                        .collect::<GResult<Vec<_>>>()?;
-                    let vbo_offsets = (0..step.vertex_buffers.len())
-                        .map(|_| 0)
-                        .collect::<Vec<_>>();
-                    self.core.dev.cmd_bind_vertex_buffers(
-                        graphics_command_buffer,
-                        0,
-                        &vbo_buffers,
-                        &vbo_offsets,
-                    );
-
-                    //  Draw
-                    for draw in step_data.draws.iter() {
-                        //  Dynamic Viewport / Scissor
-                        let viewport = draw.viewport.unwrap_or(DrawViewport {
-                            x: 0.0,
-                            y: 0.0,
-                            width: pass.original_pass.render_width as f32,
-                            height: pass.original_pass.render_height as f32,
-                        });
-                        let scissor = draw.scissor.unwrap_or(DrawScissor {
-                            x: 0,
-                            y: 0,
-                            width: pass.original_pass.render_width,
-                            height: pass.original_pass.render_height,
-                        });
-
-                        self.core.dev.cmd_set_viewport(
-                            graphics_command_buffer,
-                            0,
-                            &[vk::Viewport {
-                                x: viewport.x,
-                                y: viewport.y,
-                                width: viewport.width,
-                                height: viewport.height,
-                                min_depth: 0.0,
-                                max_depth: 1.0,
-                            }],
+                            &render_pass_begin,
+                            vk::SubpassContents::INLINE,
                         );
-
-                        self.core.dev.cmd_set_scissor(
-                            graphics_command_buffer,
-                            0,
-                            &[vk::Rect2D::builder()
-                                .offset(vk::Offset2D {
-                                    x: scissor.x as i32,
-                                    y: scissor.y as i32,
-                                })
-                                .extent(vk::Extent2D {
-                                    width: scissor.width as u32,
-                                    height: scissor.height as u32,
-                                })
-                                .build()],
-                        );
-
-                        //  Program
-                        self.core.dev.cmd_bind_pipeline(
-                            graphics_command_buffer,
-                            vk::PipelineBindPoint::GRAPHICS,
-                            *pass.pipelines[step_idx]
-                                .get(&draw.program)
-                                .ok_or(gpu_api_err!(
-                                    "vulkan submit draw missing program id {:?}",
-                                    draw.program
-                                ))?,
-                        );
-
-                        //  Descriptor Sets
-                        //  TODO OPT: Maybe don't do this.
-                        let program = self.programs.get(draw.program.id()).unwrap();
-                        self.core.dev.cmd_bind_descriptor_sets(
-                            graphics_command_buffer,
-                            vk::PipelineBindPoint::GRAPHICS,
-                            program.layout,
-                            0,
-                            &program.descriptors.descriptor_sets,
-                            &[],
-                        );
-
-                        //  Draw
-                        match draw.ty {
-                            DrawType::Draw => {
-                                self.core.dev.cmd_draw(
+                        for (step_idx, (step, step_data)) in pass
+                            .steps
+                            .iter()
+                            .zip(pass_data.steps_datas.iter())
+                            .enumerate()
+                        {
+                            //  Index Buffer
+                            if let Some(ibo) = step.index_buffer {
+                                let ibo = self.ibos.get(ibo.id()).unwrap();
+                                self.core.dev.cmd_bind_index_buffer(
                                     graphics_command_buffer,
-                                    draw.count as u32,
-                                    1,
-                                    draw.first as u32,
+                                    ibo.buffer.buffer,
                                     0,
-                                );
+                                    match std::mem::size_of::<IndexBufferElement>() {
+                                        4 => vk::IndexType::UINT32,
+                                        2 => vk::IndexType::UINT16,
+                                        _ => {
+                                            unimplemented!("vulkan bad GpuIndexBufferElement type")
+                                        }
+                                    },
+                                )
                             }
-                            DrawType::DrawIndexed => {
-                                self.core.dev.cmd_draw_indexed(
+
+                            //  Vertex Buffers
+                            let vbo_buffers = step
+                                .vertex_buffers
+                                .iter()
+                                .map(|vbo| {
+                                    Ok(self
+                                        .vbos
+                                        .get(vbo.id())
+                                        .ok_or(gpu_api_err!("vulkan bad vbo ({})", vbo.id()))?
+                                        .buffer
+                                        .buffer)
+                                })
+                                .collect::<GResult<Vec<_>>>()?;
+                            let vbo_offsets = (0..step.vertex_buffers.len())
+                                .map(|_| 0)
+                                .collect::<Vec<_>>();
+                            self.core.dev.cmd_bind_vertex_buffers(
+                                graphics_command_buffer,
+                                0,
+                                &vbo_buffers,
+                                &vbo_offsets,
+                            );
+
+                            //  Draw
+                            for draw in step_data.draws.iter() {
+                                //  Dynamic Viewport / Scissor
+                                let viewport = draw.viewport.unwrap_or(DrawViewport {
+                                    x: 0.0,
+                                    y: 0.0,
+                                    width: pass.original_pass.render_width as f32,
+                                    height: pass.original_pass.render_height as f32,
+                                });
+                                let scissor = draw.scissor.unwrap_or(DrawScissor {
+                                    x: 0,
+                                    y: 0,
+                                    width: pass.original_pass.render_width,
+                                    height: pass.original_pass.render_height,
+                                });
+
+                                self.core.dev.cmd_set_viewport(
                                     graphics_command_buffer,
-                                    draw.count as u32,
-                                    1,
-                                    draw.first as u32,
                                     0,
+                                    &[vk::Viewport {
+                                        x: viewport.x,
+                                        y: viewport.y,
+                                        width: viewport.width,
+                                        height: viewport.height,
+                                        min_depth: 0.0,
+                                        max_depth: 1.0,
+                                    }],
+                                );
+
+                                self.core.dev.cmd_set_scissor(
+                                    graphics_command_buffer,
                                     0,
+                                    &[vk::Rect2D::builder()
+                                        .offset(vk::Offset2D {
+                                            x: scissor.x as i32,
+                                            y: scissor.y as i32,
+                                        })
+                                        .extent(vk::Extent2D {
+                                            width: scissor.width as u32,
+                                            height: scissor.height as u32,
+                                        })
+                                        .build()],
+                                );
+
+                                //  Program
+                                self.core.dev.cmd_bind_pipeline(
+                                    graphics_command_buffer,
+                                    vk::PipelineBindPoint::GRAPHICS,
+                                    *pass.pipelines[step_idx].get(&draw.program).ok_or(
+                                        gpu_api_err!(
+                                            "vulkan submit draw missing program id {:?}",
+                                            draw.program
+                                        ),
+                                    )?,
+                                );
+
+                                //  Descriptor Sets
+                                //  TODO OPT: Maybe don't do this.
+                                let program = self.programs.get(draw.program.id()).unwrap();
+                                self.core.dev.cmd_bind_descriptor_sets(
+                                    graphics_command_buffer,
+                                    vk::PipelineBindPoint::GRAPHICS,
+                                    program.layout,
+                                    0,
+                                    &program.descriptors.descriptor_sets,
+                                    &[],
+                                );
+
+                                //  Draw
+                                match draw.ty {
+                                    DrawType::Draw => {
+                                        self.core.dev.cmd_draw(
+                                            graphics_command_buffer,
+                                            draw.count as u32,
+                                            1,
+                                            draw.first as u32,
+                                            0,
+                                        );
+                                    }
+                                    DrawType::DrawIndexed => {
+                                        self.core.dev.cmd_draw_indexed(
+                                            graphics_command_buffer,
+                                            draw.count as u32,
+                                            1,
+                                            draw.first as u32,
+                                            0,
+                                            0,
+                                        );
+                                    }
+                                }
+                            }
+
+                            //  SSBO Copy Backs
+                            step.ssbo_copy_backs.iter().try_for_each(|ssbo_id| {
+                                let ssbo = self.ssbos.get(ssbo_id.id()).ok_or(gpu_api_err!(
+                                    "vulkan shader storage buffer sync id {:?} does not exist",
+                                    ssbo_id
+                                ))?;
+
+                                let barrier = vk::BufferMemoryBarrier::builder()
+                                    .src_access_mask(vk::AccessFlags::SHADER_WRITE)
+                                    .dst_access_mask(vk::AccessFlags::TRANSFER_READ)
+                                    .dst_access_mask(vk::AccessFlags::TRANSFER_READ)
+                                    .buffer(ssbo.buffer.buffer)
+                                    .size(vk::WHOLE_SIZE)
+                                    .src_queue_family_index(vk::QUEUE_FAMILY_IGNORED)
+                                    .dst_queue_family_index(vk::QUEUE_FAMILY_IGNORED)
+                                    .build();
+
+                                self.core.dev.cmd_pipeline_barrier(
+                                    graphics_command_buffer,
+                                    vk::PipelineStageFlags::VERTEX_SHADER
+                                        | vk::PipelineStageFlags::FRAGMENT_SHADER
+                                        | vk::PipelineStageFlags::COMPUTE_SHADER,
+                                    vk::PipelineStageFlags::TRANSFER,
+                                    vk::DependencyFlags::empty(),
+                                    &[],
+                                    &[barrier],
+                                    &[],
+                                );
+
+                                let copy_region = vk::BufferCopy::builder()
+                                    .size(ssbo.buffer.size as u64)
+                                    .build();
+
+                                self.core.dev.cmd_copy_buffer(
+                                    graphics_command_buffer,
+                                    ssbo.buffer.buffer,
+                                    ssbo.staging.as_ref().unwrap().buffer,
+                                    &[copy_region],
+                                );
+
+                                let barrier = vk::BufferMemoryBarrier::builder()
+                                    .src_access_mask(vk::AccessFlags::TRANSFER_WRITE)
+                                    .dst_access_mask(vk::AccessFlags::HOST_READ)
+                                    .buffer(ssbo.staging.as_ref().unwrap().buffer)
+                                    .size(vk::WHOLE_SIZE)
+                                    .src_queue_family_index(vk::QUEUE_FAMILY_IGNORED)
+                                    .dst_queue_family_index(vk::QUEUE_FAMILY_IGNORED)
+                                    .build();
+
+                                self.core.dev.cmd_pipeline_barrier(
+                                    graphics_command_buffer,
+                                    vk::PipelineStageFlags::TRANSFER,
+                                    vk::PipelineStageFlags::HOST,
+                                    vk::DependencyFlags::empty(),
+                                    &[],
+                                    &[barrier],
+                                    &[],
+                                );
+
+                                Ok(())
+                            })?;
+
+                            //  Progress
+                            if step_idx != pass.steps.len() - 1 {
+                                self.core.dev.cmd_next_subpass(
+                                    graphics_command_buffer,
+                                    vk::SubpassContents::INLINE,
                                 );
                             }
                         }
+                        self.core.dev.cmd_end_render_pass(graphics_command_buffer);
                     }
+                    SubmitPassType::Compute(pass_data) => {
+                        let compute_pass = self
+                            .compiled_compute_passes
+                            .get(pass_data.compute_pass.id())
+                            .ok_or(gpu_api_err!(
+                                "vulkan submit compute pass {:?} does not exist",
+                                pass_data.compute_pass,
+                            ))?;
 
-                    //  SSBO Copy Backs
-                    step.ssbo_copy_backs.iter().try_for_each(|ssbo_id| {
-                        let ssbo = self.ssbos.get(ssbo_id.id()).ok_or(gpu_api_err!(
-                            "vulkan shader storage buffer sync id {:?} does not exist",
-                            ssbo_id
-                        ))?;
+                        unsafe fn compute_barrier(
+                            dev: &Device,
+                            graphics_command_buffer: vk::CommandBuffer,
+                        ) {
+                            let memory_barrier = vk::MemoryBarrier::builder()
+                                .src_access_mask(vk::AccessFlags::SHADER_READ)
+                                .dst_access_mask(vk::AccessFlags::SHADER_WRITE)
+                                .build();
 
-                        let barrier = vk::BufferMemoryBarrier::builder()
-                            .src_access_mask(vk::AccessFlags::SHADER_WRITE)
-                            .dst_access_mask(vk::AccessFlags::TRANSFER_READ)
-                            .dst_access_mask(vk::AccessFlags::TRANSFER_READ)
-                            .buffer(ssbo.buffer.buffer)
-                            .size(vk::WHOLE_SIZE)
-                            .src_queue_family_index(vk::QUEUE_FAMILY_IGNORED)
-                            .dst_queue_family_index(vk::QUEUE_FAMILY_IGNORED)
-                            .build();
+                            dev.cmd_pipeline_barrier(
+                                graphics_command_buffer,
+                                vk::PipelineStageFlags::COMPUTE_SHADER,
+                                vk::PipelineStageFlags::VERTEX_SHADER,
+                                vk::DependencyFlags::empty(),
+                                &[memory_barrier],
+                                &[],
+                                &[],
+                            )
+                        }
 
-                        self.core.dev.cmd_pipeline_barrier(
-                            graphics_command_buffer,
-                            vk::PipelineStageFlags::VERTEX_SHADER
-                                | vk::PipelineStageFlags::FRAGMENT_SHADER
-                                | vk::PipelineStageFlags::COMPUTE_SHADER,
-                            vk::PipelineStageFlags::TRANSFER,
-                            vk::DependencyFlags::empty(),
-                            &[],
-                            &[barrier],
-                            &[],
-                        );
+                        for (program_id, dispatch, dispatch_ty) in pass_data.dispatches.iter() {
+                            let program =
+                                self.compute_programs
+                                    .get(program_id.id())
+                                    .ok_or(gpu_api_err!(
+                                        "vulkan submit compute program {:?}",
+                                        program_id
+                                    ))?;
+                            self.core.dev.cmd_bind_pipeline(
+                                graphics_command_buffer,
+                                vk::PipelineBindPoint::COMPUTE,
+                                program.pipeline,
+                            );
+                            self.core.dev.cmd_bind_descriptor_sets(
+                                graphics_command_buffer,
+                                vk::PipelineBindPoint::COMPUTE,
+                                program.layout,
+                                0,
+                                &program.descriptors.descriptor_sets,
+                                &[],
+                            );
+                            self.core.dev.cmd_dispatch(
+                                graphics_command_buffer,
+                                dispatch.workgroup_count_x as u32,
+                                dispatch.workgroup_count_y as u32,
+                                dispatch.workgroup_count_z as u32,
+                            );
 
-                        let copy_region = vk::BufferCopy::builder()
-                            .size(ssbo.buffer.size as u64)
-                            .build();
+                            if *dispatch_ty == DispatchType::Blocking {
+                                compute_barrier(&self.core.dev, graphics_command_buffer);
+                            }
+                        }
 
-                        self.core.dev.cmd_copy_buffer(
-                            graphics_command_buffer,
-                            ssbo.buffer.buffer,
-                            ssbo.staging.as_ref().unwrap().buffer,
-                            &[copy_region],
-                        );
-
-                        let barrier = vk::BufferMemoryBarrier::builder()
-                            .src_access_mask(vk::AccessFlags::TRANSFER_WRITE)
-                            .dst_access_mask(vk::AccessFlags::HOST_READ)
-                            .buffer(ssbo.staging.as_ref().unwrap().buffer)
-                            .size(vk::WHOLE_SIZE)
-                            .src_queue_family_index(vk::QUEUE_FAMILY_IGNORED)
-                            .dst_queue_family_index(vk::QUEUE_FAMILY_IGNORED)
-                            .build();
-
-                        self.core.dev.cmd_pipeline_barrier(
-                            graphics_command_buffer,
-                            vk::PipelineStageFlags::TRANSFER,
-                            vk::PipelineStageFlags::HOST,
-                            vk::DependencyFlags::empty(),
-                            &[],
-                            &[barrier],
-                            &[],
-                        );
-
-                        Ok(())
-                    })?;
-
-                    //  Progress
-                    if step_idx != pass.steps.len() - 1 {
-                        self.core
-                            .dev
-                            .cmd_next_subpass(graphics_command_buffer, vk::SubpassContents::INLINE);
+                        if compute_pass.set_blocking {
+                            compute_barrier(&self.core.dev, graphics_command_buffer);
+                        }
                     }
                 }
-                self.core.dev.cmd_end_render_pass(graphics_command_buffer);
             }
 
             self.core
@@ -444,8 +518,14 @@ impl VkContext {
             let mut submit_signal_semaphores = vec![];
 
             let should_present = submit.passes.iter().any(|pass| {
-                let pass = &self.compiled_passes[pass.pass.id()];
-                pass.should_present
+                match pass {
+                    SubmitPassType::Render(pass) => {
+                        let pass = &self.compiled_passes[pass.pass.id()];
+                        pass.should_present
+                    }
+                    _ => false,
+
+                }
             }) /* && self.surface_ext.is_some() */;
             //  Purposely don't check for surface_ext.
 

@@ -13,6 +13,7 @@ use super::webgpu::*;
 pub mod extensions;
 
 mod buffer;
+mod compute;
 mod pass;
 mod pass_step;
 mod platform;
@@ -46,6 +47,8 @@ pub struct ShaderStorageBufferId(usize);
 #[derive(Debug, Clone, Copy, Hash, PartialEq, Eq)]
 pub struct ProgramId(usize);
 #[derive(Debug, Clone, Copy, Hash, PartialEq, Eq)]
+pub struct ComputeProgramId(usize);
+#[derive(Debug, Clone, Copy, Hash, PartialEq, Eq)]
 pub struct SamplerId(usize);
 #[derive(Debug, Clone, Copy, Hash, PartialEq, Eq)]
 pub struct TextureId(usize);
@@ -57,18 +60,22 @@ pub struct PassStepDependency(usize);
 pub struct PassLocalAttachment(usize);
 #[derive(Debug, Clone, Copy, Hash, PartialEq, Eq)]
 pub struct CompiledPassId(usize);
+#[derive(Debug, Clone, Copy, Hash, PartialEq, Eq)]
+pub struct CompiledComputePassId(usize);
 
 def_id_ty!(VertexBufferId);
 def_id_ty!(IndexBufferId);
 def_id_ty!(UniformBufferId);
 def_id_ty!(ShaderStorageBufferId);
 def_id_ty!(ProgramId);
+def_id_ty!(ComputeProgramId);
 def_id_ty!(SamplerId);
 def_id_ty!(TextureId);
 def_id_ty!(AttachmentImageId);
 def_id_ty!(PassStepDependency);
 def_id_ty!(PassLocalAttachment);
 def_id_ty!(CompiledPassId);
+def_id_ty!(CompiledComputePassId);
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Api {
@@ -96,6 +103,10 @@ pub use buffer::{
     NewUniformBufferExt, NewVertexBufferExt, ReadSyncedShaderStorageBufferExt, VertexBufferElement,
     VertexBufferInput, VertexInputArgCount,
 };
+pub use compute::{
+    CompileComputePassExt, ComputePass, ComputePassSubmitData, Dispatch, DispatchType,
+    NewComputeProgramExt,
+};
 pub use extensions::{Extension, ExtensionType};
 pub use pass::{
     CompilePassExt, MsaaSampleCount, NewPassExt, Pass, PassAttachment, PassInputLoadOpColorType,
@@ -110,7 +121,7 @@ pub use program::{
 pub use sampler::{GetSamplerExt, MipSamplerFilter, SamplerFilter, SamplerMode};
 pub use submit::{
     ClearColor, ClearDepthStencil, Draw, DrawScissor, DrawType, DrawViewport, PassSubmitData,
-    StepSubmitData, Submit, SubmitExt,
+    StepSubmitData, Submit, SubmitExt, SubmitPassType,
 };
 pub use texture::{
     AttachmentImageColorFormat, AttachmentImageUsage, NewAttachmentImageExt, NewTextureExt,

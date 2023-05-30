@@ -60,15 +60,17 @@ impl StepSubmitData {
     }
 
     /// Optionally set the viewport size of the render. using [`DrawViewport`]
-    pub fn set_draw_viewport(&mut self, viewport: DrawViewport) {
+    pub fn set_draw_viewport(&mut self, viewport: DrawViewport) -> &mut Self {
         let idx = self.draws.len() - 1;
         self.draws[idx].viewport = Some(viewport);
+        self
     }
 
     /// Optionally set the scissor size of the render using [`DrawScissor`].
-    pub fn set_draw_scissor(&mut self, scissor: DrawScissor) {
+    pub fn set_draw_scissor(&mut self, scissor: DrawScissor) -> &mut Self {
         let idx = self.draws.len() - 1;
         self.draws[idx].scissor = Some(scissor);
+        self
     }
 
     pub fn draw(&mut self, program: ProgramId, first: usize, count: usize) -> &mut Self {
@@ -143,9 +145,14 @@ impl PassSubmitData {
     }
 }
 
+pub enum SubmitPassType {
+    Render(PassSubmitData),
+    Compute(ComputePassSubmitData),
+}
+
 #[derive(Default)]
 pub struct Submit<'transfer> {
-    pub(crate) passes: Vec<PassSubmitData>,
+    pub(crate) passes: Vec<SubmitPassType>,
     pub(crate) vbo_transfers: Vec<(VertexBufferId, &'transfer [VertexBufferElement])>,
     pub(crate) ibo_transfers: Vec<(IndexBufferId, &'transfer [IndexBufferElement])>,
     pub(crate) ubo_transfers: Vec<(UniformBufferId, &'transfer [u8])>,
@@ -162,7 +169,12 @@ impl<'transfer> Submit<'transfer> {
     }
 
     pub fn pass(&mut self, data: PassSubmitData) -> &mut Self {
-        self.passes.push(data);
+        self.passes.push(SubmitPassType::Render(data));
+        self
+    }
+
+    pub fn compute_pass(&mut self, data: ComputePassSubmitData) -> &mut Self {
+        self.passes.push(SubmitPassType::Compute(data));
         self
     }
 
