@@ -133,7 +133,7 @@ fn new_unix_macos_surface(
 
         let native_surface_create =
             vk::MetalSurfaceCreateInfoEXT::builder().layer(unsafe { &*layer });
-        let native_surface = extensions::ext::MetalSurface::new(entry, instance);
+        let native_surface = ash::extensions::ext::MetalSurface::new(entry, instance);
         return unsafe { native_surface.create_metal_surface(&native_surface_create, None) }.ok();
     }
     unreachable!()

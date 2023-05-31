@@ -38,7 +38,8 @@ impl VkCore {
         };
 
         //  # Extensions and Layers
-        let mut instance_extensions_owned = vec![];
+        let mut instance_extensions_owned =
+            vec![CString::new("VK_KHR_portability_enumeration").unwrap()];
         let mut layers_owned = vec![];
 
         //  ## Debug
@@ -76,6 +77,7 @@ impl VkCore {
         let instance_create = vk::InstanceCreateInfo::builder()
             .enabled_extension_names(&instance_extensions)
             .enabled_layer_names(&layers)
+            .flags(vk::InstanceCreateFlags::ENUMERATE_PORTABILITY_KHR)
             .push_next(&mut VkDebug::get_debug_create())
             .build();
         let Ok(instance) = (unsafe { entry.create_instance(&instance_create, None)}) else {
