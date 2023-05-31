@@ -75,6 +75,17 @@ pub enum ShaderCullFrontFace {
     CounterClockwise,
 }
 
+//  TODO docs.
+#[derive(Default, Debug, Clone, Copy)]
+pub enum ShaderPrimitiveTopology {
+    PointList,
+    LineList,
+    LineStrip,
+    #[default]
+    TriangleList,
+    TriangleStrip,
+}
+
 #[derive(Debug, Clone, Copy)]
 pub enum ShaderUniformType {
     Sampler(SamplerId),
@@ -147,6 +158,9 @@ pub struct NewProgramExt {
     pub enable_culling: Option<()>,
     pub cull_mode: Option<ShaderCullMode>,
     pub cull_front_face: Option<ShaderCullFrontFace>,
+
+    //  TODO docs.
+    pub primitive_topology: Option<ShaderPrimitiveTopology>,
 }
 
 impl Context {

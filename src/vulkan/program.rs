@@ -78,7 +78,13 @@ impl VkProgram {
 
         //  Input Assembly Info
         let input_assembly_create = vk::PipelineInputAssemblyStateCreateInfo::builder()
-            .topology(vk::PrimitiveTopology::TRIANGLE_LIST)
+            .topology(match ext.primitive_topology.unwrap_or_default() {
+                ShaderPrimitiveTopology::PointList => vk::PrimitiveTopology::POINT_LIST,
+                ShaderPrimitiveTopology::LineList => vk::PrimitiveTopology::LINE_LIST,
+                ShaderPrimitiveTopology::LineStrip => vk::PrimitiveTopology::LINE_STRIP,
+                ShaderPrimitiveTopology::TriangleList => vk::PrimitiveTopology::TRIANGLE_LIST,
+                ShaderPrimitiveTopology::TriangleStrip => vk::PrimitiveTopology::TRIANGLE_STRIP,
+            })
             .primitive_restart_enable(false)
             .build();
 

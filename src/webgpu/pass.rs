@@ -74,7 +74,13 @@ impl WebGpuCompiledPass {
                             ShaderCullFrontFace::Clockwise => GpuFrontFace::Cw,
                             ShaderCullFrontFace::CounterClockwise => GpuFrontFace::Ccw,
                         })
-                        .topology(GpuPrimitiveTopology::TriangleList);
+                        .topology(match program.ext.primitive_topology.unwrap_or_default() {
+                            ShaderPrimitiveTopology::PointList => GpuPrimitiveTopology::PointList,
+                            ShaderPrimitiveTopology::LineList => GpuPrimitiveTopology::LineList,
+                            ShaderPrimitiveTopology::LineStrip => GpuPrimitiveTopology::LineStrip,
+                            ShaderPrimitiveTopology::TriangleList => GpuPrimitiveTopology::TriangleList,
+                            ShaderPrimitiveTopology::TriangleStrip => GpuPrimitiveTopology::TriangleStrip,
+                        });
 
                     let mut pipeline_info = GpuRenderPipelineDescriptor::new(&layout, &vertex);
                     pipeline_info
