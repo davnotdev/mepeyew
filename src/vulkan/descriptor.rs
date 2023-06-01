@@ -338,7 +338,7 @@ impl VkDescriptors {
         ctx: &VkContext,
         cmd_buf: vk::CommandBuffer,
         bind_point: vk::PipelineBindPoint,
-        program: &VkProgram,
+        layout: vk::PipelineLayout,
         dynamic_indices: &HashMap<DynamicGenericBufferId, usize>,
     ) -> GResult<()> {
         let mut offsets = vec![0; self.dynamic_indices.len()];
@@ -372,9 +372,9 @@ impl VkDescriptors {
         ctx.core.dev.cmd_bind_descriptor_sets(
             cmd_buf,
             bind_point,
-            program.layout,
+            layout,
             0,
-            &program.descriptors.descriptor_sets,
+            &self.descriptor_sets,
             &offsets,
         );
 

@@ -177,7 +177,7 @@ impl WebGpuBindGroups {
         })
     }
 
-    pub fn cmd_bind_groups(
+    pub fn cmd_render_bind_groups(
         &self,
         context: &WebGpuContext,
         pass_encoder: &GpuRenderPassEncoder,
@@ -188,7 +188,7 @@ impl WebGpuBindGroups {
         (self.dynamic_indices.len() == dynamic_indices.len())
             .then_some(())
             .ok_or(gpu_api_err!(
-                "vulkan not all dynamic indices provided for draw"
+                "webgpu not all dynamic indices provided for draw"
             ))?;
 
         dynamic_indices
@@ -227,5 +227,14 @@ impl WebGpuBindGroups {
             });
 
         Ok(())
+    }
+
+    pub fn cmd_compute_bind_groups(
+        &self,
+        context: &WebGpuContext,
+        pass_encoder: &GpuComputePassEncoder,
+        dynamic_indices: &HashMap<DynamicGenericBufferId, usize>,
+    ) -> GResult<()> {
+        self.cmd_render_bind_groups(context, pass_encoder.dyn_ref().unwrap(), dynamic_indices)
     }
 }

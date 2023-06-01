@@ -352,7 +352,7 @@ impl VkContext {
                                     self,
                                     graphics_command_buffer,
                                     vk::PipelineBindPoint::GRAPHICS,
-                                    program,
+                                    program.layout,
                                     &draw.dynamic_buffer_indices,
                                 )?;
 
@@ -481,35 +481,33 @@ impl VkContext {
                             )
                         }
 
-                        for (program_id, dispatch, dispatch_ty) in pass_data.dispatches.iter() {
+                        for dispatch in pass_data.dispatches.iter() {
                             compute_pass
                                 .added_programs
-                                .contains(program_id)
+                                .contains(&dispatch.program)
                                 .then_some(())
                                 .ok_or(gpu_api_err!(
                                     "vulkan submit compute program {:?} was not added",
-                                    program_id
+                                    dispatch.program
                                 ))?;
-                            let program =
-                                self.compute_programs
-                                    .get(program_id.id())
-                                    .ok_or(gpu_api_err!(
-                                        "vulkan submit compute program {:?}",
-                                        program_id
-                                    ))?;
+                            let program = self.compute_programs.get(dispatch.program.id()).ok_or(
+                                gpu_api_err!(
+                                    "vulkan submit compute program {:?}",
+                                    dispatch.program
+                                ),
+                            )?;
                             self.core.dev.cmd_bind_pipeline(
                                 graphics_command_buffer,
                                 vk::PipelineBindPoint::COMPUTE,
                                 program.pipeline,
                             );
-                            self.core.dev.cmd_bind_descriptor_sets(
+                            program.descriptors.cmd_bind(
+                                self,
                                 graphics_command_buffer,
                                 vk::PipelineBindPoint::COMPUTE,
                                 program.layout,
-                                0,
-                                &program.descriptors.descriptor_sets,
-                                &[],
-                            );
+                                &dispatch.dynamic_buffer_indices,
+                            )?;
                             self.core.dev.cmd_dispatch(
                                 graphics_command_buffer,
                                 dispatch.workgroup_count_x as u32,
@@ -517,7 +515,7 @@ impl VkContext {
                                 dispatch.workgroup_count_z as u32,
                             );
 
-                            if *dispatch_ty == DispatchType::Blocking {
+                            if dispatch.ty == DispatchType::Blocking {
                                 compute_barrier(&self.core.dev, graphics_command_buffer);
                             }
                         }

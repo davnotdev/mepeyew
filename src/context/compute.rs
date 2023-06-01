@@ -1,4 +1,5 @@
 use super::*;
+use std::collections::HashMap;
 
 //  TODO docs ALL OF THIS!
 
@@ -21,11 +22,16 @@ impl ComputePass {
     }
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone)]
 pub struct Dispatch {
-    pub workgroup_count_x: usize,
-    pub workgroup_count_y: usize,
-    pub workgroup_count_z: usize,
+    pub(crate) ty: DispatchType,
+    pub(crate) program: ComputeProgramId,
+
+    pub(crate) workgroup_count_x: usize,
+    pub(crate) workgroup_count_y: usize,
+    pub(crate) workgroup_count_z: usize,
+
+    pub(crate) dynamic_buffer_indices: HashMap<DynamicGenericBufferId, usize>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -37,7 +43,7 @@ pub enum DispatchType {
 #[derive(Debug, Clone)]
 pub struct ComputePassSubmitData {
     pub(crate) compute_pass: CompiledComputePassId,
-    pub(crate) dispatches: Vec<(ComputeProgramId, Dispatch, DispatchType)>,
+    pub(crate) dispatches: Vec<Dispatch>,
 }
 
 impl ComputePassSubmitData {
@@ -48,20 +54,36 @@ impl ComputePassSubmitData {
         }
     }
 
-    pub fn dispatch(&mut self, compute_program: ComputeProgramId, dispatch: Dispatch) -> &mut Self {
-        self.dispatches
-            .push((compute_program, dispatch, DispatchType::NonBlocking));
-        self
+    pub fn dispatch(
+        &mut self,
+        compute_program: ComputeProgramId,
+        workgroup_count_x: usize,
+    ) -> &mut Dispatch {
+        self.dispatches.push(Dispatch {
+            ty: DispatchType::NonBlocking,
+            program: compute_program,
+            workgroup_count_x,
+            workgroup_count_y: 0,
+            workgroup_count_z: 0,
+            dynamic_buffer_indices: HashMap::new(),
+        });
+        self.dispatches.last_mut().unwrap()
     }
 
     pub fn dispatch_blocking(
         &mut self,
         compute_program: ComputeProgramId,
-        dispatch: Dispatch,
-    ) -> &mut Self {
-        self.dispatches
-            .push((compute_program, dispatch, DispatchType::Blocking));
-        self
+        workgroup_count_x: usize,
+    ) -> &mut Dispatch {
+        self.dispatches.push(Dispatch {
+            ty: DispatchType::Blocking,
+            program: compute_program,
+            workgroup_count_x,
+            workgroup_count_y: 0,
+            workgroup_count_z: 0,
+            dynamic_buffer_indices: HashMap::new(),
+        });
+        self.dispatches.last_mut().unwrap()
     }
 }
 

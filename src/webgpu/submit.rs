@@ -264,7 +264,7 @@ fn submit_pass(
                     draw.program
                 ))?;
 
-                program.bind_groups.cmd_bind_groups(
+                program.bind_groups.cmd_render_bind_groups(
                     context,
                     &pass_encoder,
                     &draw.dynamic_buffer_indices,
@@ -314,33 +314,30 @@ fn submit_compute_pass(
 
     let pass_encoder = command_encoder.begin_compute_pass();
 
-    for (program_id, dispatch, _dispatch_ty) in pass_submit.dispatches.iter() {
+    for dispatch in pass_submit.dispatches.iter() {
         compute_pass
             .added_programs
-            .contains(program_id)
+            .contains(&dispatch.program)
             .then_some(())
             .ok_or(gpu_api_err!(
                 "webgpu submit compute program {:?} was not added",
-                program_id
+                dispatch.program
             ))?;
 
         let program = context
             .compute_programs
-            .get(program_id.id())
+            .get(dispatch.program.id())
             .ok_or(gpu_api_err!(
                 "webgpu submit compute program {:?}",
-                program_id
+                dispatch.program
             ))?;
 
         pass_encoder.set_pipeline(&program.pipeline);
-        program
-            .bind_groups
-            .bind_groups
-            .iter()
-            .enumerate()
-            .for_each(|(slot_idx, bind_group)| {
-                pass_encoder.set_bind_group(slot_idx as u32, bind_group);
-            });
+        program.bind_groups.cmd_compute_bind_groups(
+            context,
+            &pass_encoder,
+            &dispatch.dynamic_buffer_indices,
+        )?;
         pass_encoder.dispatch_workgroups_with_workgroup_count_y_and_workgroup_count_z(
             dispatch.workgroup_count_x as u32,
             dispatch.workgroup_count_y as u32,
