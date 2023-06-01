@@ -177,6 +177,7 @@
 
 pub mod prelude;
 
+pub(crate) mod alignment;
 pub mod context;
 mod error;
 mod mock;

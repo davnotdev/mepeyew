@@ -1,4 +1,5 @@
 use super::*;
+use crate::alignment::pad_raw_slice;
 
 impl WebGpuContext {
     pub fn new_vertex_buffer(
@@ -64,17 +65,14 @@ impl WebGpuContext {
         data: &[T],
         _ext: Option<NewDynamicUniformBufferExt>,
     ) -> GResult<DynamicUniformBufferId> {
-        let size = std::mem::size_of::<T>();
-        let buffer = WebGpuBuffer::new(
+        let min_ubo_alignment = self.device.limits().min_uniform_buffer_offset_alignment() as usize;
+        let buffer = WebGpuDynamicBuffer::new(
             &self.device,
-            size as u32,
             GpuBufferUsageFlags::Uniform as u32 | GpuBufferUsageFlags::CopyDst as u32,
-            unsafe { std::slice::from_raw_parts(data.as_ptr() as *const T as *const u8, size) },
+            min_ubo_alignment,
+            data,
         );
-        self.dyn_ubos.push(WebGpuDynamicBuffer {
-            buffer,
-            per_index_offset: size,
-        });
+        self.dyn_ubos.push(buffer);
         Ok(DynamicUniformBufferId::from_id(self.dyn_ubos.len() - 1))
     }
 
@@ -120,11 +118,6 @@ pub struct WebGpuBuffer {
     pub buffer: GpuBuffer,
 }
 
-pub struct WebGpuDynamicBuffer {
-    pub buffer: WebGpuBuffer,
-    pub per_index_offset: usize,
-}
-
 impl WebGpuBuffer {
     pub fn new(device: &GpuDevice, size: u32, usage: u32, data: &[u8]) -> Self {
         let mut buffer_info = GpuBufferDescriptor::new(size as f64, usage);
@@ -140,5 +133,35 @@ impl WebGpuBuffer {
         buffer.unmap();
 
         WebGpuBuffer { buffer }
+    }
+}
+
+pub struct WebGpuDynamicBuffer {
+    pub buffer: WebGpuBuffer,
+    pub per_index_offset: usize,
+}
+
+impl WebGpuDynamicBuffer {
+    pub fn new<T: Copy>(device: &GpuDevice, usage: u32, min_alignment: usize, data: &[T]) -> Self {
+        let each_size = std::mem::size_of::<T>();
+        let byte_slice = unsafe {
+            std::slice::from_raw_parts(data.as_ptr() as *const u8, each_size * data.len())
+        };
+        let padded = unsafe { pad_raw_slice(byte_slice, min_alignment, each_size, data.len()) };
+        let buffer = WebGpuBuffer::new(device, padded.len() as u32, usage, &padded);
+
+        WebGpuDynamicBuffer {
+            buffer,
+            per_index_offset: padded.len() / data.len(),
+        }
+    }
+
+    pub fn write_buffer(&self, queue: &GpuQueue, data: &[u8], index: usize) {
+        queue.write_buffer_with_u32_and_u8_array_and_u32(
+            &self.buffer.buffer,
+            (index * self.per_index_offset) as u32,
+            data,
+            0,
+        );
     }
 }

@@ -52,12 +52,13 @@ The API is designed to be stable, but I can't guarentee anything of course.
 - [x] MSAA
 - [x] More Attachment Formats
 - [x] Dynamic Viewport + Scissor
-- [ ] Dynamic Uniforms
+- [x] Dynamic Uniforms
 - [ ] Shader Storage Buffer Objects
 - [ ] Compute
-- [x] Blending + Culling
+- [x] Blending and Culling
 - [x] Mipmaps and LOD
 - [ ] Cubemaps
+- [ ] Instancing
 - [x] Replace Shader Uniform Frequency
 - [ ] More Documentation
 - [ ] More Examples

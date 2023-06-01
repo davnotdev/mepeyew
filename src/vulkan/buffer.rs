@@ -1,4 +1,5 @@
 use super::*;
+use crate::alignment::pad_raw_slice;
 use std::mem::ManuallyDrop;
 
 //  TODO OPT: Question on optimizing buffers. So right now, pretty much everything relies on
@@ -63,9 +64,18 @@ impl VkContext {
         data: &[T],
         _ext: Option<NewDynamicUniformBufferExt>,
     ) -> GResult<DynamicUniformBufferId> {
-        let item_size = std::mem::size_of::<T>();
-        let padded_size = get_padded_size(self, item_size);
-        let padded_buf = unsafe { pad_slice(data, padded_size) };
+        let min_ubo_alignment = self
+            .core
+            .physical_dev_properties
+            .limits
+            .min_uniform_buffer_offset_alignment as usize;
+
+        let each_size = std::mem::size_of::<T>();
+        let byte_slice = unsafe {
+            std::slice::from_raw_parts(data.as_ptr() as *const u8, each_size * data.len())
+        };
+        let padded_buf =
+            unsafe { pad_raw_slice(byte_slice, min_ubo_alignment, each_size, data.len()) };
 
         let (buf, staging) = self.new_generic_buffer(
             &padded_buf,
@@ -75,8 +85,8 @@ impl VkContext {
         let ubo = VkDynamicUniformBuffer {
             buffer: buf,
             staging,
-            per_index_offset: padded_size,
-            item_size,
+            per_index_offset: padded_buf.len() / data.len(),
+            item_size: each_size,
         };
         self.dyn_ubos.push(ubo);
         Ok(DynamicUniformBufferId::from_id(self.dyn_ubos.len() - 1))
@@ -113,34 +123,6 @@ impl VkContext {
             std::ptr::read(ssbo.staging.as_ref().unwrap().mapped_ptr.unwrap() as *const T)
         })
     }
-}
-
-fn get_padded_size(ctx: &VkContext, size: usize) -> usize {
-    let min_ubo_alignment = ctx
-        .core
-        .physical_dev_properties
-        .limits
-        .min_uniform_buffer_offset_alignment as usize;
-    if min_ubo_alignment > 0 {
-        (size + min_ubo_alignment - 1) & !(min_ubo_alignment - 1)
-    } else {
-        size
-    }
-}
-
-unsafe fn pad_slice<T: Copy>(slice: &[T], padded_size: usize) -> Vec<u8> {
-    let size = std::mem::size_of::<T>();
-    let byte_slice = unsafe {
-        std::slice::from_raw_parts(slice.as_ptr() as *const T as *const u8, size * slice.len())
-    };
-    let mut out = vec![];
-    for i in 0..slice.len() {
-        for s in 0..size {
-            out.push(byte_slice[i * size + s]);
-        }
-        out.resize(out.len() + (padded_size - size), 0);
-    }
-    out
 }
 
 pub struct VkVertexBuffer {

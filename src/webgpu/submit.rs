@@ -61,6 +61,18 @@ fn submit_transfers(context: &WebGpuContext, submit: &Submit) -> GResult<()> {
         Ok(())
     })?;
 
+    submit
+        .dyn_ubo_transfers
+        .iter()
+        .try_for_each(|(ubo_id, data, index)| {
+            let ubo = context.dyn_ubos.get(ubo_id.id()).ok_or(gpu_api_err!(
+                "webgpu submit transfers ubo id {:?} does not exist",
+                ubo_id
+            ))?;
+            ubo.write_buffer(&queue, data, *index);
+            Ok(())
+        })?;
+
     Ok(())
 }
 
