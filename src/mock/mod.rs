@@ -39,6 +39,14 @@ impl MockContext {
         unimplemented!("No backend chosen")
     }
 
+    pub fn new_dynamic_uniform_buffer<T: Copy>(
+        &mut self,
+        _data: &[T],
+        _ext: Option<NewDynamicUniformBufferExt>,
+    ) -> GResult<DynamicUniformBufferId> {
+        todo!()
+    }
+
     pub fn get_sampler(&mut self, _ext: Option<GetSamplerExt>) -> GResult<SamplerId> {
         unimplemented!("No backend chosen")
     }

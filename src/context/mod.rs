@@ -43,6 +43,8 @@ pub struct IndexBufferId(usize);
 #[derive(Debug, Clone, Copy, Hash, PartialEq, Eq)]
 pub struct UniformBufferId(usize);
 #[derive(Debug, Clone, Copy, Hash, PartialEq, Eq)]
+pub struct DynamicUniformBufferId(usize);
+#[derive(Debug, Clone, Copy, Hash, PartialEq, Eq)]
 pub struct ShaderStorageBufferId(usize);
 #[derive(Debug, Clone, Copy, Hash, PartialEq, Eq)]
 pub struct ProgramId(usize);
@@ -66,6 +68,7 @@ pub struct CompiledComputePassId(usize);
 def_id_ty!(VertexBufferId);
 def_id_ty!(IndexBufferId);
 def_id_ty!(UniformBufferId);
+def_id_ty!(DynamicUniformBufferId);
 def_id_ty!(ShaderStorageBufferId);
 def_id_ty!(ProgramId);
 def_id_ty!(ComputeProgramId);
@@ -99,9 +102,9 @@ pub enum Context {
 }
 
 pub use buffer::{
-    BufferStorageType, IndexBufferElement, NewIndexBufferExt, NewShaderStorageBufferExt,
-    NewUniformBufferExt, NewVertexBufferExt, ReadSyncedShaderStorageBufferExt, VertexBufferElement,
-    VertexBufferInput, VertexInputArgCount,
+    BufferStorageType, IndexBufferElement, NewDynamicUniformBufferExt, NewIndexBufferExt,
+    NewShaderStorageBufferExt, NewUniformBufferExt, NewVertexBufferExt,
+    ReadSyncedShaderStorageBufferExt, VertexBufferElement, VertexBufferInput, VertexInputArgCount,
 };
 pub use compute::{
     CompileComputePassExt, ComputePass, ComputePassSubmitData, Dispatch, DispatchType,
@@ -120,8 +123,8 @@ pub use program::{
 };
 pub use sampler::{GetSamplerExt, MipSamplerFilter, SamplerFilter, SamplerMode};
 pub use submit::{
-    ClearColor, ClearDepthStencil, Draw, DrawScissor, DrawType, DrawViewport, PassSubmitData,
-    StepSubmitData, Submit, SubmitExt, SubmitPassType,
+    ClearColor, ClearDepthStencil, Draw, DrawScissor, DrawType, DrawViewport,
+    DynamicGenericBufferId, PassSubmitData, StepSubmitData, Submit, SubmitExt, SubmitPassType,
 };
 pub use texture::{
     AttachmentImageColorFormat, AttachmentImageUsage, NewAttachmentImageExt, NewTextureExt,

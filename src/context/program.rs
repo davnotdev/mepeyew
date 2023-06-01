@@ -91,6 +91,7 @@ pub enum ShaderUniformType {
     Sampler(SamplerId),
     Texture(TextureId),
     UniformBuffer(UniformBufferId),
+    DynamicUniformBuffer(DynamicUniformBufferId),
     InputAttachment(AttachmentImageId),
     ShaderStorageBuffer(ShaderStorageBufferId),
     ShaderStorageBufferReadOnly(ShaderStorageBufferId),

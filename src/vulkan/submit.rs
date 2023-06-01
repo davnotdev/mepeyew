@@ -153,6 +153,20 @@ impl VkContext {
                     .unwrap();
             });
 
+            submit
+                .dyn_ubo_transfers
+                .iter()
+                .for_each(|(ubo, data, index)| {
+                    let ubo = self.dyn_ubos.get_mut(ubo.id()).unwrap();
+                    ubo.cmd_transfer(
+                        &self.core.dev.clone(),
+                        graphics_command_buffer,
+                        data,
+                        *index,
+                    )
+                    .unwrap();
+                });
+
             //  Read somewhere that this is actually unneccessary.
             let graphics_memory_barrier = vk::MemoryBarrier::builder()
                 .src_access_mask(vk::AccessFlags::HOST_WRITE)
@@ -161,9 +175,7 @@ impl VkContext {
                         | vk::AccessFlags::VERTEX_ATTRIBUTE_READ
                         | vk::AccessFlags::UNIFORM_READ
                         | vk::AccessFlags::SHADER_READ
-                        | vk::AccessFlags::SHADER_WRITE
-                        | vk::AccessFlags::TRANSFER_READ
-                        | vk::AccessFlags::TRANSFER_WRITE,
+                        | vk::AccessFlags::TRANSFER_READ,
                 )
                 .build();
             self.core.dev.cmd_pipeline_barrier(
@@ -336,14 +348,13 @@ impl VkContext {
                                 //  Descriptor Sets
                                 //  TODO OPT: Maybe don't do this.
                                 let program = self.programs.get(draw.program.id()).unwrap();
-                                self.core.dev.cmd_bind_descriptor_sets(
+                                program.descriptors.cmd_bind(
+                                    self,
                                     graphics_command_buffer,
                                     vk::PipelineBindPoint::GRAPHICS,
-                                    program.layout,
-                                    0,
-                                    &program.descriptors.descriptor_sets,
-                                    &[],
-                                );
+                                    program,
+                                    &draw.dynamic_buffer_indices,
+                                )?;
 
                                 //  Draw
                                 match draw.ty {

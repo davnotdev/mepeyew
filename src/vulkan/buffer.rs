@@ -40,7 +40,7 @@ impl VkContext {
         Ok(IndexBufferId::from_id(self.ibos.len() - 1))
     }
 
-    pub fn new_uniform_buffer<T>(
+    pub fn new_uniform_buffer<T: Copy>(
         &mut self,
         data: &T,
         _ext: Option<NewUniformBufferExt>,
@@ -58,7 +58,31 @@ impl VkContext {
         Ok(UniformBufferId::from_id(self.ubos.len() - 1))
     }
 
-    pub fn new_shader_storage_buffer<T>(
+    pub fn new_dynamic_uniform_buffer<T: Copy>(
+        &mut self,
+        data: &[T],
+        _ext: Option<NewDynamicUniformBufferExt>,
+    ) -> GResult<DynamicUniformBufferId> {
+        let item_size = std::mem::size_of::<T>();
+        let padded_size = get_padded_size(self, item_size);
+        let padded_buf = unsafe { pad_slice(data, padded_size) };
+
+        let (buf, staging) = self.new_generic_buffer(
+            &padded_buf,
+            BufferStorageType::Dynamic,
+            vk::BufferUsageFlags::UNIFORM_BUFFER,
+        )?;
+        let ubo = VkDynamicUniformBuffer {
+            buffer: buf,
+            staging,
+            per_index_offset: padded_size,
+            item_size,
+        };
+        self.dyn_ubos.push(ubo);
+        Ok(DynamicUniformBufferId::from_id(self.dyn_ubos.len() - 1))
+    }
+
+    pub fn new_shader_storage_buffer<T: Copy>(
         &mut self,
         data: &T,
         _ext: Option<NewShaderStorageBufferExt>,
@@ -91,6 +115,34 @@ impl VkContext {
     }
 }
 
+fn get_padded_size(ctx: &VkContext, size: usize) -> usize {
+    let min_ubo_alignment = ctx
+        .core
+        .physical_dev_properties
+        .limits
+        .min_uniform_buffer_offset_alignment as usize;
+    if min_ubo_alignment > 0 {
+        (size + min_ubo_alignment - 1) & !(min_ubo_alignment - 1)
+    } else {
+        size
+    }
+}
+
+unsafe fn pad_slice<T: Copy>(slice: &[T], padded_size: usize) -> Vec<u8> {
+    let size = std::mem::size_of::<T>();
+    let byte_slice = unsafe {
+        std::slice::from_raw_parts(slice.as_ptr() as *const T as *const u8, size * slice.len())
+    };
+    let mut out = vec![];
+    for i in 0..slice.len() {
+        for s in 0..size {
+            out.push(byte_slice[i * size + s]);
+        }
+        out.resize(out.len() + (padded_size - size), 0);
+    }
+    out
+}
+
 pub struct VkVertexBuffer {
     pub buffer: VkBuffer,
     staging: Option<VkBuffer>,
@@ -104,6 +156,13 @@ pub struct VkIndexBuffer {
 pub struct VkUniformBuffer {
     pub buffer: VkBuffer,
     staging: Option<VkBuffer>,
+}
+
+pub struct VkDynamicUniformBuffer {
+    pub buffer: VkBuffer,
+    staging: Option<VkBuffer>,
+    pub per_index_offset: usize,
+    item_size: usize,
 }
 
 pub struct VkShaderStorageBuffer {
@@ -126,6 +185,9 @@ impl VkVertexBuffer {
                 "vulkan this vertex buffer does not support transfers"
             ))?,
             data,
+            self.buffer.size,
+            self.buffer.size,
+            0,
         )
     }
 }
@@ -145,6 +207,9 @@ impl VkIndexBuffer {
                 "vulkan this index buffer does not support transfers"
             ))?,
             data,
+            self.buffer.size,
+            self.buffer.size,
+            0,
         )
     }
 }
@@ -156,16 +221,40 @@ impl VkUniformBuffer {
         cmd_buf: vk::CommandBuffer,
         data: &[T],
     ) -> GResult<()> {
-        // self.buffer
-        //     .map_copy_data(data.as_ptr() as *const u8, data.len())?;
         cmd_transfer_generic(
             dev,
             cmd_buf,
             &self.buffer,
             self.staging.as_mut().ok_or(gpu_api_err!(
-                "vulkan this index buffer does not support transfers"
+                "vulkan this uniform buffer does not support transfers"
             ))?,
             data,
+            self.buffer.size,
+            self.buffer.size,
+            0,
+        )
+    }
+}
+
+impl VkDynamicUniformBuffer {
+    pub fn cmd_transfer<T>(
+        &mut self,
+        dev: &Device,
+        cmd_buf: vk::CommandBuffer,
+        data: &[T],
+        index: usize,
+    ) -> GResult<()> {
+        cmd_transfer_generic(
+            dev,
+            cmd_buf,
+            &self.buffer,
+            self.staging.as_mut().ok_or(gpu_api_err!(
+                "vulkan this dynamic uniform buffer does not support transfers"
+            ))?,
+            data,
+            self.per_index_offset,
+            self.item_size,
+            index * self.per_index_offset,
         )
     }
 }
@@ -176,13 +265,12 @@ fn cmd_transfer_generic<T>(
     buffer: &VkBuffer,
     staging: &mut VkBuffer,
     data: &[T],
+    size: usize,
+    item_size: usize,
+    offset: usize,
 ) -> GResult<()> {
-    let buf_size = std::mem::size_of::<T>() * data.len();
-    if buf_size > buffer.size {
-        Err(gpu_api_err!("vulkan cannot transfer, data too large"))?
-    }
-    staging.map_copy_data(data.as_ptr() as *const u8, buf_size)?;
-    VkBuffer::cmd_upload_copy_data(staging, buffer, dev, cmd_buf);
+    staging.map_copy_data(data.as_ptr() as *const u8, item_size, offset)?;
+    VkBuffer::cmd_upload_copy_data(staging, buffer, dev, size, offset, cmd_buf);
     Ok(())
 }
 
@@ -203,7 +291,7 @@ impl VkContext {
             vk::BufferUsageFlags::TRANSFER_SRC | vk::BufferUsageFlags::TRANSFER_DST,
             MemoryLocation::CpuToGpu,
         )?;
-        staging.map_copy_data(data.as_ptr() as *const u8, buf_size)?;
+        staging.map_copy_data(data.as_ptr() as *const u8, buf_size, 0)?;
         let buf = VkBuffer::new(
             &self.core.dev,
             &self.drop_queue,
@@ -213,7 +301,7 @@ impl VkContext {
             MemoryLocation::GpuOnly,
         )?;
         {
-            VkBuffer::single_upload_copy_data(&staging, &buf, &self.core)?;
+            VkBuffer::single_upload_copy_data(&staging, &buf, &self.core, staging.size, 0)?;
         }
 
         Ok((
@@ -281,10 +369,14 @@ impl VkBuffer {
         })
     }
 
-    pub fn map_copy_data(&mut self, ptr: *const u8, size: usize) -> GResult<()> {
+    pub fn map_copy_data(&mut self, ptr: *const u8, size: usize, offset: usize) -> GResult<()> {
         if let Some(mapped_ptr) = self.mapped_ptr {
             unsafe {
-                std::ptr::copy_nonoverlapping::<u8>(ptr, mapped_ptr, size);
+                std::hint::black_box(std::ptr::copy_nonoverlapping::<u8>(
+                    ptr,
+                    mapped_ptr.add(offset),
+                    size,
+                ));
             }
         } else {
             let data = self
@@ -295,17 +387,34 @@ impl VkBuffer {
                 ))?
                 .as_ptr();
             self.mapped_ptr = Some(data as *mut u8);
-            self.map_copy_data(ptr, size)?;
+            self.map_copy_data(ptr, size, offset)?;
         }
         Ok(())
     }
 
-    fn cmd_upload_copy_data(src: &Self, dst: &Self, dev: &Device, command_buf: vk::CommandBuffer) {
-        let copy_create = vk::BufferCopy::builder().size(src.size as u64).build();
+    fn cmd_upload_copy_data(
+        src: &Self,
+        dst: &Self,
+        dev: &Device,
+        size: usize,
+        offset: usize,
+        command_buf: vk::CommandBuffer,
+    ) {
+        let copy_create = vk::BufferCopy::builder()
+            .src_offset(offset as u64)
+            .dst_offset(offset as u64)
+            .size(size as u64)
+            .build();
         unsafe { dev.cmd_copy_buffer(command_buf, src.buffer, dst.buffer, &[copy_create]) };
     }
 
-    pub fn single_upload_copy_data(src: &Self, dst: &Self, core: &VkCore) -> GResult<()> {
+    pub fn single_upload_copy_data(
+        src: &Self,
+        dst: &Self,
+        core: &VkCore,
+        size: usize,
+        offset: usize,
+    ) -> GResult<()> {
         if src.size > dst.size {
             Err(gpu_api_err!(
                 "vulkan upload copy src.size ({}) > dst.size ({})",
@@ -314,7 +423,7 @@ impl VkBuffer {
             ))?
         }
         let _misc_cmd = core.misc_command()?;
-        Self::cmd_upload_copy_data(src, dst, &core.dev, core.misc_command_buffer);
+        Self::cmd_upload_copy_data(src, dst, &core.dev, size, offset, core.misc_command_buffer);
         Ok(())
     }
 }

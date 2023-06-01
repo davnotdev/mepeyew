@@ -9,7 +9,9 @@ pub struct WebGpuBindGroups {
 
 impl WebGpuBindGroups {
     pub fn new(context: &WebGpuContext, uniforms: &[ShaderUniform]) -> GResult<Self> {
-        let mut bind_group_layouts = (0..WEBGPU_BIND_GROUP_COUNT).map(|_| vec![]).collect::<Vec<_>>();
+        let mut bind_group_layouts = (0..WEBGPU_BIND_GROUP_COUNT)
+            .map(|_| vec![])
+            .collect::<Vec<_>>();
 
         uniforms.iter().for_each(|uniform| {
             let mut entry = GpuBindGroupLayoutEntry::new(uniform.binding as u32, 0);
@@ -76,7 +78,9 @@ impl WebGpuBindGroups {
             })
             .collect::<Vec<_>>();
 
-        let mut bind_groups = (0..WEBGPU_BIND_GROUP_COUNT).map(|_| vec![]).collect::<Vec<_>>();
+        let mut bind_groups = (0..WEBGPU_BIND_GROUP_COUNT)
+            .map(|_| vec![])
+            .collect::<Vec<_>>();
 
         uniforms.iter().try_for_each(|uniform| {
             let mut entry = GpuBindGroupEntry::new(uniform.binding as u32, &JsValue::null());

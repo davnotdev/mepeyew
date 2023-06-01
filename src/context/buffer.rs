@@ -40,6 +40,8 @@ pub struct NewIndexBufferExt {}
 #[derive(Default, Debug, Clone)]
 pub struct NewUniformBufferExt {}
 #[derive(Default, Debug, Clone)]
+pub struct NewDynamicUniformBufferExt {}
+#[derive(Default, Debug, Clone)]
 pub struct NewShaderStorageBufferExt {}
 #[derive(Default, Debug, Clone)]
 pub struct ReadSyncedShaderStorageBufferExt {}
@@ -77,6 +79,18 @@ impl Context {
         match self {
             Self::Vulkan(vk) => vk.new_uniform_buffer::<T>(data, ext),
             Self::WebGpu(wgpu) => wgpu.new_uniform_buffer::<T>(data, ext),
+        }
+    }
+
+    //  TODO docs
+    pub fn new_dynamic_uniform_buffer<T: Copy>(
+        &mut self,
+        data: &[T],
+        ext: Option<NewDynamicUniformBufferExt>,
+    ) -> GResult<DynamicUniformBufferId> {
+        match self {
+            Self::Vulkan(vk) => vk.new_dynamic_uniform_buffer(data, ext),
+            Self::WebGpu(wgpu) => todo!(),
         }
     }
 

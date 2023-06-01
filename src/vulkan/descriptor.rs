@@ -1,4 +1,5 @@
 use super::*;
+use std::collections::HashMap;
 
 const DESCRIPTOR_SET_COUNT: usize = 8;
 
@@ -8,6 +9,8 @@ pub struct VkDescriptors {
     descriptor_pool: vk::DescriptorPool,
     pub descriptor_sets: [vk::DescriptorSet; DESCRIPTOR_SET_COUNT],
     pub descriptor_set_layouts: [vk::DescriptorSetLayout; DESCRIPTOR_SET_COUNT],
+
+    dynamic_indices: Vec<DynamicGenericBufferId>,
 
     shader_uniforms: Vec<ShaderUniform>,
 
@@ -19,7 +22,9 @@ impl VkDescriptors {
         //  Descriptor Pool
         let supported_descriptor_types = [
             vk::DescriptorType::UNIFORM_BUFFER,
+            vk::DescriptorType::UNIFORM_BUFFER_DYNAMIC,
             vk::DescriptorType::STORAGE_BUFFER,
+            vk::DescriptorType::STORAGE_BUFFER_DYNAMIC,
             vk::DescriptorType::INPUT_ATTACHMENT,
             vk::DescriptorType::SAMPLED_IMAGE,
             vk::DescriptorType::SAMPLER,
@@ -52,6 +57,9 @@ impl VkDescriptors {
             .map(|_| vec![])
             .collect::<Vec<_>>();
 
+        //  For Binding Dynamic Offsets Layer
+        let mut dynamic_indices = vec![];
+
         //  Descriptor Layouts
         uniforms.iter().for_each(|uniform| {
             let binding_info = match uniform.ty {
@@ -65,6 +73,19 @@ impl VkDescriptors {
                     .descriptor_type(vk::DescriptorType::UNIFORM_BUFFER)
                     .descriptor_count(1)
                     .build(),
+                ShaderUniformType::DynamicUniformBuffer(id) => {
+                    dynamic_indices.push(DynamicGenericBufferId::Uniform(id));
+                    vk::DescriptorSetLayoutBinding::builder()
+                        .binding(uniform.binding as u32)
+                        .stage_flags(
+                            vk::ShaderStageFlags::VERTEX
+                                | vk::ShaderStageFlags::FRAGMENT
+                                | vk::ShaderStageFlags::COMPUTE,
+                        )
+                        .descriptor_type(vk::DescriptorType::UNIFORM_BUFFER_DYNAMIC)
+                        .descriptor_count(1)
+                        .build()
+                }
                 ShaderUniformType::ShaderStorageBuffer(_)
                 | ShaderUniformType::ShaderStorageBufferReadOnly(_) => {
                     vk::DescriptorSetLayoutBinding::builder()
@@ -139,6 +160,8 @@ impl VkDescriptors {
 
             shader_uniforms: uniforms.to_vec(),
 
+            dynamic_indices,
+
             drop_queue_ref: Arc::clone(&context.drop_queue),
         };
 
@@ -168,17 +191,42 @@ impl VkDescriptors {
 
                     let buffer_info_list = vec![buffer_info];
 
-                    let ret = Ok(vk::WriteDescriptorSet::builder()
+                    let ret = vk::WriteDescriptorSet::builder()
                         .dst_set(self.descriptor_sets[uniform.set])
                         .dst_binding(uniform.binding as u32)
                         .dst_array_element(0)
                         .descriptor_type(vk::DescriptorType::UNIFORM_BUFFER)
                         .buffer_info(&buffer_info_list)
-                        .build());
+                        .build();
 
                     buffer_infos.push(buffer_info_list);
 
-                    ret
+                    Ok(ret)
+                }
+                ShaderUniformType::DynamicUniformBuffer(ubo_id) => {
+                    let ubo = context.dyn_ubos.get(ubo_id.id()).ok_or(gpu_api_err!(
+                        "vulkan dynamic uniform buffer id {:?} does not exist",
+                        ubo_id
+                    ))?;
+                    let buffer_info = vk::DescriptorBufferInfo::builder()
+                        .buffer(ubo.buffer.buffer)
+                        .range(ubo.per_index_offset as u64)
+                        .offset(0)
+                        .build();
+
+                    let buffer_info_list = vec![buffer_info];
+
+                    let ret = vk::WriteDescriptorSet::builder()
+                        .dst_set(self.descriptor_sets[uniform.set])
+                        .dst_binding(uniform.binding as u32)
+                        .dst_array_element(0)
+                        .descriptor_type(vk::DescriptorType::UNIFORM_BUFFER_DYNAMIC)
+                        .buffer_info(&buffer_info_list)
+                        .build();
+
+                    buffer_infos.push(buffer_info_list);
+
+                    Ok(ret)
                 }
                 ShaderUniformType::ShaderStorageBuffer(ssbo_id)
                 | ShaderUniformType::ShaderStorageBufferReadOnly(ssbo_id) => {
@@ -194,17 +242,17 @@ impl VkDescriptors {
 
                     let buffer_info_list = vec![buffer_info];
 
-                    let ret = Ok(vk::WriteDescriptorSet::builder()
+                    let ret = vk::WriteDescriptorSet::builder()
                         .dst_set(self.descriptor_sets[uniform.set])
                         .dst_binding(uniform.binding as u32)
                         .dst_array_element(0)
                         .descriptor_type(vk::DescriptorType::STORAGE_BUFFER)
                         .buffer_info(&buffer_info_list)
-                        .build());
+                        .build();
 
                     buffer_infos.push(buffer_info_list);
 
-                    ret
+                    Ok(ret)
                 }
                 ShaderUniformType::Texture(texture_id) => {
                     let texture = context.textures.get(texture_id.id()).ok_or(gpu_api_err!(
@@ -282,6 +330,54 @@ impl VkDescriptors {
             .collect::<GResult<Vec<_>>>()?;
 
         unsafe { context.core.dev.update_descriptor_sets(&writes, &[]) };
+        Ok(())
+    }
+
+    pub unsafe fn cmd_bind(
+        &self,
+        ctx: &VkContext,
+        cmd_buf: vk::CommandBuffer,
+        bind_point: vk::PipelineBindPoint,
+        program: &VkProgram,
+        dynamic_indices: &HashMap<DynamicGenericBufferId, usize>,
+    ) -> GResult<()> {
+        let mut offsets = vec![0; self.dynamic_indices.len()];
+
+        (self.dynamic_indices.len() == dynamic_indices.len())
+            .then_some(())
+            .ok_or(gpu_api_err!(
+                "vulkan not all dynamic indices provided for draw"
+            ))?;
+
+        dynamic_indices
+            .iter()
+            .try_for_each(|(id, index)| match id {
+                DynamicGenericBufferId::Uniform(id) => {
+                    let offset_index = self
+                        .dynamic_indices
+                        .iter()
+                        .position(|p| match p {
+                            DynamicGenericBufferId::Uniform(p) => p == id,
+                        })
+                        .ok_or(gpu_api_err!(
+                            "vulkan dynamic uniform buffer (for indexing) {:?} does not exist",
+                            id
+                        ))?;
+                    offsets[offset_index] =
+                        (*index * ctx.dyn_ubos.get(id.id()).unwrap().per_index_offset) as u32;
+                    Ok(())
+                }
+            })?;
+
+        ctx.core.dev.cmd_bind_descriptor_sets(
+            cmd_buf,
+            bind_point,
+            program.layout,
+            0,
+            &program.descriptors.descriptor_sets,
+            &offsets,
+        );
+
         Ok(())
     }
 }

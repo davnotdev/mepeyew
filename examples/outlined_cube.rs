@@ -101,13 +101,20 @@ fn main() {
         )
         .unwrap();
 
-    let uniform_buffer = context
-        .new_uniform_buffer(
-            &UniformBuffer {
-                model: glm::identity(),
-                view: glm::identity(),
-                projection: glm::identity(),
-            },
+    let dynamic_uniform_buffer = context
+        .new_dynamic_uniform_buffer(
+            &[
+                UniformBuffer {
+                    model: glm::identity(),
+                    view: glm::identity(),
+                    projection: glm::identity(),
+                },
+                UniformBuffer {
+                    model: glm::identity(),
+                    view: glm::identity(),
+                    projection: glm::identity(),
+                },
+            ],
             None,
         )
         .unwrap();
@@ -115,7 +122,7 @@ fn main() {
     let data_uniform = ShaderUniform {
         set: 0,
         binding: 0,
-        ty: ShaderUniformType::UniformBuffer(uniform_buffer),
+        ty: ShaderUniformType::DynamicUniformBuffer(dynamic_uniform_buffer),
     };
 
     let image_bytes = include_bytes!("resources/marble.jpg");
@@ -173,7 +180,7 @@ fn main() {
                 ),
                 (ShaderType::Fragment, &fs),
             ]),
-            &[data_uniform, texture_uniform, sampler_uniform],
+            &[data_uniform.clone(), texture_uniform, sampler_uniform],
             Some(NewProgramExt {
                 enable_depth_test: Some(()),
                 enable_depth_write: Some(()),
@@ -190,22 +197,6 @@ fn main() {
         )
         .unwrap();
 
-    let outline_uniform_buffer = context
-        .new_uniform_buffer(
-            &UniformBuffer {
-                model: glm::identity(),
-                view: glm::identity(),
-                projection: glm::identity(),
-            },
-            None,
-        )
-        .unwrap();
-    let outline_data_uniform = ShaderUniform {
-        set: 0,
-        binding: 0,
-        ty: ShaderUniformType::UniformBuffer(outline_uniform_buffer),
-    };
-
     let outline_program = context
         .new_program(
             &ShaderSet::shaders(&[
@@ -217,7 +208,7 @@ fn main() {
                 ),
                 (ShaderType::Fragment, &outline_fs),
             ]),
-            &[outline_data_uniform],
+            &[data_uniform],
             Some(NewProgramExt {
                 enable_depth_test: None,
                 enable_depth_write: None,
@@ -384,7 +375,11 @@ fn main() {
                     projection,
                 };
 
-                submit.transfer_into_uniform_buffer(uniform_buffer, &uniform_data);
+                submit.transfer_into_dynamic_uniform_buffer(
+                    dynamic_uniform_buffer,
+                    &uniform_data,
+                    0,
+                );
 
                 let model = glm::scale(&model, &glm::vec3(1.4, 1.4, 1.4));
                 let uniform_data = UniformBuffer {
@@ -393,28 +388,36 @@ fn main() {
                     projection,
                 };
 
-                submit.transfer_into_uniform_buffer(outline_uniform_buffer, &uniform_data);
+                submit.transfer_into_dynamic_uniform_buffer(
+                    dynamic_uniform_buffer,
+                    &uniform_data,
+                    1,
+                );
 
                 let mut pass_submit = PassSubmitData::new(compiled_pass);
 
                 {
                     let mut step_submit = StepSubmitData::new();
 
-                    step_submit.draw_indexed(program, 0, index_data.len());
-                    step_submit.set_draw_viewport(DrawViewport {
-                        x: 0.0,
-                        y: 0.0,
-                        width: window_size.0 as f32,
-                        height: window_size.1 as f32,
-                    });
+                    step_submit
+                        .draw_indexed(program, 0, index_data.len())
+                        .set_dynamic_uniform_buffer_index(dynamic_uniform_buffer, 0)
+                        .set_viewport(DrawViewport {
+                            x: 0.0,
+                            y: 0.0,
+                            width: window_size.0 as f32,
+                            height: window_size.1 as f32,
+                        });
 
-                    step_submit.draw_indexed(outline_program, 0, index_data.len());
-                    step_submit.set_draw_viewport(DrawViewport {
-                        x: 0.0,
-                        y: 0.0,
-                        width: window_size.0 as f32,
-                        height: window_size.1 as f32,
-                    });
+                    step_submit
+                        .draw_indexed(outline_program, 0, index_data.len())
+                        .set_dynamic_uniform_buffer_index(dynamic_uniform_buffer, 1)
+                        .set_viewport(DrawViewport {
+                            x: 0.0,
+                            y: 0.0,
+                            width: window_size.0 as f32,
+                            height: window_size.1 as f32,
+                        });
 
                     pass_submit.set_attachment_clear_color(
                         output_attachment,

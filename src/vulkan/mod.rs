@@ -13,7 +13,10 @@ use std::{
 };
 
 use attachment_image::VkAttachmentImage;
-use buffer::{VkBuffer, VkIndexBuffer, VkShaderStorageBuffer, VkUniformBuffer, VkVertexBuffer};
+use buffer::{
+    VkBuffer, VkDynamicUniformBuffer, VkIndexBuffer, VkShaderStorageBuffer, VkUniformBuffer,
+    VkVertexBuffer,
+};
 use compute::{VkCompiledComputePass, VkComputeProgram};
 use descriptor::VkDescriptors;
 use drop::VkDropQueue;
@@ -56,6 +59,7 @@ pub struct VkContext {
     vbos: ManuallyDrop<Vec<VkVertexBuffer>>,
     ibos: ManuallyDrop<Vec<VkIndexBuffer>>,
     ubos: ManuallyDrop<Vec<VkUniformBuffer>>,
+    dyn_ubos: ManuallyDrop<Vec<VkDynamicUniformBuffer>>,
     ssbos: ManuallyDrop<Vec<VkShaderStorageBuffer>>,
     textures: ManuallyDrop<Vec<VkTexture>>,
     attachment_images: ManuallyDrop<Vec<VkAttachmentImage>>,
@@ -183,6 +187,7 @@ impl VkContext {
         let vbos = ManuallyDrop::new(vec![]);
         let ibos = ManuallyDrop::new(vec![]);
         let ubos = ManuallyDrop::new(vec![]);
+        let dyn_ubos = ManuallyDrop::new(vec![]);
         let ssbos = ManuallyDrop::new(vec![]);
         let textures = ManuallyDrop::new(vec![]);
         let attachment_images = ManuallyDrop::new(vec![]);
@@ -204,6 +209,7 @@ impl VkContext {
             vbos,
             ibos,
             ubos,
+            dyn_ubos,
             ssbos,
             textures,
             attachment_images,
@@ -236,12 +242,16 @@ impl Drop for VkContext {
             let _sampler_cache = ManuallyDrop::take(&mut self.sampler_cache);
 
             let _programs = ManuallyDrop::take(&mut self.programs);
+            let _compute_programs = ManuallyDrop::take(&mut self.compute_programs);
             let _vbos = ManuallyDrop::take(&mut self.vbos);
             let _ibos = ManuallyDrop::take(&mut self.ibos);
             let _ubos = ManuallyDrop::take(&mut self.ubos);
+            let _dyn_ubos = ManuallyDrop::take(&mut self.dyn_ubos);
+            let _ssbos = ManuallyDrop::take(&mut self.ssbos);
             let _textures = ManuallyDrop::take(&mut self.textures);
             let _attachment_images = ManuallyDrop::take(&mut self.attachment_images);
             let _compiled_passes = ManuallyDrop::take(&mut self.compiled_passes);
+            let _compiled_compute_passes = ManuallyDrop::take(&mut self.compiled_compute_passes);
         }
 
         Arc::get_mut(&mut self.drop_queue)

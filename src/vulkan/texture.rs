@@ -140,7 +140,7 @@ impl VkTexture {
 
     fn upload(&mut self, core: &VkCore, data: &[u8], ext: UploadTextureExt) -> GResult<()> {
         self.staging
-            .map_copy_data(data.as_ptr() as *const u8, data.len())?;
+            .map_copy_data(data.as_ptr() as *const u8, data.len(), 0)?;
 
         let _misc_command = core.misc_command();
 

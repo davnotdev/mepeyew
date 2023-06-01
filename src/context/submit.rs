@@ -39,7 +39,12 @@ pub struct DrawScissor {
     pub height: usize,
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, Hash, PartialEq, Eq)]
+pub enum DynamicGenericBufferId {
+    Uniform(DynamicUniformBufferId),
+}
+
+#[derive(Debug, Clone)]
 pub struct Draw {
     pub(crate) ty: DrawType,
     pub(crate) first: usize,
@@ -47,6 +52,29 @@ pub struct Draw {
     pub(crate) program: ProgramId,
     pub(crate) viewport: Option<DrawViewport>,
     pub(crate) scissor: Option<DrawScissor>,
+    pub(crate) dynamic_buffer_indices: HashMap<DynamicGenericBufferId, usize>,
+}
+
+impl Draw {
+    pub fn set_viewport(&mut self, viewport: DrawViewport) -> &mut Self {
+        self.viewport = Some(viewport);
+        self
+    }
+
+    pub fn set_scissor(&mut self, scissor: DrawScissor) -> &mut Self {
+        self.scissor = Some(scissor);
+        self
+    }
+
+    pub fn set_dynamic_uniform_buffer_index(
+        &mut self,
+        ubo: DynamicUniformBufferId,
+        index: usize,
+    ) -> &mut Self {
+        self.dynamic_buffer_indices
+            .insert(DynamicGenericBufferId::Uniform(ubo), index);
+        self
+    }
 }
 
 #[derive(Default, Debug, Clone)]
@@ -59,21 +87,7 @@ impl StepSubmitData {
         Self::default()
     }
 
-    /// Optionally set the viewport size of the render. using [`DrawViewport`]
-    pub fn set_draw_viewport(&mut self, viewport: DrawViewport) -> &mut Self {
-        let idx = self.draws.len() - 1;
-        self.draws[idx].viewport = Some(viewport);
-        self
-    }
-
-    /// Optionally set the scissor size of the render using [`DrawScissor`].
-    pub fn set_draw_scissor(&mut self, scissor: DrawScissor) -> &mut Self {
-        let idx = self.draws.len() - 1;
-        self.draws[idx].scissor = Some(scissor);
-        self
-    }
-
-    pub fn draw(&mut self, program: ProgramId, first: usize, count: usize) -> &mut Self {
+    pub fn draw(&mut self, program: ProgramId, first: usize, count: usize) -> &mut Draw {
         self.draws.push(Draw {
             ty: DrawType::Draw,
             first,
@@ -81,11 +95,12 @@ impl StepSubmitData {
             program,
             viewport: None,
             scissor: None,
+            dynamic_buffer_indices: HashMap::new(),
         });
-        self
+        self.draws.last_mut().unwrap()
     }
 
-    pub fn draw_indexed(&mut self, program: ProgramId, first: usize, count: usize) -> &mut Self {
+    pub fn draw_indexed(&mut self, program: ProgramId, first: usize, count: usize) -> &mut Draw {
         self.draws.push(Draw {
             ty: DrawType::DrawIndexed,
             first,
@@ -93,8 +108,9 @@ impl StepSubmitData {
             program,
             viewport: None,
             scissor: None,
+            dynamic_buffer_indices: HashMap::new(),
         });
-        self
+        self.draws.last_mut().unwrap()
     }
 }
 
@@ -156,6 +172,7 @@ pub struct Submit<'transfer> {
     pub(crate) vbo_transfers: Vec<(VertexBufferId, &'transfer [VertexBufferElement])>,
     pub(crate) ibo_transfers: Vec<(IndexBufferId, &'transfer [IndexBufferElement])>,
     pub(crate) ubo_transfers: Vec<(UniformBufferId, &'transfer [u8])>,
+    pub(crate) dyn_ubo_transfers: Vec<(DynamicUniformBufferId, &'transfer [u8], usize)>,
 }
 
 impl<'transfer> Submit<'transfer> {
@@ -165,6 +182,7 @@ impl<'transfer> Submit<'transfer> {
             vbo_transfers: vec![],
             ibo_transfers: vec![],
             ubo_transfers: vec![],
+            dyn_ubo_transfers: vec![],
         }
     }
 
@@ -208,6 +226,19 @@ impl<'transfer> Submit<'transfer> {
             std::slice::from_raw_parts(data as *const T as *const u8, std::mem::size_of::<T>())
         };
         self.ubo_transfers.push((ubo, untyped_slice));
+        self
+    }
+
+    pub fn transfer_into_dynamic_uniform_buffer<T: Copy>(
+        &mut self,
+        ubo: DynamicUniformBufferId,
+        data: &'transfer T,
+        index: usize,
+    ) -> &mut Self {
+        let untyped_slice = unsafe {
+            std::slice::from_raw_parts(data as *const T as *const u8, std::mem::size_of::<T>())
+        };
+        self.dyn_ubo_transfers.push((ubo, untyped_slice, index));
         self
     }
 }

@@ -241,13 +241,14 @@ fn main() {
 
                 {
                     let mut step_submit = StepSubmitData::new();
-                    step_submit.draw_indexed(program_pass_1, 0, index_data.len());
-                    step_submit.set_draw_viewport(DrawViewport {
-                        x: 0.0,
-                        y: 0.0,
-                        width: window_size.0 as f32,
-                        height: window_size.1 as f32,
-                    });
+                    step_submit
+                        .draw_indexed(program_pass_1, 0, index_data.len())
+                        .set_viewport(DrawViewport {
+                            x: 0.0,
+                            y: 0.0,
+                            width: window_size.0 as f32,
+                            height: window_size.1 as f32,
+                        });
 
                     pass_submit.set_attachment_clear_color(
                         pass_1_output,
@@ -262,13 +263,14 @@ fn main() {
                 }
                 {
                     let mut step_submit = StepSubmitData::new();
-                    step_submit.draw_indexed(program_pass_2, 0, index_data.len());
-                    step_submit.set_draw_viewport(DrawViewport {
-                        x: 0.0,
-                        y: 0.0,
-                        width: window_size.0 as f32,
-                        height: window_size.1 as f32,
-                    });
+                    step_submit
+                        .draw_indexed(program_pass_2, 0, index_data.len())
+                        .set_viewport(DrawViewport {
+                            x: 0.0,
+                            y: 0.0,
+                            width: window_size.0 as f32,
+                            height: window_size.1 as f32,
+                        });
 
                     pass_submit.set_attachment_clear_color(
                         surface_attachment,

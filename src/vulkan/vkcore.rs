@@ -7,6 +7,8 @@ pub struct VkCore {
     pub physical_dev: vk::PhysicalDevice,
     pub dev: Device,
 
+    pub physical_dev_properties: vk::PhysicalDeviceProperties,
+
     pub graphics_queue: vk::Queue,
     pub compute_queue: vk::Queue,
 
@@ -185,6 +187,9 @@ impl VkCore {
             Err(gpu_api_err!("vulkan gpu(s) not suitable"))?
         };
 
+        let physical_dev_properties =
+            unsafe { instance.get_physical_device_properties(physical_dev) };
+
         //  # Make Device
         let features = vk::PhysicalDeviceFeatures::default();
         let dev_extensions_owned =
@@ -257,6 +262,7 @@ impl VkCore {
         Ok(VkCore {
             instance,
             physical_dev,
+            physical_dev_properties,
             dev,
             debug,
             entry,

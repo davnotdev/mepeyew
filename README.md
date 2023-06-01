@@ -52,6 +52,7 @@ The API is designed to be stable, but I can't guarentee anything of course.
 - [x] MSAA
 - [x] More Attachment Formats
 - [x] Dynamic Viewport + Scissor
+- [ ] Dynamic Uniforms
 - [ ] Shader Storage Buffer Objects
 - [ ] Compute
 - [x] Blending + Culling
