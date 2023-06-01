@@ -84,7 +84,7 @@ impl WebGpuTexture {
             ext.mip_levels
                 .unwrap_or(std::cmp::max(width, height).ilog2())
         } else {
-            0
+            1
         };
 
         let texture_format = match format {
