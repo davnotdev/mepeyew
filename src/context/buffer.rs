@@ -90,7 +90,7 @@ impl Context {
     ) -> GResult<DynamicUniformBufferId> {
         match self {
             Self::Vulkan(vk) => vk.new_dynamic_uniform_buffer(data, ext),
-            Self::WebGpu(wgpu) => todo!(),
+            Self::WebGpu(wgpu) => wgpu.new_dynamic_uniform_buffer(data, ext),
         }
     }
 

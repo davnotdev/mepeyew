@@ -264,11 +264,11 @@ fn submit_pass(
                     draw.program
                 ))?;
 
-                program.bind_groups.bind_groups.iter().enumerate().for_each(
-                    |(slot_idx, bind_group)| {
-                        pass_encoder.set_bind_group(slot_idx as u32, bind_group);
-                    },
-                );
+                program.bind_groups.cmd_bind_groups(
+                    context,
+                    &pass_encoder,
+                    &draw.dynamic_buffer_indices,
+                )?;
                 pass_encoder
                     .set_stencil_reference(program.ext.stencil_reference.unwrap_or_default());
                 match draw.ty {

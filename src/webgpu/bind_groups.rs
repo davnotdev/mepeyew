@@ -1,14 +1,18 @@
 use super::*;
+use std::collections::HashMap;
 
 const WEBGPU_BIND_GROUP_COUNT: usize = 4;
 
 pub struct WebGpuBindGroups {
     pub bind_groups: Vec<GpuBindGroup>,
     pub bind_group_layouts: Vec<GpuBindGroupLayout>,
+    dynamic_indices: Vec<DynamicGenericBufferId>,
 }
 
 impl WebGpuBindGroups {
     pub fn new(context: &WebGpuContext, uniforms: &[ShaderUniform]) -> GResult<Self> {
+        let mut dynamic_indices = vec![];
+
         let mut bind_group_layouts = (0..WEBGPU_BIND_GROUP_COUNT)
             .map(|_| vec![])
             .collect::<Vec<_>>();
@@ -20,6 +24,17 @@ impl WebGpuBindGroups {
                 ShaderUniformType::UniformBuffer(_) => {
                     let mut layout = GpuBufferBindingLayout::new();
                     layout.type_(GpuBufferBindingType::Uniform);
+                    entry.buffer(&layout);
+                    GpuShaderStageFlags::Vertex as u8
+                        | GpuShaderStageFlags::Fragment as u8
+                        | GpuShaderStageFlags::Compute as u8
+                }
+                ShaderUniformType::DynamicUniformBuffer(id) => {
+                    dynamic_indices.push(DynamicGenericBufferId::Uniform(id));
+                    let mut layout = GpuBufferBindingLayout::new();
+                    layout
+                        .type_(GpuBufferBindingType::Uniform)
+                        .has_dynamic_offset(true);
                     entry.buffer(&layout);
                     GpuShaderStageFlags::Vertex as u8
                         | GpuShaderStageFlags::Fragment as u8
@@ -93,6 +108,14 @@ impl WebGpuBindGroups {
                     let buffer = GpuBufferBinding::new(&ubo.buffer);
                     entry.resource(&buffer);
                 }
+                ShaderUniformType::DynamicUniformBuffer(ubo_id) => {
+                    let ubo = context.dyn_ubos.get(ubo_id.id()).ok_or(gpu_api_err!(
+                        "program dynamic uniform buffer id {:?} does not exist",
+                        ubo_id
+                    ))?;
+                    let buffer = GpuBufferBinding::new(&ubo.buffer.buffer);
+                    entry.resource(&buffer);
+                }
                 ShaderUniformType::ShaderStorageBuffer(ssbo_id)
                 | ShaderUniformType::ShaderStorageBufferReadOnly(ssbo_id) => {
                     let ssbo = context.ubos.get(ssbo_id.id()).ok_or(gpu_api_err!(
@@ -150,6 +173,59 @@ impl WebGpuBindGroups {
         Ok(WebGpuBindGroups {
             bind_groups,
             bind_group_layouts,
+            dynamic_indices,
         })
+    }
+
+    pub fn cmd_bind_groups(
+        &self,
+        context: &WebGpuContext,
+        pass_encoder: &GpuRenderPassEncoder,
+        dynamic_indices: &HashMap<DynamicGenericBufferId, usize>,
+    ) -> GResult<()> {
+        let offsets = Array::new_with_length(self.dynamic_indices.len() as u32);
+
+        (self.dynamic_indices.len() == dynamic_indices.len())
+            .then_some(())
+            .ok_or(gpu_api_err!(
+                "vulkan not all dynamic indices provided for draw"
+            ))?;
+
+        dynamic_indices
+            .iter()
+            .try_for_each(|(id, index)| match id {
+                DynamicGenericBufferId::Uniform(id) => {
+                    let offset_index = self
+                        .dynamic_indices
+                        .iter()
+                        .position(|p| match p {
+                            DynamicGenericBufferId::Uniform(p) => p == id,
+                        })
+                        .ok_or(gpu_api_err!(
+                            "webgpu dynamic uniform buffer (for indexing) {:?} does not exist",
+                            id
+                        ))?;
+                    offsets.set(
+                        offset_index as u32,
+                        JsValue::from(
+                            *index * context.dyn_ubos.get(id.id()).unwrap().per_index_offset,
+                        ),
+                    );
+                    Ok(())
+                }
+            })?;
+
+        self.bind_groups
+            .iter()
+            .enumerate()
+            .for_each(|(slot_idx, bind_group)| {
+                pass_encoder.set_bind_group_with_u32_sequence(
+                    slot_idx as u32,
+                    bind_group,
+                    &offsets,
+                );
+            });
+
+        Ok(())
     }
 }

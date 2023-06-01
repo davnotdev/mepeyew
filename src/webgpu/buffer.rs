@@ -59,6 +59,25 @@ impl WebGpuContext {
         Ok(UniformBufferId::from_id(self.ubos.len() - 1))
     }
 
+    pub fn new_dynamic_uniform_buffer<T: Copy>(
+        &mut self,
+        data: &[T],
+        _ext: Option<NewDynamicUniformBufferExt>,
+    ) -> GResult<DynamicUniformBufferId> {
+        let size = std::mem::size_of::<T>();
+        let buffer = WebGpuBuffer::new(
+            &self.device,
+            size as u32,
+            GpuBufferUsageFlags::Uniform as u32 | GpuBufferUsageFlags::CopyDst as u32,
+            unsafe { std::slice::from_raw_parts(data.as_ptr() as *const T as *const u8, size) },
+        );
+        self.dyn_ubos.push(WebGpuDynamicBuffer {
+            buffer,
+            per_index_offset: size,
+        });
+        Ok(DynamicUniformBufferId::from_id(self.dyn_ubos.len() - 1))
+    }
+
     pub fn new_shader_storage_buffer<T: Copy>(
         &mut self,
         data: &T,
@@ -99,6 +118,11 @@ impl WebGpuContext {
 
 pub struct WebGpuBuffer {
     pub buffer: GpuBuffer,
+}
+
+pub struct WebGpuDynamicBuffer {
+    pub buffer: WebGpuBuffer,
+    pub per_index_offset: usize,
 }
 
 impl WebGpuBuffer {
