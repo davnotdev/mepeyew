@@ -43,7 +43,7 @@ impl WebGpuComputeProgram {
                 std::str::from_utf8(code).unwrap(),
             ));
 
-        let bind_groups = WebGpuBindGroups::new(context, uniforms)?;
+        let bind_groups = WebGpuBindGroups::new(context, uniforms, true)?;
 
         let mut layout = JsValue::from_str("auto");
         if !bind_groups.bind_group_layouts.is_empty() {

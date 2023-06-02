@@ -10,13 +10,22 @@ pub struct WebGpuBindGroups {
 }
 
 impl WebGpuBindGroups {
-    pub fn new(context: &WebGpuContext, uniforms: &[ShaderUniform]) -> GResult<Self> {
+    pub fn new(
+        context: &WebGpuContext,
+        uniforms: &[ShaderUniform],
+        is_compute: bool,
+    ) -> GResult<Self> {
         let mut bind_group_layouts = (0..WEBGPU_BIND_GROUP_COUNT)
             .map(|_| vec![])
             .collect::<Vec<_>>();
 
         let mut bind_groups_dynamic_indices = vec![vec![]; WEBGPU_BIND_GROUP_COUNT];
 
+        let maybe_vertex_flag = if !is_compute {
+            GpuShaderStageFlags::Vertex as u8
+        } else {
+            0
+        };
         uniforms.iter().for_each(|uniform| {
             let mut dynamic_indices = vec![];
             let mut entry = GpuBindGroupLayoutEntry::new(uniform.binding as u32, 0);
@@ -26,7 +35,7 @@ impl WebGpuBindGroups {
                     let mut layout = GpuBufferBindingLayout::new();
                     layout.type_(GpuBufferBindingType::Uniform);
                     entry.buffer(&layout);
-                    GpuShaderStageFlags::Vertex as u8
+                    maybe_vertex_flag
                         | GpuShaderStageFlags::Fragment as u8
                         | GpuShaderStageFlags::Compute as u8
                 }
@@ -37,7 +46,7 @@ impl WebGpuBindGroups {
                         .type_(GpuBufferBindingType::Uniform)
                         .has_dynamic_offset(true);
                     entry.buffer(&layout);
-                    GpuShaderStageFlags::Vertex as u8
+                    maybe_vertex_flag
                         | GpuShaderStageFlags::Fragment as u8
                         | GpuShaderStageFlags::Compute as u8
                 }
@@ -45,7 +54,7 @@ impl WebGpuBindGroups {
                     let mut layout = GpuBufferBindingLayout::new();
                     layout.type_(GpuBufferBindingType::Storage);
                     entry.buffer(&layout);
-                    GpuShaderStageFlags::Vertex as u8
+                    maybe_vertex_flag
                         | GpuShaderStageFlags::Fragment as u8
                         | GpuShaderStageFlags::Compute as u8
                 }
@@ -53,7 +62,7 @@ impl WebGpuBindGroups {
                     let mut layout = GpuBufferBindingLayout::new();
                     layout.type_(GpuBufferBindingType::ReadOnlyStorage);
                     entry.buffer(&layout);
-                    GpuShaderStageFlags::Vertex as u8
+                    maybe_vertex_flag
                         | GpuShaderStageFlags::Fragment as u8
                         | GpuShaderStageFlags::Compute as u8
                 }
@@ -121,7 +130,7 @@ impl WebGpuBindGroups {
                 }
                 ShaderUniformType::ShaderStorageBuffer(ssbo_id)
                 | ShaderUniformType::ShaderStorageBufferReadOnly(ssbo_id) => {
-                    let ssbo = context.ubos.get(ssbo_id.id()).ok_or(gpu_api_err!(
+                    let ssbo = context.ssbos.get(ssbo_id.id()).ok_or(gpu_api_err!(
                         "program shader storage buffer id {:?} does not exist",
                         ssbo_id
                     ))?;
@@ -190,24 +199,7 @@ impl WebGpuBindGroups {
             .iter()
             .enumerate()
             .try_for_each(|(slot_idx, bind_group)| {
-                let bind_group_dynamic_indices = &self.bind_groups_dynamic_indices[slot_idx];
-                let offsets = Array::new();
-
-                dynamic_indices
-                    .iter()
-                    .try_for_each(|(id, index)| match id {
-                        DynamicGenericBufferId::Uniform(id) => {
-                            if bind_group_dynamic_indices.iter().any(|p| match p {
-                                DynamicGenericBufferId::Uniform(p) => p == id,
-                            }) {
-                                offsets.push(&JsValue::from(
-                                    *index
-                                        * context.dyn_ubos.get(id.id()).unwrap().per_index_offset,
-                                ));
-                            }
-                            Ok(())
-                        }
-                    })?;
+                let offsets = self.cmd_bind_generic(context, dynamic_indices, slot_idx)?;
                 pass_encoder.set_bind_group_with_u32_sequence(
                     slot_idx as u32,
                     bind_group,
@@ -224,6 +216,45 @@ impl WebGpuBindGroups {
         pass_encoder: &GpuComputePassEncoder,
         dynamic_indices: &HashMap<DynamicGenericBufferId, usize>,
     ) -> GResult<()> {
-        self.cmd_render_bind_groups(context, pass_encoder.dyn_ref().unwrap(), dynamic_indices)
+        self.bind_groups
+            .iter()
+            .enumerate()
+            .try_for_each(|(slot_idx, bind_group)| {
+                let offsets = self.cmd_bind_generic(context, dynamic_indices, slot_idx)?;
+                pass_encoder.set_bind_group_with_u32_sequence(
+                    slot_idx as u32,
+                    bind_group,
+                    &offsets,
+                );
+
+                Ok(())
+            })
+    }
+
+    fn cmd_bind_generic(
+        &self,
+        context: &WebGpuContext,
+        dynamic_indices: &HashMap<DynamicGenericBufferId, usize>,
+        slot_idx: usize,
+    ) -> GResult<Array> {
+        let bind_group_dynamic_indices = &self.bind_groups_dynamic_indices[slot_idx];
+        let offsets = Array::new();
+
+        dynamic_indices
+            .iter()
+            .try_for_each(|(id, index)| match id {
+                DynamicGenericBufferId::Uniform(id) => {
+                    if bind_group_dynamic_indices.iter().any(|p| match p {
+                        DynamicGenericBufferId::Uniform(p) => p == id,
+                    }) {
+                        offsets.push(&JsValue::from(
+                            *index * context.dyn_ubos.get(id.id()).unwrap().per_index_offset,
+                        ));
+                    }
+                    Ok(())
+                }
+            })?;
+
+        Ok(offsets)
     }
 }

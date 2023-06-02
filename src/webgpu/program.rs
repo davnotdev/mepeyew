@@ -72,7 +72,7 @@ impl WebGpuProgram {
             &vertex_buffer_layout_attributes,
         );
 
-        let bind_groups = WebGpuBindGroups::new(context, uniforms)?;
+        let bind_groups = WebGpuBindGroups::new(context, uniforms, false)?;
 
         Ok(WebGpuProgram {
             vertex_module: vertex,

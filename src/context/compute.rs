@@ -39,7 +39,15 @@ pub struct Dispatch {
 }
 
 impl Dispatch {
-    //  TODO
+    pub fn set_dynamic_uniform_buffer_index(
+        &mut self,
+        ubo: DynamicUniformBufferId,
+        index: usize,
+    ) -> &mut Self {
+        self.dynamic_buffer_indices
+            .insert(DynamicGenericBufferId::Uniform(ubo), index);
+        self
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -84,13 +92,15 @@ impl ComputePassSubmitData {
         &mut self,
         compute_program: ComputeProgramId,
         workgroup_count_x: usize,
+        workgroup_count_y: usize,
+        workgroup_count_z: usize,
     ) -> &mut Dispatch {
         self.dispatches.push(Dispatch {
             ty: DispatchType::Blocking,
             program: compute_program,
             workgroup_count_x,
-            workgroup_count_y: 0,
-            workgroup_count_z: 0,
+            workgroup_count_y,
+            workgroup_count_z,
             dynamic_buffer_indices: HashMap::new(),
         });
         self.dispatches.last_mut().unwrap()
@@ -111,7 +121,7 @@ impl Context {
     ) -> GResult<ComputeProgramId> {
         match self {
             Context::Vulkan(vk) => vk.new_compute_program(code, uniforms, ext),
-            Context::WebGpu(_) => todo!(),
+            Context::WebGpu(wgpu) => wgpu.new_compute_program(code, uniforms, ext),
         }
     }
 
@@ -122,7 +132,7 @@ impl Context {
     ) -> GResult<CompiledComputePassId> {
         match self {
             Context::Vulkan(vk) => vk.compile_compute_pass(compute_pass, ext),
-            Context::WebGpu(_) => todo!(),
+            Context::WebGpu(wgpu) => wgpu.compile_compute_pass(compute_pass, ext),
         }
     }
 }

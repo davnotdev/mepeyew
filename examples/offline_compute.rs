@@ -1,6 +1,9 @@
 use mepeyew::prelude::*;
 
 fn main() {
+    #[cfg(all(feature = "webgpu", target_arch = "wasm32", target_os = "unknown"))]
+    wasm::init();
+
     let mut context = Context::new(&[
         (
             Api::Vulkan,
@@ -8,7 +11,14 @@ fn main() {
         ),
         (
             Api::WebGpu,
-            &[Extension::NativeDebug, Extension::NagaTranslation],
+            &[
+                Extension::WebGpuInitFromWindow(webgpu_init::WebGpuInitFromWindow {
+                    adapter: String::from("mepeyewAdapter"),
+                    device: String::from("mepeyewDevice"),
+                    canvas_id: None,
+                }),
+                Extension::NagaTranslation,
+            ],
         ),
     ])
     .unwrap();
@@ -61,12 +71,13 @@ fn main() {
         .unwrap();
 
     eprintln!("{:?}", out);
+
+    #[cfg(all(feature = "webgpu", target_arch = "wasm32", target_os = "unknown"))]
+    panic!("{:?}", out);
 }
 
 #[cfg(all(feature = "webgpu", target_arch = "wasm32", target_os = "unknown"))]
 mod wasm {
-    use wasm_bindgen::prelude::*;
-
     pub fn init() {
         std::panic::set_hook(Box::new(console_error_panic_hook::hook));
     }

@@ -85,7 +85,7 @@ impl WebGpuContext {
         let buffer = WebGpuBuffer::new(
             &self.device,
             size as u32,
-            GpuBufferUsageFlags::Uniform as u32
+            GpuBufferUsageFlags::Storage as u32
                 | GpuBufferUsageFlags::CopyDst as u32
                 | GpuBufferUsageFlags::CopySrc as u32,
             unsafe { std::slice::from_raw_parts(data as *const T as *const u8, size) },
@@ -103,6 +103,7 @@ impl WebGpuContext {
             "webgpu read synced shader buffer id {:?} does not exist",
             ssbo
         ))?;
+
         let mapped_buf = ssbo.buffer.get_mapped_range();
         let u8_js_buf = Uint8Array::new(&mapped_buf);
         let mut u8_rs_buf = vec![0u8; u8_js_buf.length() as usize];
