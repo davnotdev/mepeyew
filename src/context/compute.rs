@@ -3,13 +3,17 @@ use std::collections::HashMap;
 
 //  TODO docs ALL OF THIS!
 
-#[derive(Default, Clone)]
+#[derive(Default, Debug, Clone)]
 pub struct ComputePass {
     pub(crate) programs: Vec<ComputeProgramId>,
     pub(crate) set_blocking: bool,
 }
 
 impl ComputePass {
+    pub fn new() -> Self {
+        ComputePass::default()
+    }
+
     pub fn add_program(&mut self, program: ComputeProgramId) -> &mut Self {
         self.programs.push(program);
         self
@@ -32,6 +36,10 @@ pub struct Dispatch {
     pub(crate) workgroup_count_z: usize,
 
     pub(crate) dynamic_buffer_indices: HashMap<DynamicGenericBufferId, usize>,
+}
+
+impl Dispatch {
+    //  TODO
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -58,13 +66,15 @@ impl ComputePassSubmitData {
         &mut self,
         compute_program: ComputeProgramId,
         workgroup_count_x: usize,
+        workgroup_count_y: usize,
+        workgroup_count_z: usize,
     ) -> &mut Dispatch {
         self.dispatches.push(Dispatch {
             ty: DispatchType::NonBlocking,
             program: compute_program,
             workgroup_count_x,
-            workgroup_count_y: 0,
-            workgroup_count_z: 0,
+            workgroup_count_y,
+            workgroup_count_z,
             dynamic_buffer_indices: HashMap::new(),
         });
         self.dispatches.last_mut().unwrap()

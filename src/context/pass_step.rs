@@ -16,8 +16,6 @@ pub struct PassStep {
     pub(crate) wait_for_depth_from: Option<(PassStepDependency, ShaderStage)>,
 
     pub(crate) read_attachment: Vec<PassLocalAttachment>,
-
-    pub(crate) ssbo_copy_backs: Vec<ShaderStorageBufferId>,
 }
 
 //  TODO EXT: Quiz Users ie Have users input the shader attachment / location indices which we then validate.
@@ -75,12 +73,6 @@ impl PassStep {
     /// Denote that a [`PassLocalAttachment`] is used as input.
     pub fn read_local_attachment(&mut self, local_attachment: PassLocalAttachment) -> &mut Self {
         self.read_attachment.push(local_attachment);
-        self
-    }
-
-    //  Write the shader storage buffer back into CPU memory after rendering.
-    pub fn sync_shader_storage_buffer(&mut self, ssbo: ShaderStorageBufferId) -> &mut Self {
-        self.ssbo_copy_backs.push(ssbo);
         self
     }
 

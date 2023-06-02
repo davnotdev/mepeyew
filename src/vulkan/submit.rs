@@ -82,7 +82,9 @@ impl Drop for VkSubmitData {
 }
 
 impl VkContext {
-    pub fn submit(&mut self, submit: Submit, _ext: Option<SubmitExt>) -> GResult<()> {
+    pub fn submit(&mut self, submit: Submit, ext: Option<SubmitExt>) -> GResult<()> {
+        let ext = ext.unwrap_or_default();
+
         let frame_fence = *self.submit.frame_fence.get(&self.frame);
         let render_semaphore = *self.submit.render_semaphore.get(&self.frame);
         let image_aquire_semaphore = *self.submit.image_aquire_semaphore.get(&self.frame);
@@ -380,68 +382,6 @@ impl VkContext {
                                 }
                             }
 
-                            //  SSBO Copy Backs
-                            step.ssbo_copy_backs.iter().try_for_each(|ssbo_id| {
-                                let ssbo = self.ssbos.get(ssbo_id.id()).ok_or(gpu_api_err!(
-                                    "vulkan shader storage buffer sync id {:?} does not exist",
-                                    ssbo_id
-                                ))?;
-
-                                let barrier = vk::BufferMemoryBarrier::builder()
-                                    .src_access_mask(vk::AccessFlags::SHADER_WRITE)
-                                    .dst_access_mask(vk::AccessFlags::TRANSFER_READ)
-                                    .dst_access_mask(vk::AccessFlags::TRANSFER_READ)
-                                    .buffer(ssbo.buffer.buffer)
-                                    .size(vk::WHOLE_SIZE)
-                                    .src_queue_family_index(vk::QUEUE_FAMILY_IGNORED)
-                                    .dst_queue_family_index(vk::QUEUE_FAMILY_IGNORED)
-                                    .build();
-
-                                self.core.dev.cmd_pipeline_barrier(
-                                    graphics_command_buffer,
-                                    vk::PipelineStageFlags::VERTEX_SHADER
-                                        | vk::PipelineStageFlags::FRAGMENT_SHADER
-                                        | vk::PipelineStageFlags::COMPUTE_SHADER,
-                                    vk::PipelineStageFlags::TRANSFER,
-                                    vk::DependencyFlags::empty(),
-                                    &[],
-                                    &[barrier],
-                                    &[],
-                                );
-
-                                let copy_region = vk::BufferCopy::builder()
-                                    .size(ssbo.buffer.size as u64)
-                                    .build();
-
-                                self.core.dev.cmd_copy_buffer(
-                                    graphics_command_buffer,
-                                    ssbo.buffer.buffer,
-                                    ssbo.staging.as_ref().unwrap().buffer,
-                                    &[copy_region],
-                                );
-
-                                let barrier = vk::BufferMemoryBarrier::builder()
-                                    .src_access_mask(vk::AccessFlags::TRANSFER_WRITE)
-                                    .dst_access_mask(vk::AccessFlags::HOST_READ)
-                                    .buffer(ssbo.staging.as_ref().unwrap().buffer)
-                                    .size(vk::WHOLE_SIZE)
-                                    .src_queue_family_index(vk::QUEUE_FAMILY_IGNORED)
-                                    .dst_queue_family_index(vk::QUEUE_FAMILY_IGNORED)
-                                    .build();
-
-                                self.core.dev.cmd_pipeline_barrier(
-                                    graphics_command_buffer,
-                                    vk::PipelineStageFlags::TRANSFER,
-                                    vk::PipelineStageFlags::HOST,
-                                    vk::DependencyFlags::empty(),
-                                    &[],
-                                    &[barrier],
-                                    &[],
-                                );
-
-                                Ok(())
-                            })?;
-
                             //  Progress
                             if step_idx != pass.steps.len() - 1 {
                                 self.core.dev.cmd_next_subpass(
@@ -526,6 +466,67 @@ impl VkContext {
                     }
                 }
             }
+            //  SSBO Copy Backs
+            submit.ssbo_copy_backs.iter().try_for_each(|ssbo_id| {
+                let ssbo = self.ssbos.get(ssbo_id.id()).ok_or(gpu_api_err!(
+                    "vulkan shader storage buffer sync id {:?} does not exist",
+                    ssbo_id
+                ))?;
+
+                let barrier = vk::BufferMemoryBarrier::builder()
+                    .src_access_mask(vk::AccessFlags::SHADER_WRITE)
+                    .dst_access_mask(vk::AccessFlags::TRANSFER_READ)
+                    .dst_access_mask(vk::AccessFlags::TRANSFER_READ)
+                    .buffer(ssbo.buffer.buffer)
+                    .size(vk::WHOLE_SIZE)
+                    .src_queue_family_index(vk::QUEUE_FAMILY_IGNORED)
+                    .dst_queue_family_index(vk::QUEUE_FAMILY_IGNORED)
+                    .build();
+
+                self.core.dev.cmd_pipeline_barrier(
+                    graphics_command_buffer,
+                    vk::PipelineStageFlags::VERTEX_SHADER
+                        | vk::PipelineStageFlags::FRAGMENT_SHADER
+                        | vk::PipelineStageFlags::COMPUTE_SHADER,
+                    vk::PipelineStageFlags::TRANSFER,
+                    vk::DependencyFlags::empty(),
+                    &[],
+                    &[barrier],
+                    &[],
+                );
+
+                let copy_region = vk::BufferCopy::builder()
+                    .size(ssbo.buffer.size as u64)
+                    .build();
+
+                self.core.dev.cmd_copy_buffer(
+                    graphics_command_buffer,
+                    ssbo.buffer.buffer,
+                    ssbo.staging.as_ref().unwrap().buffer,
+                    &[copy_region],
+                );
+
+                let barrier = vk::BufferMemoryBarrier::builder()
+                    .src_access_mask(vk::AccessFlags::TRANSFER_WRITE)
+                    .dst_access_mask(vk::AccessFlags::HOST_READ)
+                    .buffer(ssbo.staging.as_ref().unwrap().buffer)
+                    .size(vk::WHOLE_SIZE)
+                    .src_queue_family_index(vk::QUEUE_FAMILY_IGNORED)
+                    .dst_queue_family_index(vk::QUEUE_FAMILY_IGNORED)
+                    .build();
+
+                self.core.dev.cmd_pipeline_barrier(
+                    graphics_command_buffer,
+                    vk::PipelineStageFlags::TRANSFER,
+                    vk::PipelineStageFlags::HOST,
+                    vk::DependencyFlags::empty(),
+                    &[],
+                    &[barrier],
+                    &[],
+                );
+
+                Ok(())
+            })?;
 
             self.core
                 .dev
@@ -533,6 +534,7 @@ impl VkContext {
                 .unwrap();
 
             let mut submit_signal_semaphores = vec![];
+            let mut submit_wait_semaphores = vec![];
 
             let should_present = submit.passes.iter().any(|pass| {
                 match pass {
@@ -548,10 +550,11 @@ impl VkContext {
 
             if should_present {
                 submit_signal_semaphores.push(render_semaphore);
+                submit_wait_semaphores.push(image_aquire_semaphore);
             }
             let submit_create = vk::SubmitInfo::builder()
                 .wait_dst_stage_mask(&[vk::PipelineStageFlags::COLOR_ATTACHMENT_OUTPUT])
-                .wait_semaphores(&[image_aquire_semaphore])
+                .wait_semaphores(&submit_wait_semaphores)
                 .signal_semaphores(&submit_signal_semaphores)
                 .command_buffers(&[graphics_command_buffer])
                 .build();
@@ -560,6 +563,13 @@ impl VkContext {
                 .dev
                 .queue_submit(self.core.graphics_queue, &[submit_create], frame_fence)
                 .unwrap();
+
+            if ext.sync.is_some() {
+                self.core
+                    .dev
+                    .wait_for_fences(&[frame_fence], true, std::u64::MAX)
+                    .unwrap();
+            }
 
             self.frame.advance_frame();
 
@@ -595,4 +605,6 @@ impl VkContext {
 
         Ok(())
     }
+
+    pub fn sync_submit() {}
 }

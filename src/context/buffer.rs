@@ -105,6 +105,7 @@ impl Context {
         }
     }
 
+    //  Fix these docs.
     /// Read from a shader storage buffer.
     /// Ensure that [`PassStep::sync_shader_storage_buffer`] was called
     pub fn read_synced_shader_storage_buffer<T: Copy>(

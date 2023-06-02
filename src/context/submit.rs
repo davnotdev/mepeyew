@@ -173,6 +173,7 @@ pub struct Submit<'transfer> {
     pub(crate) ibo_transfers: Vec<(IndexBufferId, &'transfer [IndexBufferElement])>,
     pub(crate) ubo_transfers: Vec<(UniformBufferId, &'transfer [u8])>,
     pub(crate) dyn_ubo_transfers: Vec<(DynamicUniformBufferId, &'transfer [u8], usize)>,
+    pub(crate) ssbo_copy_backs: Vec<ShaderStorageBufferId>,
 }
 
 impl<'transfer> Submit<'transfer> {
@@ -183,6 +184,7 @@ impl<'transfer> Submit<'transfer> {
             ibo_transfers: vec![],
             ubo_transfers: vec![],
             dyn_ubo_transfers: vec![],
+            ssbo_copy_backs: vec![],
         }
     }
 
@@ -241,10 +243,18 @@ impl<'transfer> Submit<'transfer> {
         self.dyn_ubo_transfers.push((ubo, untyped_slice, index));
         self
     }
+
+    //  Write the shader storage buffer back into CPU memory after rendering.
+    pub fn sync_shader_storage_buffer(&mut self, ssbo: ShaderStorageBufferId) -> &mut Self {
+        self.ssbo_copy_backs.push(ssbo);
+        self
+    }
 }
 
 #[derive(Default, Clone)]
-pub struct SubmitExt {}
+pub struct SubmitExt {
+    pub sync: Option<()>,
+}
 
 impl Context {
     pub fn submit(&mut self, submit: Submit, ext: Option<SubmitExt>) -> GResult<()> {

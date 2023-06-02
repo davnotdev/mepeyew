@@ -1,5 +1,5 @@
 use super::*;
-use std::collections::HashSet;
+use std::{collections::HashSet, ffi::CString};
 
 impl VkContext {
     pub fn new_compute_program(
@@ -10,9 +10,7 @@ impl VkContext {
     ) -> GResult<ComputeProgramId> {
         let compute_program = VkComputeProgram::new(self, code, uniforms, ext)?;
         self.compute_programs.push(compute_program);
-        Ok(ComputeProgramId::from_id(
-            self.compiled_compute_passes.len() - 1,
-        ))
+        Ok(ComputeProgramId::from_id(self.compute_programs.len() - 1))
     }
 
     pub fn compile_compute_pass(
@@ -54,8 +52,10 @@ impl VkComputeProgram {
         let module = unsafe { context.core.dev.create_shader_module(&shader_create, None) }
             .map_err(|e| gpu_api_err!("vulkan shader init {}", e))?;
 
+        let entry_point_name = CString::new("main").unwrap();
         let pipeline_stage_info = vk::PipelineShaderStageCreateInfo::builder()
             .stage(vk::ShaderStageFlags::COMPUTE)
+            .name(&entry_point_name)
             .module(module)
             .build();
 
