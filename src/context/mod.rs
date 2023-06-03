@@ -110,7 +110,7 @@ pub use compute::{
     CompileComputePassExt, ComputePass, ComputePassSubmitData, Dispatch, DispatchType,
     NewComputeProgramExt,
 };
-pub use extensions::{Extension, ExtensionType};
+pub use extensions::{Extension, Extensions};
 pub use pass::{
     CompilePassExt, MsaaSampleCount, NewPassExt, Pass, PassAttachment, PassInputLoadOpColorType,
     PassInputLoadOpDepthStencilType, PassInputType,

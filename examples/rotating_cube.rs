@@ -29,39 +29,23 @@ fn main() {
     //  --- Begin Setup Code ---
     //
 
-    let mut context = Context::new(&[
-        (
-            Api::Vulkan,
-            &[
-                Extension::NativeDebug,
-                Extension::Surface(surface::SurfaceConfiguration {
-                    width: window_size.0,
-                    height: window_size.1,
-                    display: window.raw_display_handle(),
-                    window: window.raw_window_handle(),
-                }),
-                Extension::NagaTranslation,
-            ],
-        ),
-        (
-            Api::WebGpu,
-            &[
-                Extension::WebGpuInitFromWindow(webgpu_init::WebGpuInitFromWindow {
-                    adapter: String::from("mepeyewAdapter"),
-                    device: String::from("mepeyewDevice"),
-                    canvas_id: Some(String::from("canvas")),
-                }),
-                Extension::Surface(surface::SurfaceConfiguration {
-                    width: window_size.0,
-                    height: window_size.1,
-                    display: window.raw_display_handle(),
-                    window: window.raw_window_handle(),
-                }),
-                Extension::NagaTranslation,
-            ],
-        ),
-    ])
-    .unwrap();
+    let mut extensions = Extensions::new();
+    extensions
+        .native_debug(NativeDebugConfiguration::default())
+        .naga_translation()
+        .surface_extension(SurfaceConfiguration {
+            width: window_size.0,
+            height: window_size.1,
+            display: window.raw_display_handle(),
+            window: window.raw_window_handle(),
+        })
+        .webgpu_init_from_window(WebGpuInitFromWindow {
+            adapter: String::from("mepeyewAdapter"),
+            device: String::from("mepeyewDevice"),
+            canvas_id: Some(String::from("canvas")),
+        });
+
+    let mut context = Context::new(extensions).unwrap();
 
     let vs = include_bytes!("shaders/rotating_cube/vs.wgsl");
     let fs = include_bytes!("shaders/rotating_cube/fs.wgsl");

@@ -2,10 +2,6 @@ use super::*;
 
 #[allow(dead_code)]
 impl MockContext {
-    pub fn extension_is_enabled(&self, _ty: ExtensionType) -> bool {
-        unimplemented!("No backend chosen")
-    }
-
     pub fn memory_flush_extension_flush_memory(&mut self) {
         unimplemented!("No backend chosen")
     }

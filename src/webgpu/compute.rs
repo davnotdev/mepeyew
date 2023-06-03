@@ -1,4 +1,5 @@
 use super::*;
+use std::collections::HashSet;
 
 impl WebGpuContext {
     pub fn new_compute_program(

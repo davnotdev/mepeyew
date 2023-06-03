@@ -4,24 +4,16 @@ fn main() {
     #[cfg(all(feature = "webgpu", target_arch = "wasm32", target_os = "unknown"))]
     wasm::init();
 
-    let mut context = Context::new(&[
-        (
-            Api::Vulkan,
-            &[Extension::NativeDebug, Extension::NagaTranslation],
-        ),
-        (
-            Api::WebGpu,
-            &[
-                Extension::WebGpuInitFromWindow(webgpu_init::WebGpuInitFromWindow {
-                    adapter: String::from("mepeyewAdapter"),
-                    device: String::from("mepeyewDevice"),
-                    canvas_id: None,
-                }),
-                Extension::NagaTranslation,
-            ],
-        ),
-    ])
-    .unwrap();
+    let mut extensions = Extensions::new();
+    extensions
+        .native_debug(NativeDebugConfiguration::default())
+        .naga_translation()
+        .webgpu_init_from_window(WebGpuInitFromWindow {
+            adapter: String::from("mepeyewAdapter"),
+            device: String::from("mepeyewDevice"),
+            canvas_id: Some(String::from("canvas")),
+        });
+    let mut context = Context::new(extensions).unwrap();
 
     let code = include_bytes!("./shaders/offline_compute/compute.comp");
 

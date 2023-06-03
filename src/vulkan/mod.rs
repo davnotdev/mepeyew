@@ -7,7 +7,6 @@ use gpu_allocator::{
 };
 use raw_window_handle::{RawDisplayHandle, RawWindowHandle};
 use std::{
-    collections::HashSet,
     mem::ManuallyDrop,
     sync::{Arc, Mutex},
 };
@@ -69,7 +68,6 @@ pub struct VkContext {
     sampler_cache: ManuallyDrop<VkSamplerCache>,
     alloc: ManuallyDrop<Allocator>,
 
-    enabled_extensions: HashSet<ExtensionType>,
     surface_ext: ManuallyDrop<Option<extensions::VkSurfaceExt>>,
 
     drop_queue: ManuallyDrop<VkDropQueueRef>,
@@ -78,22 +76,12 @@ pub struct VkContext {
 }
 
 impl VkContext {
-    pub fn new(extensions: &[Extension]) -> GResult<Self> {
-        let supported_extensions = extensions::supported_extensions();
-        let (enabled_extensions, unsupported_extensions): (Vec<_>, Vec<_>) = extensions
-            .iter()
-            .map(|ext| ext.get_type())
-            .partition(|ty| supported_extensions.contains(ty));
-        let enabled_extensions = enabled_extensions.into_iter().collect::<HashSet<_>>();
-        if !unsupported_extensions.is_empty() {
-            Err(gpu_api_err!(
-                "vulkan these extensions not supported: {:?}",
-                unsupported_extensions
-            ))?;
-        }
+    pub fn new(extensions: Extensions) -> GResult<Self> {
+        extensions::check_extensions(&extensions)?;
 
         //  Core Config from Extensions
         let gpu_preference = extensions
+            .extensions
             .iter()
             .find_map(|ext| {
                 if let &Extension::GpuPowerLevel(power_level) = &ext {
@@ -111,9 +99,10 @@ impl VkContext {
             })
             .unwrap_or(VkCoreGpuPreference::Discrete);
         let use_debug = extensions
+            .extensions
             .iter()
             .find_map(|ext| {
-                if let Extension::NativeDebug = ext {
+                if let Extension::NativeDebug(_) = ext {
                     Some(true)
                 } else {
                     None
@@ -121,6 +110,7 @@ impl VkContext {
             })
             .unwrap_or(false);
         let use_surface = extensions
+            .extensions
             .iter()
             .find_map(|ext| {
                 if let Extension::Surface(_) = ext {
@@ -150,7 +140,7 @@ impl VkContext {
         .map_err(|e| gpu_api_err!("vulkan gpu_allocator {}", e))?;
 
         //  Surface Extension
-        let surface_ext = extensions.iter().find_map(|ext| {
+        let surface_ext = extensions.extensions.iter().find_map(|ext| {
             if let Extension::Surface(surface) = &ext {
                 Some(extensions::VkSurfaceExt::new(&core, &drop_queue, *surface))
             } else {
@@ -165,6 +155,7 @@ impl VkContext {
 
         //  Frames in Flight Extension
         let inflight_frame_count = extensions
+            .extensions
             .iter()
             .find_map(|ext| {
                 if let &Extension::FlightFramesCount(count) = ext {
@@ -216,7 +207,6 @@ impl VkContext {
             compiled_passes,
             compiled_compute_passes,
 
-            enabled_extensions,
             surface_ext: ManuallyDrop::new(surface_ext),
         })
     }

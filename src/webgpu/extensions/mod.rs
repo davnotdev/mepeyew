@@ -2,17 +2,17 @@ mod surface;
 
 use super::*;
 
-pub fn supported_extensions() -> &'static [ExtensionType] {
-    &[
-        ExtensionType::Surface,
-        ExtensionType::WebGpuInitFromWindow,
-        #[cfg(feature = "naga_translation")]
-        ExtensionType::NagaTranslation,
-    ]
-}
-
-impl WebGpuContext {
-    pub fn extension_is_enabled(&self, ty: ExtensionType) -> bool {
-        self.enabled_extensions.contains(&ty)
-    }
+pub fn check_extensions(extensions: &Extensions) -> GResult<()> {
+    extensions
+        .extensions
+        .iter()
+        .try_for_each(|extension| match extension {
+            Extension::FlightFramesCount(_) => Ok(()),
+            Extension::GpuPowerLevel(_) => Ok(()),
+            Extension::NativeDebug(_) => Ok(()),
+            Extension::MemoryFlush => Ok(()),
+            Extension::NagaTranslation => Ok(()),
+            Extension::WebGpuInitFromWindow(_) => Ok(()),
+            Extension::Surface(_) => Ok(()),
+        })
 }

@@ -44,27 +44,23 @@ impl Context {
     ///         ],
     ///     )]);
     /// ```
-    pub fn new(extensions: &[(Api, &[Extension])]) -> Result<Self, Vec<GpuError>>
+    pub fn new(extensions: Extensions) -> Result<Self, Vec<GpuError>>
     where
         Self: Sized,
     {
         let mut fails = vec![];
         for api in platform_prefered() {
-            let api_extensions = extensions
-                .iter()
-                .find_map(|(eapi, extensions)| (api == *eapi).then_some(*extensions))
-                .unwrap_or(&[]);
             match api {
                 #[cfg(all(
                     not(all(target_arch = "wasm32", target_os = "unknown")),
                     feature = "vulkan"
                 ))]
-                Api::Vulkan => match VkContext::new(api_extensions) {
+                Api::Vulkan => match VkContext::new(extensions.clone()) {
                     Ok(context) => return Ok(Context::Vulkan(context)),
                     Err(fail) => fails.push(fail),
                 },
                 #[cfg(all(feature = "webgpu", target_arch = "wasm32", target_os = "unknown"))]
-                Api::WebGpu => match WebGpuContext::new(api_extensions) {
+                Api::WebGpu => match WebGpuContext::new(extensions.clone()) {
                     Ok(context) => return Ok(Context::WebGpu(context)),
                     Err(fail) => fails.push(fail),
                 },

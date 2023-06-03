@@ -39,8 +39,6 @@ impl Context {
         code: &[u8],
         _ext: NagaTranslationExtensionTranslateShaderCodeExt,
     ) -> GResult<Vec<u8>> {
-        self.assert_extension_enabled(ExtensionType::NagaTranslation);
-
         let output = match self {
             Context::Vulkan(_) => NagaTranslationOutput::Spirv,
             Context::WebGpu(_) => NagaTranslationOutput::Wgsl,

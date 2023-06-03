@@ -9,7 +9,7 @@ pub struct MockContext;
 
 #[allow(dead_code)]
 impl MockContext {
-    pub fn new(_extensions: &[Extension]) -> GResult<Self> {
+    pub fn new(_extensions: &Extensions) -> GResult<Self> {
         unimplemented!("No backend chosen")
     }
 

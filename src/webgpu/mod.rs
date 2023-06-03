@@ -3,7 +3,6 @@ use super::{
     error::{gpu_api_err, GResult, GpuError},
 };
 use js_sys::*;
-use std::collections::HashSet;
 use wasm_bindgen::prelude::*;
 use web_sys::*;
 
@@ -38,7 +37,6 @@ pub struct WebGpuContext {
     adapter: GpuAdapter,
     device: GpuDevice,
     surface: Option<WebGpuSurface>,
-    enabled_extensions: HashSet<ExtensionType>,
 
     vbos: Vec<WebGpuBuffer>,
     ibos: Vec<WebGpuBuffer>,
@@ -56,22 +54,12 @@ pub struct WebGpuContext {
 }
 
 impl WebGpuContext {
-    pub fn new(extensions: &[Extension]) -> GResult<Self> {
-        let supported_extensions = extensions::supported_extensions();
-        let (enabled_extensions, unsupported_extensions): (Vec<_>, Vec<_>) = extensions
-            .iter()
-            .map(|ext| ext.get_type())
-            .partition(|ty| supported_extensions.contains(ty));
-        let enabled_extensions = enabled_extensions.into_iter().collect::<HashSet<_>>();
-        if !unsupported_extensions.is_empty() {
-            Err(gpu_api_err!(
-                "webgpu these extensions not supported: {:?}",
-                unsupported_extensions
-            ))?;
-        }
+    pub fn new(extensions: Extensions) -> GResult<Self> {
+        extensions::check_extensions(&extensions)?;
 
         //  Take adapter, device, and canvas id from WebGpuInit extension.
         let (adapter_str, device_str, canvas_id) = extensions
+            .extensions
             .iter()
             .find_map(|ext| {
                 if let Extension::WebGpuInitFromWindow(init) = ext.clone() {
@@ -157,7 +145,6 @@ impl WebGpuContext {
             adapter,
             device,
             surface,
-            enabled_extensions,
 
             vbos: vec![],
             ibos: vec![],
