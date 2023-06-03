@@ -120,10 +120,22 @@ impl VkContext {
                 }
             })
             .unwrap_or(false);
+        let use_ssbo = extensions
+            .extensions
+            .iter()
+            .find_map(|ext| {
+                if let Extension::ShaderStorageBufferObject = ext {
+                    Some(true)
+                } else {
+                    None
+                }
+            })
+            .unwrap_or(false);
         let core_config = VkCoreConfiguration {
             gpu_preference,
             use_debug,
             use_surface,
+            use_ssbo,
         };
 
         let core = VkCore::new(core_config)?;

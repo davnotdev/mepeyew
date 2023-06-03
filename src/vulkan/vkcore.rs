@@ -31,6 +31,7 @@ pub struct VkCoreConfiguration {
     pub gpu_preference: VkCoreGpuPreference,
     pub use_debug: bool,
     pub use_surface: bool,
+    pub use_ssbo: bool,
 }
 
 impl VkCore {
@@ -193,7 +194,10 @@ impl VkCore {
         //  # Make Device
         let features = vk::PhysicalDeviceFeatures::default();
         let dev_storage_buffer_ext = CString::new("VK_KHR_storage_buffer_storage_class").unwrap();
-        let mut dev_extensions_owned = vec![dev_storage_buffer_ext.as_c_str()];
+        let mut dev_extensions_owned = vec![];
+        if config.use_ssbo {
+            dev_extensions_owned.push(dev_storage_buffer_ext.as_c_str());
+        }
         if config.use_surface {
             dev_extensions_owned.push(extensions::VkSurfaceExt::get_additional_device_extension());
         }
