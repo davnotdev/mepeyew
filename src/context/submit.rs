@@ -218,28 +218,52 @@ impl<'transfer> Submit<'transfer> {
         self
     }
 
-    /// Note that this function may not be safe as the `T` type is not validated.
     pub fn transfer_into_uniform_buffer<T: Copy>(
+        &mut self,
+        guard: UniformBufferTypeGuard<T>,
+        data: &'transfer T,
+    ) -> &mut Self {
+        unsafe { self.transfer_into_uniform_buffer_unchecked(guard.0, data) };
+        self
+    }
+
+    ///  # Safety
+    ///
+    ///  The type `T` is not validated.
+    ///  For validation, use [`Submit::transfer_into_uniform_buffer`].
+    pub unsafe fn transfer_into_uniform_buffer_unchecked<T: Copy>(
         &mut self,
         ubo: UniformBufferId,
         data: &'transfer T,
     ) -> &mut Self {
-        let untyped_slice = unsafe {
-            std::slice::from_raw_parts(data as *const T as *const u8, std::mem::size_of::<T>())
-        };
+        let untyped_slice =
+            std::slice::from_raw_parts(data as *const T as *const u8, std::mem::size_of::<T>());
         self.ubo_transfers.push((ubo, untyped_slice));
         self
     }
 
     pub fn transfer_into_dynamic_uniform_buffer<T: Copy>(
         &mut self,
+        guard: DynamicUniformBufferTypeGuard<T>,
+        data: &'transfer T,
+        index: usize,
+    ) -> &mut Self {
+        unsafe { self.transfer_into_dynamic_uniform_buffer_unchecked(guard.0, data, index) };
+        self
+    }
+
+    ///  # Safety
+    ///
+    ///  The type `T` is not validated.
+    ///  For validation, use [`Submit::transfer_into_dynamic_uniform_buffer`].
+    pub unsafe fn transfer_into_dynamic_uniform_buffer_unchecked<T: Copy>(
+        &mut self,
         ubo: DynamicUniformBufferId,
         data: &'transfer T,
         index: usize,
     ) -> &mut Self {
-        let untyped_slice = unsafe {
-            std::slice::from_raw_parts(data as *const T as *const u8, std::mem::size_of::<T>())
-        };
+        let untyped_slice =
+            std::slice::from_raw_parts(data as *const T as *const u8, std::mem::size_of::<T>());
         self.dyn_ubo_transfers.push((ubo, untyped_slice, index));
         self
     }

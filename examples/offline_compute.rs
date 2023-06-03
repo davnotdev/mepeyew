@@ -1,9 +1,6 @@
 use mepeyew::prelude::*;
 
 fn main() {
-    #[cfg(all(feature = "webgpu", target_arch = "wasm32", target_os = "unknown"))]
-    wasm::init();
-
     let mut extensions = Extensions::new();
     extensions
         .native_debug(NativeDebugConfiguration::default())
@@ -29,7 +26,7 @@ fn main() {
         )
         .unwrap();
 
-    let ssbo = context
+    let (ssbo, ssbo_guard) = context
         .new_shader_storage_buffer(&[1u32; 1024], None)
         .unwrap();
     let program = context
@@ -62,18 +59,8 @@ fn main() {
         .unwrap();
 
     let out: [u32; 1024] = context
-        .read_synced_shader_storage_buffer(ssbo, None)
+        .read_synced_shader_storage_buffer(ssbo_guard, None)
         .unwrap();
 
     eprintln!("{:?}", out);
-
-    #[cfg(all(feature = "webgpu", target_arch = "wasm32", target_os = "unknown"))]
-    panic!("{:?}", out);
-}
-
-#[cfg(all(feature = "webgpu", target_arch = "wasm32", target_os = "unknown"))]
-mod wasm {
-    pub fn init() {
-        std::panic::set_hook(Box::new(console_error_panic_hook::hook));
-    }
 }

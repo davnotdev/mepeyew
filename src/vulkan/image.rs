@@ -30,7 +30,7 @@ impl VkImage {
             .usage(usage)
             .extent(extent)
             .image_type(vk::ImageType::TYPE_2D)
-            .mip_levels(mip_levels as u32)
+            .mip_levels(mip_levels)
             .array_layers(1)
             .samples(samples)
             .tiling(vk::ImageTiling::OPTIMAL)

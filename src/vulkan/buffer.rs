@@ -322,11 +322,7 @@ impl VkBuffer {
     pub fn map_copy_data(&mut self, ptr: *const u8, size: usize, offset: usize) -> GResult<()> {
         if let Some(mapped_ptr) = self.mapped_ptr {
             unsafe {
-                std::hint::black_box(std::ptr::copy_nonoverlapping::<u8>(
-                    ptr,
-                    mapped_ptr.add(offset),
-                    size,
-                ));
+                std::ptr::copy_nonoverlapping::<u8>(ptr, mapped_ptr.add(offset), size);
             }
         } else {
             let data = self

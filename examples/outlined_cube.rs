@@ -85,7 +85,7 @@ fn main() {
         )
         .unwrap();
 
-    let dynamic_uniform_buffer = context
+    let (dynamic_uniform_buffer, dynamic_uniform_buffer_guard) = context
         .new_dynamic_uniform_buffer(
             &[
                 UniformBuffer {
@@ -360,7 +360,7 @@ fn main() {
                 };
 
                 submit.transfer_into_dynamic_uniform_buffer(
-                    dynamic_uniform_buffer,
+                    dynamic_uniform_buffer_guard,
                     &uniform_data,
                     0,
                 );
@@ -373,7 +373,7 @@ fn main() {
                 };
 
                 submit.transfer_into_dynamic_uniform_buffer(
-                    dynamic_uniform_buffer,
+                    dynamic_uniform_buffer_guard,
                     &uniform_data,
                     1,
                 );

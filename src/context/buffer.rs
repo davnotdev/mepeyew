@@ -1,4 +1,5 @@
 use super::*;
+use std::marker::PhantomData;
 
 ///  Count represents the following.
 ///  ```
@@ -42,6 +43,11 @@ pub struct NewUniformBufferExt {}
 #[derive(Default, Debug, Clone)]
 pub struct NewDynamicUniformBufferExt {}
 
+#[derive(Debug, Clone, Copy)]
+pub struct UniformBufferTypeGuard<T: Copy>(pub UniformBufferId, PhantomData<T>);
+#[derive(Debug, Clone, Copy)]
+pub struct DynamicUniformBufferTypeGuard<T: Copy>(pub DynamicUniformBufferId, PhantomData<T>);
+
 impl Context {
     pub fn new_vertex_buffer(
         &mut self,
@@ -71,11 +77,13 @@ impl Context {
         &mut self,
         data: &T,
         ext: Option<NewUniformBufferExt>,
-    ) -> GResult<UniformBufferId> {
-        match self {
+    ) -> GResult<(UniformBufferId, UniformBufferTypeGuard<T>)> {
+        let id = match self {
             Self::Vulkan(vk) => vk.new_uniform_buffer::<T>(data, ext),
             Self::WebGpu(wgpu) => wgpu.new_uniform_buffer::<T>(data, ext),
-        }
+        }?;
+
+        Ok((id, UniformBufferTypeGuard(id, PhantomData)))
     }
 
     //  TODO docs
@@ -83,10 +91,12 @@ impl Context {
         &mut self,
         data: &[T],
         ext: Option<NewDynamicUniformBufferExt>,
-    ) -> GResult<DynamicUniformBufferId> {
-        match self {
+    ) -> GResult<(DynamicUniformBufferId, DynamicUniformBufferTypeGuard<T>)> {
+        let id = match self {
             Self::Vulkan(vk) => vk.new_dynamic_uniform_buffer(data, ext),
             Self::WebGpu(wgpu) => wgpu.new_dynamic_uniform_buffer(data, ext),
-        }
+        }?;
+
+        Ok((id, DynamicUniformBufferTypeGuard(id, PhantomData)))
     }
 }

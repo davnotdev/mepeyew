@@ -67,7 +67,7 @@ fn main() {
         )
         .unwrap();
 
-    let uniform_buffer = context
+    let (uniform_buffer, uniform_buffer_guard) = context
         .new_uniform_buffer(
             &UniformBuffer {
                 model: glm::identity(),
@@ -301,7 +301,7 @@ fn main() {
                     projection,
                 };
 
-                submit.transfer_into_uniform_buffer(uniform_buffer, &uniform_data);
+                submit.transfer_into_uniform_buffer(uniform_buffer_guard, &uniform_data);
 
                 let mut pass_submit = PassSubmitData::new(compiled_pass);
 
