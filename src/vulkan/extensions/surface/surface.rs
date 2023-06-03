@@ -65,7 +65,7 @@ fn new_windows_surface(
         .hinstance(native_window.hinstance)
         .hwnd(native_window.hwnd)
         .build();
-    let native_surface = ash::extensions::khr::Win32Surface::new(entry, instance);
+    let native_surface = vk_extensions::khr::Win32Surface::new(entry, instance);
     unsafe { native_surface.create_win32_surface(&native_surface_create, None) }.ok()
 }
 

@@ -1,4 +1,5 @@
 use super::*;
+use context::extensions::*;
 use std::collections::HashSet;
 
 impl WebGpuContext {
@@ -84,4 +85,55 @@ impl WebGpuCompiledComputePass {
             added_programs: compute_pass.programs.iter().cloned().collect(),
         }
     }
+}
+
+pub fn submit_compute_pass(
+    context: &WebGpuContext,
+    pass_submit: &ComputePassSubmitData,
+    command_encoder: &GpuCommandEncoder,
+) -> GResult<()> {
+    let compute_pass = context
+        .compiled_compute_passes
+        .get(pass_submit.compute_pass.id())
+        .ok_or(gpu_api_err!(
+            "webgpu submit compute pass {:?} does not exist",
+            pass_submit.compute_pass,
+        ))?;
+
+    let pass_encoder = command_encoder.begin_compute_pass();
+
+    for dispatch in pass_submit.dispatches.iter() {
+        compute_pass
+            .added_programs
+            .contains(&dispatch.program)
+            .then_some(())
+            .ok_or(gpu_api_err!(
+                "webgpu submit compute program {:?} was not added",
+                dispatch.program
+            ))?;
+
+        let program = context
+            .compute_programs
+            .get(dispatch.program.id())
+            .ok_or(gpu_api_err!(
+                "webgpu submit compute program {:?}",
+                dispatch.program
+            ))?;
+
+        pass_encoder.set_pipeline(&program.pipeline);
+        program.bind_groups.cmd_compute_bind_groups(
+            context,
+            &pass_encoder,
+            &dispatch.dynamic_buffer_indices,
+        )?;
+        pass_encoder.dispatch_workgroups_with_workgroup_count_y_and_workgroup_count_z(
+            dispatch.workgroup_count_x as u32,
+            dispatch.workgroup_count_y as u32,
+            dispatch.workgroup_count_z as u32,
+        );
+    }
+
+    pass_encoder.end();
+
+    Ok(())
 }

@@ -13,7 +13,6 @@ use super::webgpu::*;
 pub mod extensions;
 
 mod buffer;
-mod compute;
 mod pass;
 mod pass_step;
 mod platform;
@@ -22,6 +21,7 @@ mod sampler;
 mod submit;
 mod texture;
 
+#[macro_export]
 macro_rules! def_id_ty {
     ($NAME: ident) => {
         impl $NAME {
@@ -45,8 +45,6 @@ pub struct UniformBufferId(usize);
 #[derive(Debug, Clone, Copy, Hash, PartialEq, Eq)]
 pub struct DynamicUniformBufferId(usize);
 #[derive(Debug, Clone, Copy, Hash, PartialEq, Eq)]
-pub struct ShaderStorageBufferId(usize);
-#[derive(Debug, Clone, Copy, Hash, PartialEq, Eq)]
 pub struct ProgramId(usize);
 #[derive(Debug, Clone, Copy, Hash, PartialEq, Eq)]
 pub struct ComputeProgramId(usize);
@@ -69,7 +67,6 @@ def_id_ty!(VertexBufferId);
 def_id_ty!(IndexBufferId);
 def_id_ty!(UniformBufferId);
 def_id_ty!(DynamicUniformBufferId);
-def_id_ty!(ShaderStorageBufferId);
 def_id_ty!(ProgramId);
 def_id_ty!(ComputeProgramId);
 def_id_ty!(SamplerId);
@@ -103,12 +100,8 @@ pub enum Context {
 
 pub use buffer::{
     BufferStorageType, IndexBufferElement, NewDynamicUniformBufferExt, NewIndexBufferExt,
-    NewShaderStorageBufferExt, NewUniformBufferExt, NewVertexBufferExt,
-    ReadSyncedShaderStorageBufferExt, VertexBufferElement, VertexBufferInput, VertexInputArgCount,
-};
-pub use compute::{
-    CompileComputePassExt, ComputePass, ComputePassSubmitData, Dispatch, DispatchType,
-    NewComputeProgramExt,
+    NewUniformBufferExt, NewVertexBufferExt, VertexBufferElement, VertexBufferInput,
+    VertexInputArgCount,
 };
 pub use extensions::{Extension, Extensions};
 pub use pass::{

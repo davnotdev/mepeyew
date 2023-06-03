@@ -12,7 +12,10 @@ fn main() {
             adapter: String::from("mepeyewAdapter"),
             device: String::from("mepeyewDevice"),
             canvas_id: Some(String::from("canvas")),
-        });
+        })
+        .compute()
+        .shader_storage_buffer_object();
+
     let mut context = Context::new(extensions).unwrap();
 
     let code = include_bytes!("./shaders/offline_compute/compute.comp");

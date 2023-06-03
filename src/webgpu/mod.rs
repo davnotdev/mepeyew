@@ -1,4 +1,5 @@
 use super::{
+    context,
     context::*,
     error::{gpu_api_err, GResult, GpuError},
 };
@@ -9,7 +10,6 @@ use web_sys::*;
 use attachment_image::WebGpuAttachmentImage;
 use bind_groups::WebGpuBindGroups;
 use buffer::{WebGpuBuffer, WebGpuDynamicBuffer};
-use compute::{WebGpuCompiledComputePass, WebGpuComputeProgram};
 use flags::{GpuBufferUsageFlags, GpuShaderStageFlags, GpuTextureUsageFlags};
 use pass::WebGpuCompiledPass;
 use program::WebGpuProgram;
@@ -17,13 +17,14 @@ use sampler::WebGpuSamplerCache;
 use surface::WebGpuSurface;
 use texture::{WebGpuMipmapStateCache, WebGpuTexture};
 
+use extensions::compute::{WebGpuCompiledComputePass, WebGpuComputeProgram};
+
 pub const WEBGPU_COLOR_ATTACHMENT_FORMAT: GpuTextureFormat = GpuTextureFormat::Rgba8unorm;
 pub const WEBGPU_DEPTH_ATTACHMENT_FORMAT: GpuTextureFormat = GpuTextureFormat::Depth24plusStencil8;
 
 mod attachment_image;
 mod bind_groups;
 mod buffer;
-mod compute;
 mod extensions;
 mod flags;
 mod pass;

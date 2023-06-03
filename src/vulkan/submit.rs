@@ -455,7 +455,7 @@ impl VkContext {
                                 dispatch.workgroup_count_z as u32,
                             );
 
-                            if dispatch.ty == DispatchType::Blocking {
+                            if dispatch.ty == context::extensions::DispatchType::Blocking {
                                 compute_barrier(&self.core.dev, graphics_command_buffer);
                             }
                         }

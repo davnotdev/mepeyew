@@ -16,7 +16,6 @@ use buffer::{
     VkBuffer, VkDynamicUniformBuffer, VkIndexBuffer, VkShaderStorageBuffer, VkUniformBuffer,
     VkVertexBuffer,
 };
-use compute::{VkCompiledComputePass, VkComputeProgram};
 use descriptor::VkDescriptors;
 use drop::VkDropQueue;
 use frame::{VkFrame, VkFrameDependent};
@@ -30,9 +29,10 @@ use submit::VkSubmitData;
 use texture::VkTexture;
 use vkcore::{new_fence, new_semaphore, VkCore, VkCoreConfiguration, VkCoreGpuPreference};
 
+use extensions::compute::{VkCompiledComputePass, VkComputeProgram};
+
 mod attachment_image;
 mod buffer;
-mod compute;
 mod debug;
 mod descriptor;
 mod drop;

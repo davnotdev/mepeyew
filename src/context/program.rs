@@ -93,8 +93,8 @@ pub enum ShaderUniformType {
     UniformBuffer(UniformBufferId),
     DynamicUniformBuffer(DynamicUniformBufferId),
     InputAttachment(AttachmentImageId),
-    ShaderStorageBuffer(ShaderStorageBufferId),
-    ShaderStorageBufferReadOnly(ShaderStorageBufferId),
+    ShaderStorageBuffer(extensions::ShaderStorageBufferId),
+    ShaderStorageBufferReadOnly(extensions::ShaderStorageBufferId),
 }
 
 #[derive(Debug, Clone)]

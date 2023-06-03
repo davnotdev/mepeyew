@@ -163,7 +163,7 @@ impl PassSubmitData {
 
 pub enum SubmitPassType {
     Render(PassSubmitData),
-    Compute(ComputePassSubmitData),
+    Compute(extensions::ComputePassSubmitData),
 }
 
 #[derive(Default)]
@@ -173,7 +173,7 @@ pub struct Submit<'transfer> {
     pub(crate) ibo_transfers: Vec<(IndexBufferId, &'transfer [IndexBufferElement])>,
     pub(crate) ubo_transfers: Vec<(UniformBufferId, &'transfer [u8])>,
     pub(crate) dyn_ubo_transfers: Vec<(DynamicUniformBufferId, &'transfer [u8], usize)>,
-    pub(crate) ssbo_copy_backs: Vec<ShaderStorageBufferId>,
+    pub(crate) ssbo_copy_backs: Vec<extensions::ShaderStorageBufferId>,
 }
 
 impl<'transfer> Submit<'transfer> {
@@ -193,7 +193,7 @@ impl<'transfer> Submit<'transfer> {
         self
     }
 
-    pub fn compute_pass(&mut self, data: ComputePassSubmitData) -> &mut Self {
+    pub fn compute_pass(&mut self, data: extensions::ComputePassSubmitData) -> &mut Self {
         self.passes.push(SubmitPassType::Compute(data));
         self
     }
@@ -245,7 +245,10 @@ impl<'transfer> Submit<'transfer> {
     }
 
     //  Write the shader storage buffer back into CPU memory after rendering.
-    pub fn sync_shader_storage_buffer(&mut self, ssbo: ShaderStorageBufferId) -> &mut Self {
+    pub fn sync_shader_storage_buffer(
+        &mut self,
+        ssbo: extensions::ShaderStorageBufferId,
+    ) -> &mut Self {
         self.ssbo_copy_backs.push(ssbo);
         self
     }

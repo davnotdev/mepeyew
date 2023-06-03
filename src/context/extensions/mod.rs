@@ -2,9 +2,11 @@
 //! more performance.
 //! See [`Extension`] for details of each extension.
 
+pub mod compute;
 pub mod gpu_power_level;
 pub mod memory_flush;
 pub mod native_debug;
+pub mod shader_storage_buffer_object;
 pub mod webgpu_init;
 
 #[cfg(feature = "surface_extension")]
@@ -13,10 +15,16 @@ pub mod surface;
 #[cfg(feature = "naga_translation")]
 pub mod naga_translation;
 
-pub use gpu_power_level::*;
-pub use memory_flush::*;
-pub use native_debug::*;
-pub use webgpu_init::*;
+pub use compute::{
+    CompileComputePassExt, ComputePass, ComputePassSubmitData, Dispatch, DispatchType,
+    NewComputeProgramExt,
+};
+pub use gpu_power_level::GpuPowerLevel;
+pub use native_debug::NativeDebugConfiguration;
+pub use shader_storage_buffer_object::{
+    NewShaderStorageBufferExt, ReadSyncedShaderStorageBufferExt, ShaderStorageBufferId,
+};
+pub use webgpu_init::WebGpuInitFromWindow;
 
 #[cfg(feature = "surface_extension")]
 pub use surface::*;
@@ -79,8 +87,19 @@ impl Extensions {
     /// Rendering to the screen.
     /// Enable this unless you plan to run headlessly.
     /// Be sure to invoke [Context::surface_extension_set_surface_size] properly.
+    #[cfg(feature = "surface_extension")]
     pub fn surface_extension(&mut self, cfg: SurfaceConfiguration) -> &mut Self {
         self.extensions.push(Extension::Surface(cfg));
+        self
+    }
+
+    pub fn compute(&mut self) -> &mut Self {
+        self.extensions.push(Extension::Compute);
+        self
+    }
+
+    pub fn shader_storage_buffer_object(&mut self) -> &mut Self {
+        self.extensions.push(Extension::ShaderStorageBufferObject);
         self
     }
 }
@@ -96,4 +115,6 @@ pub enum Extension {
     WebGpuInitFromWindow(WebGpuInitFromWindow),
     #[cfg(feature = "surface_extension")]
     Surface(SurfaceConfiguration),
+    Compute,
+    ShaderStorageBufferObject,
 }

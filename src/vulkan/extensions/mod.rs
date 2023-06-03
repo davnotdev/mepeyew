@@ -1,4 +1,6 @@
+pub mod compute;
 mod memory_flush;
+mod shader_storage_buffer_object;
 mod surface;
 
 use super::*;
@@ -17,5 +19,7 @@ pub fn check_extensions(extensions: &Extensions) -> GResult<()> {
             Extension::NagaTranslation => Ok(()),
             Extension::WebGpuInitFromWindow(_) => Ok(()),
             Extension::Surface(_) => Ok(()),
+            Extension::Compute => Ok(()),
+            Extension::ShaderStorageBufferObject => Ok(()),
         })
 }

@@ -1,4 +1,6 @@
 mod surface;
+mod shader_storage_buffer_object;
+pub mod compute;
 
 use super::*;
 
@@ -14,5 +16,9 @@ pub fn check_extensions(extensions: &Extensions) -> GResult<()> {
             Extension::NagaTranslation => Ok(()),
             Extension::WebGpuInitFromWindow(_) => Ok(()),
             Extension::Surface(_) => Ok(()),
+            Extension::Compute => Ok(()),
+            Extension::ShaderStorageBufferObject => Err(gpu_api_err!(
+                "webgpu shader storage buffer objects are not fully supported"
+            )),
         })
 }

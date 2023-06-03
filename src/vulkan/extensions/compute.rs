@@ -1,4 +1,5 @@
 use super::*;
+use context::extensions::*;
 use std::{collections::HashSet, ffi::CString};
 
 impl VkContext {
