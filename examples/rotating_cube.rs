@@ -8,7 +8,7 @@ use winit::{
     window::{Window, WindowBuilder},
 };
 
-#[allow(dead_code)]
+#[repr(C)]
 #[derive(Clone, Copy)]
 pub struct UniformBuffer {
     model: glm::Mat4,
