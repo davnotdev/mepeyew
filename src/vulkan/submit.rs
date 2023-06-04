@@ -364,19 +364,19 @@ impl VkContext {
                                         self.core.dev.cmd_draw(
                                             graphics_command_buffer,
                                             draw.count as u32,
-                                            1,
+                                            draw.instance_count as u32,
                                             draw.first as u32,
-                                            0,
+                                            draw.first_instance as u32,
                                         );
                                     }
                                     DrawType::DrawIndexed => {
                                         self.core.dev.cmd_draw_indexed(
                                             graphics_command_buffer,
                                             draw.count as u32,
-                                            1,
+                                            draw.instance_count as u32,
                                             draw.first as u32,
                                             0,
-                                            0,
+                                            draw.first_instance as u32,
                                         );
                                     }
                                 }

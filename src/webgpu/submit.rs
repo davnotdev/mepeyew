@@ -287,17 +287,20 @@ fn submit_pass(
                     .set_stencil_reference(program.ext.stencil_reference.unwrap_or_default());
                 match draw.ty {
                     DrawType::Draw => {
-                        pass_encoder.draw_with_instance_count_and_first_vertex(
+                        pass_encoder.draw_with_instance_count_and_first_vertex_and_first_instance(
                             draw.count as u32,
-                            1,
+                            draw.instance_count as u32,
                             draw.first as u32,
+                            draw.first_instance as u32,
                         );
                     }
                     DrawType::DrawIndexed => {
-                        pass_encoder.draw_indexed_with_instance_count_and_first_index(
+                        pass_encoder.draw_indexed_with_instance_count_and_first_index_and_base_vertex_and_first_instance(
                             draw.count as u32,
-                            1,
+                            draw.instance_count as u32,
                             draw.first as u32,
+                            0,
+                            draw.first_instance as u32,
                         );
                     }
                 }

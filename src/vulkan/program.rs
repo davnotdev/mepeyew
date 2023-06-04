@@ -60,19 +60,22 @@ impl VkProgram {
         ext: &NewProgramExt,
     ) -> GResult<vk::Pipeline> {
         //  Vertex Input State Info
-        let (attributes, bindings) = self
+        let (attributes, bindings): (Vec<_>, Vec<_>) = self
             .shaders
             .iter()
-            .find_map(|shader| {
+            .filter_map(|shader| {
                 if let ShaderType::Vertex(vertex_inputs) = &shader.shader_ty {
                     Some(VkShader::get_vertex_inputs(vertex_inputs))
                 } else {
                     None
                 }
             })
-            .unwrap_or_else(|| (vec![], vk::VertexInputBindingDescription::default()));
+            .collect::<Vec<_>>()
+            .into_iter()
+            .unzip();
+        let attributes = attributes.into_iter().flatten().collect::<Vec<_>>();
         let vertex_input_state_create = vk::PipelineVertexInputStateCreateInfo::builder()
-            .vertex_binding_descriptions(&[bindings])
+            .vertex_binding_descriptions(&bindings)
             .vertex_attribute_descriptions(&attributes)
             .build();
 

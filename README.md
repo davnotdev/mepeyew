@@ -58,7 +58,7 @@ The API is designed to be stable, but I can't guarentee anything of course.
 - [x] Blending and Culling
 - [x] Mipmaps and LOD
 - [ ] Cubemaps
-- [ ] Instancing
+- [x] Instancing
 - [x] Replace Shader Uniform Frequency
 - [ ] More Documentation
 - [ ] More Examples

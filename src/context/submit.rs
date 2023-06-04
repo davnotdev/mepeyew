@@ -49,6 +49,8 @@ pub struct Draw {
     pub(crate) ty: DrawType,
     pub(crate) first: usize,
     pub(crate) count: usize,
+    pub(crate) first_instance: usize,
+    pub(crate) instance_count: usize,
     pub(crate) program: ProgramId,
     pub(crate) viewport: Option<DrawViewport>,
     pub(crate) scissor: Option<DrawScissor>,
@@ -56,6 +58,12 @@ pub struct Draw {
 }
 
 impl Draw {
+    pub fn set_instance(&mut self, first: usize, count: usize) -> &mut Self {
+        self.first_instance = first;
+        self.instance_count = count;
+        self
+    }
+
     pub fn set_viewport(&mut self, viewport: DrawViewport) -> &mut Self {
         self.viewport = Some(viewport);
         self
@@ -93,6 +101,8 @@ impl StepSubmitData {
             first,
             count,
             program,
+            first_instance: 0,
+            instance_count: 1,
             viewport: None,
             scissor: None,
             dynamic_buffer_indices: HashMap::new(),
@@ -106,6 +116,8 @@ impl StepSubmitData {
             first,
             count,
             program,
+            first_instance: 0,
+            instance_count: 1,
             viewport: None,
             scissor: None,
             dynamic_buffer_indices: HashMap::new(),
