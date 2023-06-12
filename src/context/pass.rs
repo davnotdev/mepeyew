@@ -127,11 +127,13 @@ impl Pass {
     }
 }
 
+/// Allows:
+/// - The enabling of MSAA
 #[derive(Default, Debug, Clone)]
 pub struct CompilePassExt {
-    ///  Enable multisample anti-aliasing.
+    /// Enable multisample anti-aliasing.
     pub enable_msaa: Option<()>,
-    ///  Optionally include the amount of multisample anti-aliasing samples.
+    /// Optionally include the amount of multisample anti-aliasing samples.
     pub msaa_samples: Option<MsaaSampleCount>,
 }
 

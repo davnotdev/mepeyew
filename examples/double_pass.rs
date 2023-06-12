@@ -35,7 +35,7 @@ fn main() {
             canvas_id: Some(String::from("canvas")),
         });
 
-    let mut context = Context::new(extensions).unwrap();
+    let mut context = Context::new(extensions, None).unwrap();
 
     let vs_pass_1 = include_bytes!("shaders/double_pass/vs_pass_1.wgsl");
     let vs_pass_2 = include_bytes!("shaders/double_pass/vs_pass_2.wgsl");
@@ -43,7 +43,7 @@ fn main() {
     let fs_pass_2 = include_bytes!("shaders/double_pass/fs_pass_2.wgsl");
 
     let vs_pass_1 = context
-        .naga_translation_extension_translate_shader_code(
+        .naga_translate_shader_code(
             naga_translation::NagaTranslationStage::Vertex,
             naga_translation::NagaTranslationInput::Wgsl,
             vs_pass_1,
@@ -51,7 +51,7 @@ fn main() {
         )
         .unwrap();
     let fs_pass_1 = context
-        .naga_translation_extension_translate_shader_code(
+        .naga_translate_shader_code(
             naga_translation::NagaTranslationStage::Fragment,
             naga_translation::NagaTranslationInput::Wgsl,
             fs_pass_1,
@@ -59,7 +59,7 @@ fn main() {
         )
         .unwrap();
     let vs_pass_2 = context
-        .naga_translation_extension_translate_shader_code(
+        .naga_translate_shader_code(
             naga_translation::NagaTranslationStage::Vertex,
             naga_translation::NagaTranslationInput::Wgsl,
             vs_pass_2,
@@ -67,7 +67,7 @@ fn main() {
         )
         .unwrap();
     let fs_pass_2 = context
-        .naga_translation_extension_translate_shader_code(
+        .naga_translate_shader_code(
             naga_translation::NagaTranslationStage::Fragment,
             naga_translation::NagaTranslationInput::Wgsl,
             fs_pass_2,
@@ -205,7 +205,7 @@ fn main() {
                 window_id,
             } if window_id == window.id() => {
                 context
-                    .surface_extension_set_surface_size(size.width as usize, size.height as usize)
+                    .set_surface_size(size.width as usize, size.height as usize)
                     .unwrap();
             }
             Event::MainEventsCleared => {

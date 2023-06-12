@@ -1,12 +1,12 @@
 use super::*;
 use naga::{back, front, valid, ShaderStage};
 
-///  Additional information to pass to naga.
-///  This is currently empty.
+/// Additional information to pass to naga.
+/// This is currently empty.
 #[derive(Default, Debug)]
 pub struct NagaTranslationExtensionTranslateShaderCodeExt {}
 
-///  The type of shader to be translated.
+/// The type of shader to be translated.
 #[derive(Debug, Clone, Copy, Hash, PartialEq, Eq)]
 pub enum NagaTranslationStage {
     Vertex,
@@ -14,7 +14,7 @@ pub enum NagaTranslationStage {
     Compute,
 }
 
-///  The expected input language.
+/// The expected input language.
 #[derive(Debug, Clone, Copy, Hash, PartialEq, Eq)]
 pub enum NagaTranslationInput {
     Glsl,
@@ -22,17 +22,17 @@ pub enum NagaTranslationInput {
     Wgsl,
 }
 
-///  The expected ouput language.
+/// The expected ouput language.
 #[derive(Debug, Clone, Copy, Hash, PartialEq, Eq)]
 enum NagaTranslationOutput {
     Spirv,
     Wgsl,
 }
 
-///  Translate shader code into the language accepted by the current rendering backend.
-///  `code` should be in the a byte slice obtained with `"...".as_bytes()`.
+/// Translate shader code into the language accepted by the current rendering backend.
+/// `code` should be in the a byte slice obtained with `"...".as_bytes()`.
 impl Context {
-    pub fn naga_translation_extension_translate_shader_code(
+    pub fn naga_translate_shader_code(
         &self,
         stage: NagaTranslationStage,
         input: NagaTranslationInput,

@@ -45,7 +45,7 @@ fn main() {
             canvas_id: Some(String::from("canvas")),
         });
 
-    let mut context = Context::new(extensions).unwrap();
+    let mut context = Context::new(extensions, None).unwrap();
 
     let vs = include_bytes!("shaders/outlined_cube/vs.wgsl");
     let fs = include_bytes!("shaders/outlined_cube/fs.wgsl");
@@ -53,7 +53,7 @@ fn main() {
     let outline_fs = include_bytes!("shaders/outlined_cube/outline_fs.wgsl");
 
     let vs = context
-        .naga_translation_extension_translate_shader_code(
+        .naga_translate_shader_code(
             naga_translation::NagaTranslationStage::Vertex,
             naga_translation::NagaTranslationInput::Wgsl,
             vs,
@@ -61,7 +61,7 @@ fn main() {
         )
         .unwrap();
     let fs = context
-        .naga_translation_extension_translate_shader_code(
+        .naga_translate_shader_code(
             naga_translation::NagaTranslationStage::Fragment,
             naga_translation::NagaTranslationInput::Wgsl,
             fs,
@@ -69,7 +69,7 @@ fn main() {
         )
         .unwrap();
     let outline_vs = context
-        .naga_translation_extension_translate_shader_code(
+        .naga_translate_shader_code(
             naga_translation::NagaTranslationStage::Vertex,
             naga_translation::NagaTranslationInput::Wgsl,
             outline_vs,
@@ -77,7 +77,7 @@ fn main() {
         )
         .unwrap();
     let outline_fs = context
-        .naga_translation_extension_translate_shader_code(
+        .naga_translate_shader_code(
             naga_translation::NagaTranslationStage::Fragment,
             naga_translation::NagaTranslationInput::Wgsl,
             outline_fs,
@@ -312,7 +312,7 @@ fn main() {
                 window_id,
             } if window_id == window.id() => {
                 context
-                    .surface_extension_set_surface_size(size.width as usize, size.height as usize)
+                    .set_surface_size(size.width as usize, size.height as usize)
                     .unwrap();
             }
             Event::MainEventsCleared => {

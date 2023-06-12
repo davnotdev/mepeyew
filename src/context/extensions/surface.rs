@@ -10,8 +10,8 @@ pub struct SurfaceConfiguration {
 }
 
 impl Context {
-    ///  Call when the surface resizes.
-    pub fn surface_extension_set_surface_size(
+    /// Call when the surface resizes.
+    pub fn set_surface_size(
         &mut self,
         width: usize,
         height: usize,

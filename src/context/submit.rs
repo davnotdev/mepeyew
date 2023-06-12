@@ -72,6 +72,8 @@ impl Draw {
         self
     }
 
+    /// Set the index to use for a dynamic uniform buffer for this draw.
+    /// If you are using a dynamic uniform buffer, this option is MANDITORY.
     pub fn set_dynamic_uniform_buffer_index(
         &mut self,
         ubo: DynamicUniformBufferId,
@@ -149,8 +151,6 @@ impl PassSubmitData {
         self
     }
 
-    //  TODO EXT: Validate attachment type.
-
     /// If you plan on clearing the surface attachment, ensure that the [`NewPassExt::surface_attachment_load_op`] was set.
     pub fn set_attachment_clear_color(
         &mut self,
@@ -161,6 +161,7 @@ impl PassSubmitData {
         self
     }
 
+    /// If you plan on clearing the surface attachment, ensure that the [`NewPassExt::surface_attachment_load_op`] was set.
     pub fn set_attachment_clear_depth_stencil(
         &mut self,
         attachment_ref: PassLocalAttachment,
@@ -239,10 +240,10 @@ impl<'transfer> Submit<'transfer> {
         self
     }
 
-    ///  # Safety
+    /// # Safety
     ///
-    ///  The type `T` is not validated.
-    ///  For validation, use [`Submit::transfer_into_uniform_buffer`].
+    /// The type `T` is not validated.
+    /// For validation, use [`Submit::transfer_into_uniform_buffer`].
     pub unsafe fn transfer_into_uniform_buffer_unchecked<T: Copy>(
         &mut self,
         ubo: UniformBufferId,
@@ -264,10 +265,10 @@ impl<'transfer> Submit<'transfer> {
         self
     }
 
-    ///  # Safety
+    /// # Safety
     ///
-    ///  The type `T` is not validated.
-    ///  For validation, use [`Submit::transfer_into_dynamic_uniform_buffer`].
+    /// The type `T` is not validated.
+    /// For validation, use [`Submit::transfer_into_dynamic_uniform_buffer`].
     pub unsafe fn transfer_into_dynamic_uniform_buffer_unchecked<T: Copy>(
         &mut self,
         ubo: DynamicUniformBufferId,
@@ -280,7 +281,8 @@ impl<'transfer> Submit<'transfer> {
         self
     }
 
-    //  Write the shader storage buffer back into CPU memory after rendering.
+    /// Write the shader storage buffer back into CPU memory after rendering.
+    /// This is essential for `[Context::read_synced_shader_storage_buffer]`
     pub fn sync_shader_storage_buffer(
         &mut self,
         ssbo: extensions::ShaderStorageBufferId,

@@ -3,6 +3,7 @@ use std::collections::HashMap;
 
 //  TODO docs ALL OF THIS!
 
+/// A compute pass that is later compiled with `[Context::compile_compute_pass]`.
 #[derive(Default, Debug, Clone, Hash, PartialEq, Eq)]
 pub struct ComputePass {
     pub(crate) programs: Vec<ComputeProgramId>,
@@ -14,18 +15,23 @@ impl ComputePass {
         ComputePass::default()
     }
 
+    /// Registers compute programs that can then be bound to dispatches later.
     pub fn add_program(&mut self, program: ComputeProgramId) -> &mut Self {
         self.programs.push(program);
         self
     }
 
-    //  TODO doc no wait by default
+    /// A hint for whether this pass must complete before the next one.
+    /// Although this is a hint, please use it anyway to reduce platform-specific bugs.
+    /// This option is `false` by default.
     pub fn set_blocking(&mut self, set: bool) -> &mut Self {
         self.set_blocking = set;
         self
     }
 }
 
+/// Configure options regarding compute dispatches such as dynamic buffer indices, the
+/// bound program, work group counts, etc.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Dispatch {
     pub(crate) ty: DispatchType,
@@ -39,6 +45,8 @@ pub struct Dispatch {
 }
 
 impl Dispatch {
+    /// Set the index to use for a dynamic uniform buffer for this dispatch.
+    /// If you are using a dynamic uniform buffer, this option is MANDITORY.
     pub fn set_dynamic_uniform_buffer_index(
         &mut self,
         ubo: DynamicUniformBufferId,
@@ -56,6 +64,7 @@ pub enum DispatchType {
     NonBlocking,
 }
 
+/// Submit data for compute passes.
 #[derive(Debug, Clone)]
 pub struct ComputePassSubmitData {
     pub(crate) compute_pass: CompiledComputePassId,
@@ -70,6 +79,9 @@ impl ComputePassSubmitData {
         }
     }
 
+    /// Fills in the basic options for a non-blocking dispatch.
+    /// Subsequent dispatches MAY NOT wait for this one.
+    /// Also returns a [`Dispatch`] with additional options.
     pub fn dispatch(
         &mut self,
         compute_program: ComputeProgramId,
@@ -88,6 +100,9 @@ impl ComputePassSubmitData {
         self.dispatches.last_mut().unwrap()
     }
 
+    /// Fills in the basic options for dispatches.
+    /// Subsequent dispatches much wait for this one.
+    /// Also returns a [`Dispatch`] with additional options.
     pub fn dispatch_blocking(
         &mut self,
         compute_program: ComputeProgramId,
@@ -107,8 +122,10 @@ impl ComputePassSubmitData {
     }
 }
 
+/// Currently has extra extension options.
 #[derive(Default, Debug, Clone)]
 pub struct NewComputeProgramExt {}
+/// Currently has extra extension options.
 #[derive(Default, Debug, Clone)]
 pub struct CompileComputePassExt {}
 

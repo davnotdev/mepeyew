@@ -45,7 +45,8 @@ impl Extensions {
     }
 
     /// Configure how many frames ahead the gpu runs ahead.
-    /// 2-3 should suffice.
+    /// 2-3 frames should suffice.
+    /// Also, this typically does not apply for compute workflows.
     pub fn flight_frames_count(&mut self, count: usize) -> &mut Self {
         self.extensions.push(Extension::FlightFramesCount(count));
         self
@@ -64,21 +65,22 @@ impl Extensions {
     }
 
     /// Explicitly clear out unused gpu memory.
-    /// Invoke using [`Context::memory_flush_extension_flush_memory`].
+    /// Invoke using [`Context::flush_memory`].
     pub fn memory_flush(&mut self) -> &mut Self {
         self.extensions.push(Extension::MemoryFlush);
         self
     }
 
     /// Translate from one shader language to another via [`naga`](https://github.com/gfx-rs/naga).
-    /// Invoke using [`Context::naga_translation_extension_translate_shader_code`].
+    /// Invoke using [`Context::naga_translate_shader_code`].
+    /// Requires that the `naga_translation` feature is enabled for you project.
     #[cfg(feature = "naga_translation")]
     pub fn naga_translation(&mut self) -> &mut Self {
         self.extensions.push(Extension::NagaTranslation);
         self
     }
 
-    /// Currently required to initialize the WebGpu Context.
+    /// Current workaround required to initialize the WebGpu Context.
     pub fn webgpu_init_from_window(&mut self, init: WebGpuInitFromWindow) -> &mut Self {
         self.extensions.push(Extension::WebGpuInitFromWindow(init));
         self
@@ -87,17 +89,22 @@ impl Extensions {
     /// Rendering to the screen.
     /// Enable this unless you plan to run headlessly.
     /// Be sure to invoke [Context::surface_extension_set_surface_size] properly.
+    /// Requires that the `surface_extension` feature is enabled for you project.
     #[cfg(feature = "surface_extension")]
     pub fn surface_extension(&mut self, cfg: SurfaceConfiguration) -> &mut Self {
         self.extensions.push(Extension::Surface(cfg));
         self
     }
 
+    /// Enable compute support.
+    /// Note that using feature without this extension may or may not work.
     pub fn compute(&mut self) -> &mut Self {
         self.extensions.push(Extension::Compute);
         self
     }
 
+    /// Enable shader storage buffer objects.
+    /// Note that using this feature without this extension may or may not work.
     pub fn shader_storage_buffer_object(&mut self) -> &mut Self {
         self.extensions.push(Extension::ShaderStorageBufferObject);
         self

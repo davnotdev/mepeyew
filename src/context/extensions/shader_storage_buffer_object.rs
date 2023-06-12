@@ -10,6 +10,8 @@ pub struct NewShaderStorageBufferExt {}
 #[derive(Default, Debug, Clone)]
 pub struct ReadSyncedShaderStorageBufferExt {}
 
+/// Use to ensure that the correct type is used later when accessing data.
+/// This guard is merely a design decision and serves no other purpose.
 #[derive(Debug, Clone, Copy, Hash, PartialEq, Eq)]
 pub struct ShaderStorageBufferTypeGuard<T>(pub ShaderStorageBufferId, PhantomData<T>);
 
@@ -27,6 +29,8 @@ impl Context {
         Ok((id, ShaderStorageBufferTypeGuard(id, PhantomData)))
     }
 
+    /// Read from a synced shader storage buffer object after rendering.
+    /// Sync a shader storage buffer using `Submit::sync_shader_storage_buffer`.
     pub fn read_synced_shader_storage_buffer<T: Copy>(
         &self,
         ssbo: ShaderStorageBufferTypeGuard<T>,
@@ -35,10 +39,13 @@ impl Context {
         unsafe { self.read_synced_shader_storage_buffer_unchecked(ssbo.0, ext) }
     }
 
+    /// Read from a synced shader storage buffer object after rendering.
+    /// Sync a shader storage buffer using `Submit::sync_shader_storage_buffer`.
+    ///
     /// # Safety
     ///
-    ///  The type `T` is not validated.
-    ///  For validation, use [`Context::read_synced_shader_storage_buffer`].
+    /// The type `T` is not validated.
+    /// For validation, use [`Context::read_synced_shader_storage_buffer`].
     pub unsafe fn read_synced_shader_storage_buffer_unchecked<T: Copy>(
         &self,
         ssbo: ShaderStorageBufferId,

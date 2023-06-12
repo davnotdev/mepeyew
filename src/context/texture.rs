@@ -28,17 +28,26 @@ pub enum AttachmentImageUsage {
     DepthAttachment,
 }
 
+/// Allows for the configuration of:
+/// - Mipmaps
 #[derive(Default, Debug)]
 pub struct NewTextureExt {
     pub enable_mipmaps: Option<()>,
     pub mip_levels: Option<u32>,
 }
+
+/// Allows for the configuration of:
+/// - Whether to generate mipmaps
 #[derive(Default, Debug, Clone)]
 pub struct UploadTextureExt {
     /// Generate mipmips.
-    /// The mipmap count can be contained with [`Context::get_texture_max_lod`]
+    /// The mipmap count can be obtained with [`Context::get_texture_max_lod`].
     pub generate_mipmaps: Option<()>,
 }
+
+/// Allows for the configuration of:
+/// - MSAA samples
+/// - (Color) attachment image format.
 #[derive(Default, Debug, Clone)]
 pub struct NewAttachmentImageExt {
     /// Should match the mssa samples used in [`CompilePassExt`].

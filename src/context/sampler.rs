@@ -1,5 +1,6 @@
 use super::*;
 
+/// Used in [`GetSamplerExt`].
 #[derive(Debug, Clone, Copy, Hash, Default, PartialEq, Eq)]
 pub enum SamplerMode {
     #[default]
@@ -9,7 +10,7 @@ pub enum SamplerMode {
     Mirror,
 }
 
-/// [Here's the texture filtering article from wikipedia](https://en.wikipedia.org/wiki/Texture_filtering).
+/// Used in [`GetSamplerExt`].
 #[derive(Debug, Clone, Copy, Hash, Default, PartialEq, Eq)]
 pub enum SamplerFilter {
     Nearest,
@@ -17,6 +18,8 @@ pub enum SamplerFilter {
     Linear,
 }
 
+
+/// Used in [`GetSamplerExt`].
 #[derive(Debug, Clone, Copy, Hash, Default, PartialEq, Eq)]
 pub enum MipSamplerFilter {
     Nearest,
@@ -24,6 +27,12 @@ pub enum MipSamplerFilter {
     Linear,
 }
 
+/// Allows the configuration of:
+/// - Min filter
+/// - Mag filter
+/// - Mip filter
+/// - uv overflow behavior
+/// - LOD
 #[derive(Default, Debug)]
 pub struct GetSamplerExt {
     /// The minification filter to use.

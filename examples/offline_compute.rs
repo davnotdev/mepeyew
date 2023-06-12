@@ -13,12 +13,12 @@ fn main() {
         .compute()
         .shader_storage_buffer_object();
 
-    let mut context = Context::new(extensions).unwrap();
+    let mut context = Context::new(extensions, None).unwrap();
 
     let code = include_bytes!("./shaders/offline_compute/compute.comp");
 
     let code = context
-        .naga_translation_extension_translate_shader_code(
+        .naga_translate_shader_code(
             naga_translation::NagaTranslationStage::Compute,
             naga_translation::NagaTranslationInput::Glsl,
             code,

@@ -1,5 +1,6 @@
 use super::*;
 
+/// Used in [`NewProgramExt`] for depth and stencil operations.
 #[derive(Default, Debug, Clone, Copy, Hash, PartialEq, Eq)]
 pub enum ShaderCompareOp {
     Never,
@@ -13,7 +14,7 @@ pub enum ShaderCompareOp {
     Always,
 }
 
-///  Used in [`NewProgramExt`] for stencil operations.
+/// Used in [`NewProgramExt`] for stencil operations.
 #[derive(Default, Debug, Clone, Copy, Hash, PartialEq, Eq)]
 pub enum ShaderStencilOp {
     #[default]
@@ -27,7 +28,7 @@ pub enum ShaderStencilOp {
     DecrementWrap,
 }
 
-//  TODO docs.
+/// Used in [`NewProgramExt`] for blending operations.
 #[derive(Default, Debug, Clone, Copy, Hash, PartialEq, Eq)]
 pub enum ShaderBlendOperation {
     #[default]
@@ -38,7 +39,7 @@ pub enum ShaderBlendOperation {
     Max,
 }
 
-//  TODO docs.
+/// Used in [`NewProgramExt`] for blending operations.
 #[derive(Default, Debug, Clone, Copy, Hash, PartialEq, Eq)]
 pub enum ShaderBlendFactor {
     #[default]
@@ -59,7 +60,7 @@ pub enum ShaderBlendFactor {
     OneMinusConstantAlpha,
 }
 
-//  TODO docs.
+/// Used in [`NewProgramExt`] for culling operations.
 #[derive(Default, Debug, Clone, Copy, Hash, PartialEq, Eq)]
 pub enum ShaderCullMode {
     Front,
@@ -67,7 +68,7 @@ pub enum ShaderCullMode {
     Back,
 }
 
-//  TODO docs.
+/// Used in [`NewProgramExt`] for culling operations.
 #[derive(Default, Debug, Clone, Copy, Hash, PartialEq, Eq)]
 pub enum ShaderCullFrontFace {
     Clockwise,
@@ -75,7 +76,7 @@ pub enum ShaderCullFrontFace {
     CounterClockwise,
 }
 
-//  TODO docs.
+/// Used in [`NewProgramExt`] for primitive topology configuration.
 #[derive(Default, Debug, Clone, Copy, Hash, PartialEq, Eq)]
 pub enum ShaderPrimitiveTopology {
     PointList,
@@ -100,6 +101,7 @@ pub enum ShaderUniformType {
 #[derive(Debug, Clone, Hash, PartialEq, Eq)]
 pub struct ShaderUniform {
     /// Although most gpus support up to 32 descriptor sets, WebGpu only allows 4.
+    /// Therefore, that is currently the max supported set count.
     pub set: usize,
     pub binding: usize,
     pub ty: ShaderUniformType,
@@ -126,18 +128,18 @@ impl<'a> ShaderSet<'a> {
     }
 }
 
+/// Allows the configuration of:
+/// - Depth testing
+/// - Stencil testing
+/// - Blending
+/// - Culling
+/// - Primitive Topology
 #[derive(Default, Debug, Clone)]
 pub struct NewProgramExt {
-    /// Enable depth testing.
-    /// [learnopengl.com](https://learnopengl.com/Advanced-OpenGL/Depth-testing) has a nice
-    /// article on this concept.
     pub enable_depth_test: Option<()>,
-    /// Enable depth writing.
     pub enable_depth_write: Option<()>,
-    /// See [`ShaderDepthCompareOp`].
     pub depth_compare_op: Option<ShaderCompareOp>,
 
-    //  TODO docs. Perhaps we may even want this to become one struct.
     pub enable_stencil_test: Option<()>,
     pub stencil_compare_op: Option<ShaderCompareOp>,
     pub stencil_fail: Option<ShaderStencilOp>,
@@ -147,7 +149,6 @@ pub struct NewProgramExt {
     pub stencil_compare_mask: Option<u32>,
     pub stencil_write_mask: Option<u32>,
 
-    //  TODO docs.
     pub enable_blend: Option<()>,
     pub blend_color_operation: Option<ShaderBlendOperation>,
     pub blend_color_src_factor: Option<ShaderBlendFactor>,
@@ -156,12 +157,10 @@ pub struct NewProgramExt {
     pub blend_alpha_src_factor: Option<ShaderBlendFactor>,
     pub blend_alpha_dst_factor: Option<ShaderBlendFactor>,
 
-    //  TODO docs.
     pub enable_culling: Option<()>,
     pub cull_mode: Option<ShaderCullMode>,
     pub cull_front_face: Option<ShaderCullFrontFace>,
 
-    //  TODO docs.
     pub primitive_topology: Option<ShaderPrimitiveTopology>,
 }
 

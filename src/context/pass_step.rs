@@ -18,8 +18,6 @@ pub struct PassStep {
     pub(crate) read_attachment: Vec<PassLocalAttachment>,
 }
 
-//  TODO EXT: Quiz Users ie Have users input the shader attachment / location indices which we then validate.
-
 impl PassStep {
     pub fn add_vertex_buffer(&mut self, vbo: VertexBufferId) -> &mut Self {
         self.vertex_buffers.push(vbo);

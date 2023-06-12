@@ -30,26 +30,18 @@ fn platform_prefered() -> Vec<Api> {
 }
 
 impl Context {
-    /// Declare the extensions you plan on using if a specific api is selected.
-    /// The platform preference order has nothing to do with this extensions list.
+    /// Create a context with extensions and either the default list of prefered apis or your own.
+    /// See [Extensions] for the list of extensions as well as their support on platforms.
     /// An error is thrown only after all apis have failed to initialize.
-    /// ```
-    ///     let mut context = Context::new(&[(
-    ///         Api::Vulkan,
-    ///         &[
-    ///             Extension::NativeDebug,
-    ///             Extension::Surface(surface::SurfaceConfiguration {
-    ///                 ...
-    ///             }),
-    ///         ],
-    ///     )]);
-    /// ```
-    pub fn new(extensions: Extensions) -> Result<Self, Vec<GpuError>>
+    pub fn new(
+        extensions: Extensions,
+        prefered_apis: Option<Vec<Api>>,
+    ) -> Result<Self, Vec<GpuError>>
     where
         Self: Sized,
     {
         let mut fails = vec![];
-        for api in platform_prefered() {
+        for api in prefered_apis.unwrap_or(platform_prefered()) {
             match api {
                 #[cfg(all(
                     not(all(target_arch = "wasm32", target_os = "unknown")),

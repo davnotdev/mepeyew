@@ -1,42 +1,51 @@
 use super::*;
 use std::marker::PhantomData;
 
-///  Defines the stride (see [`VertexInputArgCount`]) of each vbo item.
-///  ```
-///  [A, A, A, B, B, C, C, C]
-///          ^3   ^2       ^3
-///  let _ = VertexBufferInput {
-///      args: vec![3, 2, 3],
-///  };
-///  ```
+/// Defines the stride of each vbo item.
+/// ```
+/// [A, A, A, B, B, C, C, C]
+///         ^3   ^2       ^3
+///
+/// let _ = VertexBufferInput {
+///     args: vec![3, 2, 3],
+/// };
+/// ```
 #[derive(Debug, Clone, Hash, PartialEq, Eq)]
 pub struct VertexBufferInput {
     pub args: Vec<usize>,
 }
 
-///  Whether you plan on dynamically upload to a buffer later on.
+/// Whether you plan on dynamically upload to a buffer later on.
 #[derive(Debug, Clone, Copy, Hash, PartialEq, Eq)]
 pub enum BufferStorageType {
     Static,
     Dynamic,
 }
 
-///  The expected type of all vertex buffers.
+/// The expected type of all vertex buffers.
 pub type VertexBufferElement = f32;
-///  The expected type of all index buffers.
+/// The expected type of all index buffers.
 pub type IndexBufferElement = u32;
 
+/// Currently has extra extension options.
 #[derive(Default, Debug, Clone)]
 pub struct NewVertexBufferExt {}
+/// Currently has extra extension options.
 #[derive(Default, Debug, Clone)]
 pub struct NewIndexBufferExt {}
+/// Currently has extra extension options.
 #[derive(Default, Debug, Clone)]
 pub struct NewUniformBufferExt {}
+/// Currently has extra extension options.
 #[derive(Default, Debug, Clone)]
 pub struct NewDynamicUniformBufferExt {}
 
+/// Use to ensure that the correct type is used later when accessing data.
+/// This guard is merely a design decision and serves no other purpose.
 #[derive(Debug, Clone, Copy, Hash, PartialEq, Eq)]
 pub struct UniformBufferTypeGuard<T: Copy>(pub UniformBufferId, PhantomData<T>);
+/// Use to ensure that the correct type is used later when accessing data.
+/// This guard is merely a design decision and serves no other purpose.
 #[derive(Debug, Clone, Copy, Hash, PartialEq, Eq)]
 pub struct DynamicUniformBufferTypeGuard<T: Copy>(pub DynamicUniformBufferId, PhantomData<T>);
 
@@ -78,7 +87,10 @@ impl Context {
         Ok((id, UniformBufferTypeGuard(id, PhantomData)))
     }
 
-    //  TODO docs
+    /// Create multiple uniforms in one which can then be bound with an index during submission
+    /// using [Draw::set_dynamic_uniform_buffer_index] or [Dispatch::set_dynamic_uniform_buffer_index]
+    /// for graphics and compute respectively.
+    /// Setting this index later is MANDITORY.
     pub fn new_dynamic_uniform_buffer<T: Copy>(
         &mut self,
         data: &[T],
