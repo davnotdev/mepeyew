@@ -29,7 +29,7 @@
 //!
 //! ### Step Dependencies
 //!
-//! Certain methods such as [`PassStep::set_wait_for_depth_from_step`] only cause errors with
+//! Certain methods such as [`prelude::PassStep::set_wait_for_depth_from_step`] only cause errors with
 //! Vulkan.
 //! For this reason, you should always use these methods even if you code appears to work
 //! without it.

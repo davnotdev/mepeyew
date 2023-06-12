@@ -1,6 +1,26 @@
 //! Since not all platforms are created equal, extensions exist to use special features or eak out
 //! more performance.
-//! See [`Extension`] for details of each extension.
+//! See [`Extensions`] for details of each extension.
+//!
+//! ## Extension Support
+//!
+//! ✅ = Fully Supported
+//! 🆗  = Has No Effect
+//! ❌ = Unsupported
+//!
+//!  
+//! | Extension                         | Vulkan    | WebGpu    |
+//! | ---                               | ---       | ---       |
+//! | `flight_frames_count`             | ✅        | 🆗        |
+//! | `gpu_power_level`                 | ✅        | 🆗        |
+//! | `native_debug`                    | ✅        | 🆗        |
+//! | `memory_flush`                    | ✅        | 🆗        |
+//! | `naga_translation`                | ✅        | ✅        |
+//! | `webgpu_init_from_window`         | 🆗        | ✅        |
+//! | `surface_extension`               | ✅        | ✅        |
+//! | `compute`                         | ✅        | ✅        |
+//! | `shader_storage_buffer_object`    | ✅        | ❌        |
+//!
 
 pub mod compute;
 pub mod gpu_power_level;
@@ -88,7 +108,7 @@ impl Extensions {
 
     /// Rendering to the screen.
     /// Enable this unless you plan to run headlessly.
-    /// Be sure to invoke [Context::surface_extension_set_surface_size] properly.
+    /// Be sure to invoke [`crate::prelude::Context::set_surface_size`] properly.
     /// Requires that the `surface_extension` feature is enabled for you project.
     #[cfg(feature = "surface_extension")]
     pub fn surface_extension(&mut self, cfg: SurfaceConfiguration) -> &mut Self {

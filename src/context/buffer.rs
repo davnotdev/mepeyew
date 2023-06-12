@@ -88,7 +88,7 @@ impl Context {
     }
 
     /// Create multiple uniforms in one which can then be bound with an index during submission
-    /// using [Draw::set_dynamic_uniform_buffer_index] or [Dispatch::set_dynamic_uniform_buffer_index]
+    /// using [Draw::set_dynamic_uniform_buffer_index] or [super::extensions::Dispatch::set_dynamic_uniform_buffer_index]
     /// for graphics and compute respectively.
     /// Setting this index later is MANDITORY.
     pub fn new_dynamic_uniform_buffer<T: Copy>(
