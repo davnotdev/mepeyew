@@ -105,9 +105,7 @@ fn main() {
         .new_program(
             &ShaderSet::shaders(&[
                 (
-                    ShaderType::Vertex(VertexBufferInput {
-                        args: vec![VertexInputArgCount(3), VertexInputArgCount(2)],
-                    }),
+                    ShaderType::Vertex(VertexBufferInput { args: vec![3, 2] }),
                     &vs,
                 ),
                 (ShaderType::Fragment, &fs),

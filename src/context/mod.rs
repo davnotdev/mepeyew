@@ -101,7 +101,7 @@ pub enum Context {
 pub use buffer::{
     BufferStorageType, DynamicUniformBufferTypeGuard, IndexBufferElement,
     NewDynamicUniformBufferExt, NewIndexBufferExt, NewUniformBufferExt, NewVertexBufferExt,
-    UniformBufferTypeGuard, VertexBufferElement, VertexBufferInput, VertexInputArgCount,
+    UniformBufferTypeGuard, VertexBufferElement, VertexBufferInput,
 };
 pub use extensions::{Extension, Extensions};
 pub use pass::{

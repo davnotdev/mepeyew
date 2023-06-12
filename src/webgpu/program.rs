@@ -46,19 +46,19 @@ impl WebGpuProgram {
             assert_eq!(vertex_size, std::mem::size_of::<f32>());
 
             for (location, arg) in vertex_data.args.iter().enumerate() {
-                let format = match arg.0 {
+                let format = match arg {
                     1 => GpuVertexFormat::Float32,
                     2 => GpuVertexFormat::Float32x2,
                     3 => GpuVertexFormat::Float32x3,
                     4 => GpuVertexFormat::Float32x4,
                     _ => Err(gpu_api_err!(
                         "webgpu an argument count of {} is invalid for vertex buffers",
-                        arg.0
+                        arg
                     ))?,
                 };
                 let vertex_attr =
                     GpuVertexAttribute::new(format, accum_stride as f64, location as u32);
-                accum_stride += arg.0 * vertex_size;
+                accum_stride += arg * vertex_size;
                 vertex_buffer_layout_attributes.push(&vertex_attr);
             }
 

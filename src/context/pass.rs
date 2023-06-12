@@ -6,19 +6,19 @@ pub enum PassInputType {
     Depth(PassInputLoadOpDepthStencilType),
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, Hash, PartialEq, Eq)]
 pub enum PassInputLoadOpColorType {
     Load,
     Clear,
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, Hash, PartialEq, Eq)]
 pub enum PassInputLoadOpDepthStencilType {
     Load,
     Clear,
 }
 
-#[derive(Default, Debug, Clone, Copy)]
+#[derive(Default, Debug, Clone, Copy, Hash, PartialEq, Eq)]
 pub enum MsaaSampleCount {
     #[default]
     Sample1,
@@ -39,7 +39,7 @@ pub struct PassAttachment {
 }
 
 //  `surface_attachment` is always index 0 if set.
-#[derive(Default, Clone)]
+#[derive(Default, Debug, Clone)]
 pub struct Pass {
     pub(crate) steps: Vec<PassStep>,
     pub(crate) attachments: Vec<PassAttachment>,
@@ -49,7 +49,7 @@ pub struct Pass {
     pub(crate) render_height: usize,
 }
 
-#[derive(Default, Clone)]
+#[derive(Default, Debug, Clone)]
 pub struct NewPassExt {
     /// Have the pass resize with the surface.
     pub depends_on_surface_size: Option<()>,
@@ -127,7 +127,7 @@ impl Pass {
     }
 }
 
-#[derive(Default, Clone)]
+#[derive(Default, Debug, Clone)]
 pub struct CompilePassExt {
     ///  Enable multisample anti-aliasing.
     pub enable_msaa: Option<()>,

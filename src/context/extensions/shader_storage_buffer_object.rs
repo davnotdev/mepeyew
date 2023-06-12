@@ -10,6 +10,7 @@ pub struct NewShaderStorageBufferExt {}
 #[derive(Default, Debug, Clone)]
 pub struct ReadSyncedShaderStorageBufferExt {}
 
+#[derive(Debug, Clone, Copy, Hash, PartialEq, Eq)]
 pub struct ShaderStorageBufferTypeGuard<T>(pub ShaderStorageBufferId, PhantomData<T>);
 
 impl Context {

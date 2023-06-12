@@ -1,6 +1,6 @@
 use super::*;
 
-#[derive(Default, Clone)]
+#[derive(Default, Debug, Clone)]
 pub struct PassStep {
     pub(crate) step_dependency: PassStepDependency,
 

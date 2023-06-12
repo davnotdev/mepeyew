@@ -1,9 +1,7 @@
 use super::*;
 use std::collections::HashMap;
 
-//  TODO FIX: Assert that no two passes have the output attachment.
-
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub struct ClearColor {
     pub r: f32,
     pub g: f32,
@@ -11,19 +9,19 @@ pub struct ClearColor {
     pub a: f32,
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub struct ClearDepthStencil {
     pub depth: f32,
     pub stencil: u32,
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, Hash, PartialEq, Eq)]
 pub enum DrawType {
     Draw,
     DrawIndexed,
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub struct DrawViewport {
     pub x: f32,
     pub y: f32,
@@ -31,7 +29,7 @@ pub struct DrawViewport {
     pub height: f32,
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, Hash, PartialEq, Eq)]
 pub struct DrawScissor {
     pub x: usize,
     pub y: usize,
@@ -126,6 +124,7 @@ impl StepSubmitData {
     }
 }
 
+#[derive(Debug, Clone)]
 pub struct PassSubmitData {
     pub(crate) pass: CompiledPassId,
     pub(crate) steps_datas: Vec<StepSubmitData>,
@@ -173,12 +172,13 @@ impl PassSubmitData {
     }
 }
 
+#[derive(Debug, Clone)]
 pub enum SubmitPassType {
     Render(PassSubmitData),
     Compute(extensions::ComputePassSubmitData),
 }
 
-#[derive(Default)]
+#[derive(Default, Debug, Clone)]
 pub struct Submit<'transfer> {
     pub(crate) passes: Vec<SubmitPassType>,
     pub(crate) vbo_transfers: Vec<(VertexBufferId, &'transfer [VertexBufferElement])>,
@@ -290,7 +290,7 @@ impl<'transfer> Submit<'transfer> {
     }
 }
 
-#[derive(Default, Clone)]
+#[derive(Default, Debug, Clone)]
 pub struct SubmitExt {
     pub sync: Option<()>,
 }

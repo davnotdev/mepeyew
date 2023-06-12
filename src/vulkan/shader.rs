@@ -42,7 +42,7 @@ impl VkShader {
                 .args
                 .iter()
                 .enumerate()
-                .map(|(location, VertexInputArgCount(count))| {
+                .map(|(location, count)| {
                     let ret = vk::VertexInputAttributeDescription::builder()
                         .binding(0)
                         .location(location as u32)

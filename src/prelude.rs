@@ -10,6 +10,6 @@ pub use super::context::{
     ShaderCullMode, ShaderPrimitiveTopology, ShaderSet, ShaderStage, ShaderStencilOp, ShaderType,
     ShaderUniform, ShaderUniformType, StepSubmitData, Submit, SubmitExt, TextureFormat,
     UniformBufferId, UniformBufferTypeGuard, UploadTextureExt, VertexBufferElement, VertexBufferId,
-    VertexBufferInput, VertexInputArgCount,
+    VertexBufferInput,
 };
 pub use super::error::{GResult, GpuError};

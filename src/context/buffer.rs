@@ -1,14 +1,6 @@
 use super::*;
 use std::marker::PhantomData;
 
-///  Count represents the following.
-///  ```
-///  [A, A, A, B, B, C, C, C]
-///          ^3   ^2       ^3
-///  ```
-#[derive(Debug, Clone, Copy)]
-pub struct VertexInputArgCount(pub usize);
-
 ///  Defines the stride (see [`VertexInputArgCount`]) of each vbo item.
 ///  ```
 ///  [A, A, A, B, B, C, C, C]
@@ -17,13 +9,13 @@ pub struct VertexInputArgCount(pub usize);
 ///      args: vec![3, 2, 3],
 ///  };
 ///  ```
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Hash, PartialEq, Eq)]
 pub struct VertexBufferInput {
-    pub args: Vec<VertexInputArgCount>,
+    pub args: Vec<usize>,
 }
 
 ///  Whether you plan on dynamically upload to a buffer later on.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, Hash, PartialEq, Eq)]
 pub enum BufferStorageType {
     Static,
     Dynamic,
@@ -43,9 +35,9 @@ pub struct NewUniformBufferExt {}
 #[derive(Default, Debug, Clone)]
 pub struct NewDynamicUniformBufferExt {}
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, Hash, PartialEq, Eq)]
 pub struct UniformBufferTypeGuard<T: Copy>(pub UniformBufferId, PhantomData<T>);
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, Hash, PartialEq, Eq)]
 pub struct DynamicUniformBufferTypeGuard<T: Copy>(pub DynamicUniformBufferId, PhantomData<T>);
 
 impl Context {

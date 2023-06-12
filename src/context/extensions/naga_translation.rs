@@ -3,11 +3,11 @@ use naga::{back, front, valid, ShaderStage};
 
 ///  Additional information to pass to naga.
 ///  This is currently empty.
-#[derive(Default)]
+#[derive(Default, Debug)]
 pub struct NagaTranslationExtensionTranslateShaderCodeExt {}
 
 ///  The type of shader to be translated.
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, Hash, PartialEq, Eq)]
 pub enum NagaTranslationStage {
     Vertex,
     Fragment,
@@ -15,7 +15,7 @@ pub enum NagaTranslationStage {
 }
 
 ///  The expected input language.
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, Hash, PartialEq, Eq)]
 pub enum NagaTranslationInput {
     Glsl,
     Spirv,
@@ -23,7 +23,7 @@ pub enum NagaTranslationInput {
 }
 
 ///  The expected ouput language.
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, Hash, PartialEq, Eq)]
 enum NagaTranslationOutput {
     Spirv,
     Wgsl,

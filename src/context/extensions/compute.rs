@@ -3,7 +3,7 @@ use std::collections::HashMap;
 
 //  TODO docs ALL OF THIS!
 
-#[derive(Default, Debug, Clone)]
+#[derive(Default, Debug, Clone, Hash, PartialEq, Eq)]
 pub struct ComputePass {
     pub(crate) programs: Vec<ComputeProgramId>,
     pub(crate) set_blocking: bool,
@@ -26,7 +26,7 @@ impl ComputePass {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Dispatch {
     pub(crate) ty: DispatchType,
     pub(crate) program: ComputeProgramId,
@@ -50,7 +50,7 @@ impl Dispatch {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, Hash, PartialEq, Eq)]
 pub enum DispatchType {
     Blocking,
     NonBlocking,
@@ -107,9 +107,9 @@ impl ComputePassSubmitData {
     }
 }
 
-#[derive(Default, Clone)]
+#[derive(Default, Debug, Clone)]
 pub struct NewComputeProgramExt {}
-#[derive(Default, Clone)]
+#[derive(Default, Debug, Clone)]
 pub struct CompileComputePassExt {}
 
 impl Context {

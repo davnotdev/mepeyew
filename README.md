@@ -57,10 +57,9 @@ The API is designed to be stable, but I can't guarentee anything of course.
 - [x] Compute
 - [x] Blending and Culling
 - [x] Mipmaps and LOD
-- [ ] Cubemaps
 - [x] Instancing
 - [x] Replace Shader Uniform Frequency
 - [ ] More Documentation
-- [ ] More Examples
 - [ ] (Debug, Clone, Copy, Hash, PartialEq, Eq)-ify Everything
 - [ ] v0.2 Release!
+- [ ] Cubemaps

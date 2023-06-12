@@ -24,7 +24,7 @@ pub enum MipSamplerFilter {
     Linear,
 }
 
-#[derive(Default)]
+#[derive(Default, Debug)]
 pub struct GetSamplerExt {
     /// The minification filter to use.
     pub min_filter: SamplerFilter,

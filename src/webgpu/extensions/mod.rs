@@ -1,6 +1,6 @@
-mod surface;
-mod shader_storage_buffer_object;
 pub mod compute;
+mod shader_storage_buffer_object;
+mod surface;
 
 use super::*;
 

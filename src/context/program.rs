@@ -1,6 +1,6 @@
 use super::*;
 
-#[derive(Default, Debug, Clone, Copy)]
+#[derive(Default, Debug, Clone, Copy, Hash, PartialEq, Eq)]
 pub enum ShaderCompareOp {
     Never,
     #[default]
@@ -14,7 +14,7 @@ pub enum ShaderCompareOp {
 }
 
 ///  Used in [`NewProgramExt`] for stencil operations.
-#[derive(Default, Debug, Clone, Copy)]
+#[derive(Default, Debug, Clone, Copy, Hash, PartialEq, Eq)]
 pub enum ShaderStencilOp {
     #[default]
     Keep,
@@ -28,7 +28,7 @@ pub enum ShaderStencilOp {
 }
 
 //  TODO docs.
-#[derive(Default, Debug, Clone, Copy)]
+#[derive(Default, Debug, Clone, Copy, Hash, PartialEq, Eq)]
 pub enum ShaderBlendOperation {
     #[default]
     Add,
@@ -39,7 +39,7 @@ pub enum ShaderBlendOperation {
 }
 
 //  TODO docs.
-#[derive(Default, Debug, Clone, Copy)]
+#[derive(Default, Debug, Clone, Copy, Hash, PartialEq, Eq)]
 pub enum ShaderBlendFactor {
     #[default]
     Zero,
@@ -60,7 +60,7 @@ pub enum ShaderBlendFactor {
 }
 
 //  TODO docs.
-#[derive(Default, Debug, Clone, Copy)]
+#[derive(Default, Debug, Clone, Copy, Hash, PartialEq, Eq)]
 pub enum ShaderCullMode {
     Front,
     #[default]
@@ -68,7 +68,7 @@ pub enum ShaderCullMode {
 }
 
 //  TODO docs.
-#[derive(Default, Debug, Clone, Copy)]
+#[derive(Default, Debug, Clone, Copy, Hash, PartialEq, Eq)]
 pub enum ShaderCullFrontFace {
     Clockwise,
     #[default]
@@ -76,7 +76,7 @@ pub enum ShaderCullFrontFace {
 }
 
 //  TODO docs.
-#[derive(Default, Debug, Clone, Copy)]
+#[derive(Default, Debug, Clone, Copy, Hash, PartialEq, Eq)]
 pub enum ShaderPrimitiveTopology {
     PointList,
     LineList,
@@ -86,7 +86,7 @@ pub enum ShaderPrimitiveTopology {
     TriangleStrip,
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, Hash, PartialEq, Eq)]
 pub enum ShaderUniformType {
     Sampler(SamplerId),
     Texture(TextureId),
@@ -97,7 +97,7 @@ pub enum ShaderUniformType {
     ShaderStorageBufferReadOnly(extensions::ShaderStorageBufferId),
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Hash, PartialEq, Eq)]
 pub struct ShaderUniform {
     /// Although most gpus support up to 32 descriptor sets, WebGpu only allows 4.
     pub set: usize,
@@ -105,18 +105,19 @@ pub struct ShaderUniform {
     pub ty: ShaderUniformType,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Hash, PartialEq, Eq)]
 pub enum ShaderType {
     Vertex(VertexBufferInput),
     Fragment,
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, Hash, PartialEq, Eq)]
 pub enum ShaderStage {
     Vertex,
     Fragment,
 }
 
+#[derive(Debug, Clone, Hash, PartialEq, Eq)]
 pub struct ShaderSet<'a>(pub(crate) Vec<(ShaderType, &'a [u8])>);
 
 impl<'a> ShaderSet<'a> {
@@ -125,7 +126,7 @@ impl<'a> ShaderSet<'a> {
     }
 }
 
-#[derive(Default, Clone)]
+#[derive(Default, Debug, Clone)]
 pub struct NewProgramExt {
     /// Enable depth testing.
     /// [learnopengl.com](https://learnopengl.com/Advanced-OpenGL/Depth-testing) has a nice

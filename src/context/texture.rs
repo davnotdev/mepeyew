@@ -1,13 +1,13 @@
 use super::*;
 
-#[derive(Debug, Hash, PartialEq, Eq, Clone, Copy)]
+#[derive(Debug, Clone, Copy, Hash, PartialEq, Eq)]
 pub enum TextureFormat {
     //  80% of gpus with vulkan don't support Rgb.
     //  Rgb,
     Rgba,
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, Hash, PartialEq, Eq)]
 pub enum AttachmentImageColorFormat {
     R8UNorm,
     R8G8UNorm,
@@ -22,13 +22,13 @@ pub enum AttachmentImageColorFormat {
     R32G32B32A32SFloat,
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, Hash, PartialEq, Eq)]
 pub enum AttachmentImageUsage {
     ColorAttachment,
     DepthAttachment,
 }
 
-#[derive(Default, Debug, Clone)]
+#[derive(Default, Debug)]
 pub struct NewTextureExt {
     pub enable_mipmaps: Option<()>,
     pub mip_levels: Option<u32>,
@@ -39,7 +39,7 @@ pub struct UploadTextureExt {
     /// The mipmap count can be contained with [`Context::get_texture_max_lod`]
     pub generate_mipmaps: Option<()>,
 }
-#[derive(Default, Clone)]
+#[derive(Default, Debug, Clone)]
 pub struct NewAttachmentImageExt {
     /// Should match the mssa samples used in [`CompilePassExt`].
     /// Or, the value can be obtained
