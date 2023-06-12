@@ -3,7 +3,7 @@ use std::collections::HashMap;
 
 //  TODO docs ALL OF THIS!
 
-/// A compute pass that is later compiled with `[Context::compile_compute_pass]`.
+/// A compute pass that is later compiled with [`Context::compile_compute_pass`].
 #[derive(Default, Debug, Clone, Hash, PartialEq, Eq)]
 pub struct ComputePass {
     pub(crate) programs: Vec<ComputeProgramId>,

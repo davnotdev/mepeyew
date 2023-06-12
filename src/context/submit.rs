@@ -282,7 +282,7 @@ impl<'transfer> Submit<'transfer> {
     }
 
     /// Write the shader storage buffer back into CPU memory after rendering.
-    /// This is essential for `[Context::read_synced_shader_storage_buffer]`
+    /// This is essential for [`Context::read_synced_shader_storage_buffer`]
     pub fn sync_shader_storage_buffer(
         &mut self,
         ssbo: extensions::ShaderStorageBufferId,
