@@ -115,7 +115,7 @@ impl WebGpuDynamicBuffer {
 
         WebGpuDynamicBuffer {
             buffer,
-            per_index_offset: padded.len() / data.len(),
+            per_index_offset: min_alignment,
         }
     }
 
