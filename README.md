@@ -9,15 +9,15 @@ MacOS, etc), where said platform has its own little quirks and tricks.
 Built in rust, `mepeyew` is meant to hide away these quirks in a nice and neat package while
 trying to give you as much power as possible!
 
-![An image was meant to go here](./images/pbr.png)
-
-> A physically based rendering with spheres
+|       Hello Triangle       |      PBR Spheres      |
+| :------------------------: | :-------------------: |
+| ![](./images/triangle.png) | ![](./images/pbr.png) |
 
 ## Platform Support
 
 You can run `mepeyew` on Windows, MacOS, Linux, and the Web.
 Currently, we support [Vulkan](https://www.vulkan.org/) and [WebGpu](https://developer.mozilla.org/en-US/docs/Web/API/WebGPU_API).
-In terms of shading languages, we support [Glsl](https://www.khronos.org/opengl/wiki/Core_Language_(GLSL)), [Spirv](https://www.khronos.org/spir/), and [Wgsl](https://www.w3.org/TR/WGSL/) all with the help of [naga](https://github.com/gfx-rs/naga).
+In terms of shading languages, we support [Glsl](<https://www.khronos.org/opengl/wiki/Core_Language_(GLSL)>), [Spirv](https://www.khronos.org/spir/), and [Wgsl](https://www.w3.org/TR/WGSL/) all with the help of [naga](https://github.com/gfx-rs/naga).
 
 ## Getting Started
 
