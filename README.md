@@ -9,9 +9,9 @@ MacOS, etc), where said platform has its own little quirks and tricks.
 Built in rust, `mepeyew` is meant to hide away these quirks in a nice and neat package while
 trying to give you as much power as possible!
 
-|       Hello Triangle       |      PBR Spheres      |
-| :------------------------: | :-------------------: |
-| ![](./images/triangle.png) | ![](./images/pbr.png) |
+|       Hello Triangle       |          Outlined Cube          |      PBR Spheres      |
+| :------------------------: | :-----------------------------: | :-------------------: |
+| ![](./images/triangle.png) | ![](./images/outlined_cube.png) | ![](./images/pbr.png) |
 
 ## Platform Support
 
