@@ -24,7 +24,7 @@ In terms of shading languages, we support [Glsl](<https://www.khronos.org/opengl
 Add this to your `Cargo.toml`:
 
 ```
-mepeyew = "0.1"
+mepeyew = "0.2"
 ```
 
 This enables `mepeyew` with the following features:
