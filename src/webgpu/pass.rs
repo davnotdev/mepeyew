@@ -74,6 +74,7 @@ impl WebGpuCompiledPass {
                             ShaderCullFrontFace::Clockwise => GpuFrontFace::Cw,
                             ShaderCullFrontFace::CounterClockwise => GpuFrontFace::Ccw,
                         })
+                        .strip_index_format(GpuIndexFormat::Uint32)
                         .topology(match program.ext.primitive_topology.unwrap_or_default() {
                             ShaderPrimitiveTopology::PointList => GpuPrimitiveTopology::PointList,
                             ShaderPrimitiveTopology::LineList => GpuPrimitiveTopology::LineList,
