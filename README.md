@@ -48,6 +48,18 @@ I'm deeply sorry, but in this strange world, there is no such thing as "basic us
 I'd like to put the classic triangle example code, but that would completely fill your screen.
 Instead, I'd recommend checking [out the examples here on Github](https://github.com/davnotdev/mepeyew/tree/main/examples).
 
+## Using on MacOS
+
+MacOS does not natively support Vulkan, so you will need to install LunarG's Vulkan SDK [from here](https://www.lunarg.com/vulkan-sdk/).
+Then, you will need the following exports to proper compile.
+
+```
+VULKAN_SDK=$HOME/VulkanSDK/<version>/macOS
+DYLD_FALLBACK_LIBRARY_PATH=$VULKAN_SDK/lib
+VK_ICD_FILENAMES=$VULKAN_SDK/share/vulkan/icd.d/MoltenVK_icd.json
+VK_LAYER_PATH=$VULKAN_SDK/share/vulkan/explicit_layer.d
+```
+
 ## Using on the Web
 
 Currently, initializing WebGpu requires async which is currently not supported.
