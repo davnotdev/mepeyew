@@ -1,5 +1,10 @@
 # Mepeyew
 
+![Version Badge](https://img.shields.io/crates/v/mepeyew)
+![Docs Badge](https://img.shields.io/docsrs/mepeyew/latest)
+![License Badge](https://img.shields.io/crates/l/mepeyew)
+![Downloads Badge](https://img.shields.io/crates/d/mepeyew)
+
 Computer graphics has gotten to the point where you can't just draw pixels onto
 the screen directly anymore.
 Instead, rendering APIs are used for drawing in order to efficiently utilize the hardware.
