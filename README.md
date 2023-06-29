@@ -1,9 +1,9 @@
 # Mepeyew
 
-![Version Badge](https://img.shields.io/crates/v/mepeyew)
-![Docs Badge](https://img.shields.io/docsrs/mepeyew/latest)
-![License Badge](https://img.shields.io/crates/l/mepeyew)
-![Downloads Badge](https://img.shields.io/crates/d/mepeyew)
+[![Version Badge](https://img.shields.io/crates/v/mepeyew)](https://crates.io/crates/mepeyew)
+[![Docs Badge](https://img.shields.io/docsrs/mepeyew/latest)](https://docs.rs/mepeyew/latest/mepeyew/)
+[![License Badge](https://img.shields.io/crates/l/mepeyew)](LICENSE)
+[![Downloads Badge](https://img.shields.io/crates/d/mepeyew)](https://crates.io/crates/mepeyew)
 
 Computer graphics has gotten to the point where you can't just draw pixels onto
 the screen directly anymore.
