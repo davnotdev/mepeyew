@@ -91,3 +91,8 @@ The API is designed to be stable, but I can't guarantee anything of course.
 - [x] (Debug, Clone, Copy, Hash, PartialEq, Eq)-ify Everything
 - [x] v0.2 Release!
 - [ ] Cubemaps
+- [ ] MacOS Build Script
+- [ ] Async / Await Extension
+- [ ] Buffer Naming Extension
+- [ ] Step Numbering
+- [ ] v0.3 Release?
