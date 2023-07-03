@@ -48,6 +48,11 @@ I'm deeply sorry, but in this strange world, there is no such thing as "basic us
 I'd like to put the classic triangle example code, but that would completely fill your screen.
 Instead, I'd recommend checking [out the examples here on Github](https://github.com/davnotdev/mepeyew/tree/main/examples).
 
+## Platform Dependent Nastiness
+
+Unfortunately, not everything can be fully abstracted!
+Please read the [docs](https://docs.rs/mepeyew) before continuing!
+
 ## Using on MacOS
 
 MacOS does not natively support Vulkan, so you will need to install LunarG's Vulkan SDK [from here](https://www.lunarg.com/vulkan-sdk/).

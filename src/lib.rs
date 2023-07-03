@@ -23,16 +23,18 @@
 //!
 //! ### Uniform Padding
 //!
-//! Vulkan has very specific alignment requirements for uniform buffers (of any kind).
+//! Both Vulkan and WebGPU have very specific alignment requirements for uniform buffers (of any kind).
 //! Failing to conform with these requirements leads to strange shader behaviour.
-//! You can read [Vulkan's specification here](https://registry.khronos.org/vulkan/specs/1.3-extensions/html/chap15.html#interfaces-resources-layout)
+//! You can read [this blog](https://fvcaputo.github.io/2019/02/06/memory-alignment.html)
+//! for a good explanation.
 //!
 //! ### Step Dependencies
 //!
-//! Certain methods such as [`prelude::PassStep::set_wait_for_depth_from_step`] only cause errors with
-//! Vulkan.
-//! For this reason, you should always use these methods even if you code appears to work
-//! without it.
+//! Certain methods such as [`prelude::PassStep::set_wait_for_depth_from_step`]
+//! don't have an effect on all APIs.
+//! However, on backends that do utilize these methods, they are indispensable.
+//! For this reason, you should always use these methods even if you code appears
+//! to work without it.
 
 pub mod prelude;
 
