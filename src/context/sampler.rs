@@ -18,7 +18,6 @@ pub enum SamplerFilter {
     Linear,
 }
 
-
 /// Used in [`GetSamplerExt`].
 #[derive(Debug, Clone, Copy, Hash, Default, PartialEq, Eq)]
 pub enum MipSamplerFilter {

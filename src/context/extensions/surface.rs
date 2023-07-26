@@ -11,11 +11,7 @@ pub struct SurfaceConfiguration {
 
 impl Context {
     /// Call when the surface resizes.
-    pub fn set_surface_size(
-        &mut self,
-        width: usize,
-        height: usize,
-    ) -> GResult<()> {
+    pub fn set_surface_size(&mut self, width: usize, height: usize) -> GResult<()> {
         match self {
             Self::Vulkan(vk) => vk.surface_extension_set_surface_size(width, height),
             Self::WebGpu(wgpu) => wgpu.surface_extension_set_surface_size(width, height),

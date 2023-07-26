@@ -18,6 +18,7 @@ pub fn check_extensions(extensions: &Extensions) -> GResult<()> {
             Extension::MemoryFlush => Ok(()),
             Extension::NagaTranslation => Ok(()),
             Extension::WebGpuInitFromWindow(_) => Ok(()),
+            Extension::WebGpuInit(_) => Ok(()),
             Extension::Surface(_) => Ok(()),
             Extension::Compute => Ok(()),
             Extension::ShaderStorageBufferObject => Ok(()),
