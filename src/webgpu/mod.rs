@@ -5,6 +5,7 @@ use super::{
 };
 use js_sys::*;
 use wasm_bindgen::prelude::*;
+use wasm_bindgen_futures::JsFuture;
 use web_sys::*;
 
 use attachment_image::WebGpuAttachmentImage;
@@ -56,42 +57,50 @@ pub struct WebGpuContext {
 
 impl WebGpuContext {
     pub fn new(extensions: Extensions) -> GResult<Self> {
-        extensions::check_extensions(&extensions)?;
+        extensions::check_extensions(&extensions, false)?;
 
-        //  Take adapter, device, and canvas id from WebGpuInit extension.
-        let (adapter_str, device_str, canvas_id) = extensions
+        //  Take adapter, device, and canvas id from WebGpuInitFromWindow extension.
+        let (adapter, device, canvas_id) = extensions
             .extensions
             .iter()
             .find_map(|ext| {
                 if let Extension::WebGpuInitFromWindow(init) = ext.clone() {
-                    Some((init.adapter, init.device, init.canvas_id))
+                    Some(Self::init_from_window(init))
                 } else {
                     None
                 }
             })
             .ok_or(gpu_api_err!(
-                "webgpu expected extension WebGpuInit to be used."
-            ))?;
+                "webgpu expected extension WebGpuInitFromWindow (not WebGpuInit) to be used"
+            ))??;
 
+        Self::new_with(adapter, device, canvas_id)
+    }
+
+    pub async fn async_new(extensions: Extensions) -> GResult<Self> {
+        extensions::check_extensions(&extensions, true)?;
+
+        //  Take adapter, device, and canvas id from WebGpuInitFromWindow extension.
+        let mut init_extension = None;
+        for ext in extensions.extensions.iter() {
+            if let Extension::WebGpuInit(init) = ext.clone() {
+                init_extension = Some(Self::init(init).await);
+                break;
+            }
+        }
+        let (adapter, device, canvas_id) = init_extension.ok_or(gpu_api_err!(
+            "webgpu expected extension WebGpuInit (not WebGpuInitFromWindow) to be used"
+        ))??;
+
+        Self::new_with(adapter, device, canvas_id)
+    }
+
+    fn new_with(
+        adapter: GpuAdapter,
+        device: GpuDevice,
+        canvas_id: Option<String>,
+    ) -> GResult<Self> {
         let window = window().unwrap();
-
-        let window_flabby: &JsValue = &window;
-
-        let adapter_key = JsValue::from_str(&adapter_str);
-        let device_key = JsValue::from_str(&device_str);
-
-        let adapter = Reflect::get(window_flabby, &adapter_key)
-            .map_err(|e| gpu_api_err!("webgpu window.{} does not exist: {:?}", adapter_str, e))?
-            .dyn_into::<GpuAdapter>()
-            .map_err(|e| {
-                gpu_api_err!("webgpu window.{} is not a GPUAdapter: {:?}", adapter_str, e)
-            })?;
-        let device = Reflect::get(window_flabby, &device_key)
-            .map_err(|e| gpu_api_err!("webgpu window.{} does not exist: {:?}", device_str, e))?
-            .dyn_into::<GpuDevice>()
-            .map_err(|e| {
-                gpu_api_err!("webgpu window.{} is not a GPUDevice: {:?}", device_str, e)
-            })?;
 
         //  Optionally configure canvas.
         let surface = if let Some(canvas_id) = canvas_id {

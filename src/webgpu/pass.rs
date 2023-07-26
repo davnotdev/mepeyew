@@ -60,6 +60,7 @@ impl WebGpuCompiledPass {
                         layout = pipeline_layout.into();
                     }
 
+                    let primitive_topology = program.ext.primitive_topology.unwrap_or_default();
                     let mut primitive = GpuPrimitiveState::new();
                     primitive
                         .cull_mode(if program.ext.enable_culling.is_some() {
@@ -74,14 +75,20 @@ impl WebGpuCompiledPass {
                             ShaderCullFrontFace::Clockwise => GpuFrontFace::Cw,
                             ShaderCullFrontFace::CounterClockwise => GpuFrontFace::Ccw,
                         })
-                        .strip_index_format(GpuIndexFormat::Uint32)
-                        .topology(match program.ext.primitive_topology.unwrap_or_default() {
+                        .topology(match primitive_topology {
                             ShaderPrimitiveTopology::PointList => GpuPrimitiveTopology::PointList,
                             ShaderPrimitiveTopology::LineList => GpuPrimitiveTopology::LineList,
                             ShaderPrimitiveTopology::LineStrip => GpuPrimitiveTopology::LineStrip,
                             ShaderPrimitiveTopology::TriangleList => GpuPrimitiveTopology::TriangleList,
                             ShaderPrimitiveTopology::TriangleStrip => GpuPrimitiveTopology::TriangleStrip,
                         });
+
+                    match primitive_topology {
+                        ShaderPrimitiveTopology::LineStrip | ShaderPrimitiveTopology::TriangleStrip => {
+                            primitive.strip_index_format(GpuIndexFormat::Uint32);
+                        },
+                        _ => {}
+                    }
 
                     let mut pipeline_info = GpuRenderPipelineDescriptor::new(&layout, &vertex);
                     pipeline_info

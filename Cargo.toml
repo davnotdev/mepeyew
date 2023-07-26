@@ -16,7 +16,7 @@ default = [
     "naga_translation",
 ]
 vulkan = ["dep:ash", "dep:gpu-allocator", "dep:raw-window-metal"]
-webgpu = ["dep:wasm-bindgen", "dep:web-sys", "dep:js-sys"]
+webgpu = ["dep:wasm-bindgen", "dep:web-sys", "dep:js-sys", "dep:wasm-bindgen-futures"]
 surface_extension = ["dep:raw-window-handle"]
 naga_translation = ["dep:naga"]
 
@@ -25,6 +25,7 @@ winit = "0.28.1"
 nalgebra-glm = "0.18"
 stb_image_rust = "2.27.2"
 console_error_panic_hook = "0.1"
+pollster = "0.3"
 
 [dependencies]
 #  surface_extension
@@ -47,6 +48,7 @@ raw-window-metal = { version = "0.3", optional = true }
 js-sys = { version = "0.3", optional = true }
 wasm-bindgen = { version = "0.2", optional = true }
 web-sys = { version = "0.3", features = ["console", "Document", "Window", "Element", "Navigator", "Gpu", "GpuAdapter", "GpuDevice", "GpuCanvasContext", "HtmlCanvasElement", "GpuCanvasConfiguration", "GpuTextureFormat", "GpuCanvasAlphaMode", "GpuBuffer", "GpuBufferDescriptor", "GpuCommandEncoder", "GpuRenderPipeline", "GpuRenderPipelineDescriptor", "GpuDepthStencilState", "GpuFragmentState", "GpuPrimitiveState", "GpuVertexState", "GpuShaderModule", "GpuShaderModuleDescriptor", "GpuBindGroupLayout", "GpuBindGroupLayoutDescriptor", "GpuBufferBindingLayout", "GpuTextureBindingLayout", "GpuSamplerBindingLayout", "GpuBufferBindingType", "GpuBindGroup", "GpuBindGroupDescriptor", "GpuBindGroupLayoutEntry", "GpuBindGroupEntry", "GpuPrimitiveState", "GpuCullMode", "GpuFrontFace", "GpuPrimitiveTopology", "GpuCompareFunction", "GpuColorTargetState", "GpuRenderPassEncoder", "GpuRenderPassDescriptor", "GpuQueue", "GpuCommandBuffer", "GpuRenderPassColorAttachment", "GpuRenderPassDepthStencilAttachment", "GpuLoadOp", "GpuStoreOp", "GpuTextureView", "GpuTextureViewDescriptor", "GpuTexture", "GpuTextureDescriptor", "GpuPipelineLayout", "GpuPipelineLayoutDescriptor", "GpuVertexBufferLayout", "GpuVertexFormat", "GpuVertexAttribute", "GpuIndexFormat", "GpuColorDict", "GpuSampler", "GpuSamplerDescriptor", "GpuAddressMode", "GpuFilterMode", "GpuImageCopyTexture", "GpuImageDataLayout", "GpuBufferBinding", "GpuTextureSampleType", "GpuStencilFaceState", "GpuStencilOperation", "GpuMultisampleState", "GpuBlendState", "GpuBlendComponent", "GpuBlendFactor", "GpuBlendOperation", "GpuExtent3dDict", "GpuImageCopyTexture", "GpuMipmapFilterMode", "GpuComputePipeline", "GpuComputePipelineDescriptor", "GpuProgrammableStage", "GpuComputePassEncoder", "GpuSupportedLimits"], optional = true }
+wasm-bindgen-futures = { version = "0.4", optional = true }
 
 [workspace]
 members = [

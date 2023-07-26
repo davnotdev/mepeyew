@@ -223,6 +223,10 @@ impl VkContext {
         })
     }
 
+    pub async fn async_new(extensions: Extensions) -> GResult<Self> {
+        Self::new(extensions)
+    }
+
     pub fn flush_memory(&mut self) {
         unsafe {
             self.core.dev.device_wait_idle().unwrap();
