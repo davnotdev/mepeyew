@@ -278,25 +278,6 @@ impl WebGpuMipmapStateCache {
             mip_level_height /= 2;
         }
 
-        //  const mipLevelSize = {
-        // width: Math.ceil(textureDescriptor.size.width / 2),
-        // height: Math.ceil(textureDescriptor.size.height / 2),
-        // depthOrArrayLayers: arrayLayerCount,
-        // };
-
-        // for (let i = 1; i < textureDescriptor.mipLevelCount; ++i) {
-        // commandEncoder.copyTextureToTexture({
-        //   texture: mipTexture,
-        //   mipLevel: i-1,
-        // }, {
-        //   texture: texture,
-        //   mipLevel: i,
-        // }, mipLevelSize);
-
-        // mipLevelSize.width = Math.ceil(mipLevelSize.width / 2);
-        // mipLevelSize.height = Math.ceil(mipLevelSize.height / 2);
-        // }
-
         let submits = Array::new();
         submits.push(&command_encoder.finish());
         device.queue().submit(&submits);
