@@ -31,6 +31,9 @@ impl Context {
 
     /// Read from a synced shader storage buffer object after rendering.
     /// Sync a shader storage buffer using `Submit::sync_shader_storage_buffer`.
+    ///
+    /// This method is **not** compatible with WebGpu.
+    /// Use [`Context::async_read_synced_shader_storage_buffer`] instead.
     pub fn read_synced_shader_storage_buffer<T: Copy>(
         &self,
         ssbo: ShaderStorageBufferTypeGuard<T>,
@@ -39,6 +42,10 @@ impl Context {
         unsafe { self.read_synced_shader_storage_buffer_unchecked(ssbo.0, ext) }
     }
 
+    /// Read from a synced shader storage buffer object after rendering.
+    /// Sync a shader storage buffer using [`Submit::sync_shader_storage_buffer`].
+    ///
+    /// This method is compatible with WebGpu.
     pub async fn async_read_synced_shader_storage_buffer<T: Copy>(
         &self,
         ssbo: ShaderStorageBufferTypeGuard<T>,
@@ -52,6 +59,9 @@ impl Context {
 
     /// Read from a synced shader storage buffer object after rendering.
     /// Sync a shader storage buffer using `Submit::sync_shader_storage_buffer`.
+    ///
+    /// This method is **not** compatible with WebGpu.
+    /// Use [`Context::async_read_synced_shader_storage_buffer_unchecked`] instead.
     ///
     /// # Safety
     ///
@@ -68,6 +78,15 @@ impl Context {
         }
     }
 
+    /// Read from a synced shader storage buffer object after rendering.
+    /// Sync a shader storage buffer using [`Submit::sync_shader_storage_buffer`].
+    ///
+    /// This method is compatible with WebGpu.
+    ///
+    /// # Safety
+    ///
+    /// The type `T` is not validated.
+    /// For validation, use [`Context::read_synced_shader_storage_buffer`].
     pub async unsafe fn async_read_synced_shader_storage_buffer_unchecked<T: Copy>(
         &self,
         ssbo: ShaderStorageBufferId,

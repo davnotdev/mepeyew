@@ -1,3 +1,5 @@
+/// This requires async to be present.
+/// Use [`super::WebGpuInitFromWindow`] otherwise.
 #[derive(Debug, Clone)]
 pub struct WebGpuInit {
     /// Used if you indend on rendering to a canvas.

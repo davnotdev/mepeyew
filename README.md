@@ -67,9 +67,7 @@ VK_LAYER_PATH=$VULKAN_SDK/share/vulkan/explicit_layer.d
 
 ## Using on the Web
 
-Currently, initializing WebGpu requires async which is currently not supported.
-Because of this, we use the `WebGpuInitFromWindow` extension as a workaround.
-You can see its use in the examples.
+> Be sure to see the documentation regarding `WebGpuInit` and `WebGpuInitFromWindow`.
 
 The easiest way to get setup is to create an extra workspace member in your
 `Cargo.toml`.
@@ -84,6 +82,8 @@ members = [
 Then, implement `run_wasm` exactly as shown in this repo.
 This is very important as this project depends on my fork of `run_wasm` and
 NOT the original crate.
+
+Of course, you can use `wasm-pack`, `trunk`, or whatever else you'd like.
 
 ## Road Map
 
@@ -114,7 +114,6 @@ The API is designed to be stable, but I can't guarantee anything of course.
 - [x] v0.2 Release!
 - [ ] Cubemaps
 - [ ] MacOS Build Script
-- [ ] Async / Await Extension
-- [ ] Buffer Naming Extension
+- [x] Async / Await Extension
 - [ ] Step Numbering
 - [ ] v0.3 Release?
