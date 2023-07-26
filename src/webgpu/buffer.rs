@@ -18,6 +18,7 @@ impl WebGpuContext {
                     _ => 0,
                 },
             unsafe { std::slice::from_raw_parts(data.as_ptr() as *const u8, size) },
+            false,
         );
         self.vbos.push(buffer);
         Ok(VertexBufferId::from_id(self.vbos.len() - 1))
@@ -39,6 +40,7 @@ impl WebGpuContext {
                     _ => 0,
                 },
             unsafe { std::slice::from_raw_parts(data.as_ptr() as *const u8, size) },
+            false,
         );
         self.ibos.push(buffer);
         Ok(IndexBufferId::from_id(self.ibos.len() - 1))
@@ -55,6 +57,7 @@ impl WebGpuContext {
             size as u32,
             GpuBufferUsageFlags::Uniform as u32 | GpuBufferUsageFlags::CopyDst as u32,
             unsafe { std::slice::from_raw_parts(data as *const T as *const u8, size) },
+            false,
         );
         self.ubos.push(buffer);
         Ok(UniformBufferId::from_id(self.ubos.len() - 1))
@@ -78,11 +81,19 @@ impl WebGpuContext {
 }
 
 pub struct WebGpuBuffer {
+    pub size: u32,
     pub buffer: GpuBuffer,
+    pub readable_buffer: Option<GpuBuffer>,
 }
 
 impl WebGpuBuffer {
-    pub fn new(device: &GpuDevice, size: u32, usage: u32, data: &[u8]) -> Self {
+    pub fn new(
+        device: &GpuDevice,
+        size: u32,
+        usage: u32,
+        data: &[u8],
+        create_readable_buffer: bool,
+    ) -> Self {
         let mut buffer_info = GpuBufferDescriptor::new(size as f64, usage);
         buffer_info.mapped_at_creation(true);
 
@@ -95,7 +106,19 @@ impl WebGpuBuffer {
 
         buffer.unmap();
 
-        WebGpuBuffer { buffer }
+        let readable_buffer = create_readable_buffer.then(|| {
+            let buffer_info = GpuBufferDescriptor::new(
+                size as f64,
+                GpuBufferUsageFlags::CopyDst as u32 | GpuBufferUsageFlags::MapRead as u32,
+            );
+            device.create_buffer(&buffer_info)
+        });
+
+        WebGpuBuffer {
+            size,
+            buffer,
+            readable_buffer,
+        }
     }
 }
 
@@ -111,7 +134,7 @@ impl WebGpuDynamicBuffer {
             std::slice::from_raw_parts(data.as_ptr() as *const u8, each_size * data.len())
         };
         let padded = unsafe { pad_raw_slice(byte_slice, min_alignment, each_size, data.len()) };
-        let buffer = WebGpuBuffer::new(device, padded.len() as u32, usage, &padded);
+        let buffer = WebGpuBuffer::new(device, padded.len() as u32, usage, &padded, false);
 
         WebGpuDynamicBuffer {
             buffer,

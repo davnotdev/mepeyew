@@ -39,6 +39,17 @@ impl Context {
         unsafe { self.read_synced_shader_storage_buffer_unchecked(ssbo.0, ext) }
     }
 
+    pub async fn async_read_synced_shader_storage_buffer<T: Copy>(
+        &self,
+        ssbo: ShaderStorageBufferTypeGuard<T>,
+        ext: Option<ReadSyncedShaderStorageBufferExt>,
+    ) -> GResult<T> {
+        unsafe {
+            self.async_read_synced_shader_storage_buffer_unchecked(ssbo.0, ext)
+                .await
+        }
+    }
+
     /// Read from a synced shader storage buffer object after rendering.
     /// Sync a shader storage buffer using `Submit::sync_shader_storage_buffer`.
     ///
@@ -54,6 +65,20 @@ impl Context {
         match self {
             Self::Vulkan(vk) => vk.read_synced_shader_storage_buffer(ssbo, ext),
             Self::WebGpu(wgpu) => wgpu.read_synced_shader_storage_buffer(ssbo, ext),
+        }
+    }
+
+    pub async unsafe fn async_read_synced_shader_storage_buffer_unchecked<T: Copy>(
+        &self,
+        ssbo: ShaderStorageBufferId,
+        ext: Option<ReadSyncedShaderStorageBufferExt>,
+    ) -> GResult<T> {
+        match self {
+            Self::Vulkan(vk) => vk.async_read_synced_shader_storage_buffer(ssbo, ext).await,
+            Self::WebGpu(wgpu) => {
+                wgpu.async_read_synced_shader_storage_buffer(ssbo, ext)
+                    .await
+            }
         }
     }
 }

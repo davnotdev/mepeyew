@@ -12,6 +12,10 @@ impl MockContext {
         unimplemented!("No backend chosen")
     }
 
+    pub async fn async_new(_extensions: &Extensions) -> GResult<Self> {
+        unimplemented!("No backend chosen")
+    }
+
     pub fn new_vertex_buffer(
         &mut self,
         _data: &[VertexBufferElement],

@@ -32,3 +32,11 @@ pub enum GpuTextureUsageFlags {
     StorageBinding = 0x08,
     RenderAttachment = 0x10,
 }
+
+//  https://webgpu.rocks/reference/typedef/gpumapmodeflags/#idl-gpumapmodeflags
+#[allow(unused)]
+#[repr(u32)]
+pub enum GpuMapModeFlags {
+    Read = 0x0001,
+    Write = 0x0002,
+}
