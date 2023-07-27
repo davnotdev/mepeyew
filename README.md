@@ -29,7 +29,7 @@ In terms of shading languages, we support [Glsl](<https://www.khronos.org/opengl
 Add this to your `Cargo.toml`:
 
 ```
-mepeyew = "0.2"
+mepeyew = "0.3"
 ```
 
 This enables `mepeyew` with the following features:
@@ -113,4 +113,4 @@ The API is designed to be stable, but I can't guarantee anything of course.
 - [x] Async / Await
 - [x] WebGpu Resizing
 - [x] Remove `prelude`
-- [ ] v0.3 Release!
+- [x] v0.3 Release!
