@@ -250,6 +250,7 @@ fn main() {
     #[cfg(all(feature = "webgpu", target_arch = "wasm32", target_os = "unknown"))]
     let mut start: f32 = 0.0;
 
+    let mut last_window_size = window_size;
     event_loop.run(move |event, _, control_flow| {
         control_flow.set_poll();
 
@@ -268,6 +269,12 @@ fn main() {
             }
             Event::MainEventsCleared => {
                 let window_size = get_window_size(&window);
+                if last_window_size.0 != window_size.0 || last_window_size.1 != window_size.1 {
+                    context
+                        .set_surface_size(window_size.0, window_size.1)
+                        .unwrap();
+                }
+                last_window_size = window_size;
 
                 #[cfg(not(any(target_arch = "wasm32", target_os = "unknown")))]
                 let elapsed = start.elapsed().as_millis() as f32 / 100.0;

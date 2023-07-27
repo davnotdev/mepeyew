@@ -41,16 +41,13 @@ This enables `mepeyew` with the following features:
 
 If you do not plan on using these features, disabling them will decrease your dependency count.
 
-## Examples
-
-Hey, welcome to the world of graphics programming.
-I'm deeply sorry, but in this strange world, there is no such thing as "basic usage".
-I'd like to put the classic triangle example code, but that would completely fill your screen.
-Instead, I'd recommend checking [out the examples here on Github](https://github.com/davnotdev/mepeyew/tree/main/examples).
+To get started with using `mepeyew`, check out
+[the examples here on Github](https://github.com/davnotdev/mepeyew/tree/main/examples).
+They assume that you already understand graphics programming.
 
 ## Platform Dependent Nastiness
 
-Unfortunately, not everything can be fully abstracted!
+Unfortunately, not everything can be fully abstracted away!
 Please read the [docs](https://docs.rs/mepeyew) before continuing!
 
 ## Using on MacOS
@@ -87,7 +84,7 @@ Of course, you can use `wasm-pack`, `trunk`, or whatever else you'd like.
 
 ## Road Map
 
-This project is a work in progress!
+This project is mostly complete, but there are still bugs and changes that may come.
 The API is designed to be stable, but I can't guarantee anything of course.
 
 - [x] Basic Uniforms
@@ -112,6 +109,8 @@ The API is designed to be stable, but I can't guarantee anything of course.
 - [x] More Documentation
 - [x] (Debug, Clone, Copy, Hash, PartialEq, Eq)-ify Everything
 - [x] v0.2 Release!
-- [ ] Cubemaps
-- [x] Async / Await Extension
-- [ ] v0.3 Release?
+- [x] Cubemaps
+- [x] Async / Await
+- [x] WebGpu Resizing
+- [ ] Remove `prelude`
+- [ ] v0.3 Release!

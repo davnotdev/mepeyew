@@ -27,8 +27,18 @@ impl WebGpuContext {
             attachment_image.recreate_with_new_size(&self.device, width, height);
         }
 
+        //  Recreate Programs.
+        //  TODO
+        let e = unsafe { &mut *(self as *mut WebGpuContext) };
+        for program in self.programs.iter_mut() {
+            program.recreate_bind_groups(e)?;
+        }
+
         //  Resize Dependent Passes.
         for pass_idx in 0..self.compiled_passes.len() {
+            let pass = &mut self.compiled_passes[pass_idx];
+            pass.original_pass.render_width = width;
+            pass.original_pass.render_height = height;
             let pass = &self.compiled_passes[pass_idx];
             let new_pass =
                 WebGpuCompiledPass::new(self, &pass.original_pass, Some(pass.ext.clone()))?;
