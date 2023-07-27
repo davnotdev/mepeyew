@@ -91,6 +91,7 @@ pub enum ShaderPrimitiveTopology {
 pub enum ShaderUniformType {
     Sampler(SamplerId),
     Texture(TextureId),
+    CubemapTexture(TextureId),
     UniformBuffer(UniformBufferId),
     DynamicUniformBuffer(DynamicUniformBufferId),
     InputAttachment(AttachmentImageId),

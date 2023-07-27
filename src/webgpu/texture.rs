@@ -52,6 +52,55 @@ impl WebGpuContext {
         Ok(())
     }
 
+    pub fn upload_cubemap_texture(
+        &mut self,
+        texture: TextureId,
+        upload: CubemapTextureUpload,
+        ext: Option<UploadTextureExt>,
+    ) -> GResult<()> {
+        let ext = ext.unwrap_or_default();
+
+        let texture = self.textures.get(texture.id()).ok_or(gpu_api_err!(
+            "webgpu upload cubemap texture id {:?} does not exist",
+            texture
+        ))?;
+
+        let queue = self.device.queue();
+        let size = Array::new();
+        size.push(&JsValue::from(texture.width));
+        size.push(&JsValue::from(texture.height));
+
+        let mut layout = GpuImageDataLayout::new();
+        layout.offset(0.0).bytes_per_row(texture.width as u32 * 4);
+
+        let datas = [
+            upload.posx,
+            upload.negx,
+            upload.posy,
+            upload.negy,
+            upload.posz,
+            upload.negz,
+        ];
+        for (idx, data) in datas.iter().enumerate() {
+            let origin = Array::new();
+            origin.push(&JsValue::from(0));
+            origin.push(&JsValue::from(0));
+            origin.push(&JsValue::from(idx));
+
+            let mut copy = GpuImageCopyTexture::new(&texture.texture);
+            copy.origin(&origin);
+
+            queue.write_texture_with_u8_array_and_u32_sequence(&copy, data, &layout, &size);
+        }
+
+        if ext.generate_mipmaps.is_some() {
+            self.mipmap_state_cache
+                .generate_mipmap(&self.device, texture);
+        }
+
+        Ok(())
+    }
+
     pub fn get_texture_max_lod(&self, texture: TextureId) -> GResult<f32> {
         let texture = self.textures.get(texture.id()).ok_or(gpu_api_err!(
             "webgpu get_texture_max_lod texture {:?} does not exist",
@@ -95,13 +144,23 @@ impl WebGpuTexture {
         size.push(&JsValue::from(width));
         size.push(&JsValue::from(height));
 
+        if ext.enable_cubemap.is_some() {
+            size.push(&JsValue::from(6));
+        }
+
         let usage =
             GpuTextureUsageFlags::CopyDst as u32 | GpuTextureUsageFlags::TextureBinding as u32;
 
         let mut texture_info = GpuTextureDescriptor::new(texture_format, &size, usage);
         texture_info.mip_level_count(mip_levels);
         let texture = device.create_texture(&texture_info);
-        let texture_view = texture.create_view();
+
+        let mut texture_view_desc = GpuTextureViewDescriptor::new();
+
+        if ext.enable_cubemap.is_some() {
+            texture_view_desc.dimension(GpuTextureViewDimension::Cube);
+        }
+        let texture_view = texture.create_view_with_descriptor(&texture_view_desc);
 
         WebGpuTexture {
             texture,

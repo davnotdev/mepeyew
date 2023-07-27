@@ -73,6 +73,15 @@ impl MockContext {
         unimplemented!("No backend chosen")
     }
 
+    pub fn upload_cubemap_texture(
+        &mut self,
+        _texture: TextureId,
+        _upload: CubemapTextureUpload,
+        _ext: Option<UploadTextureExt>,
+    ) -> GResult<()> {
+        unimplemented!("No backend chosen")
+    }
+
     pub fn get_texture_max_lod(&self, _texture: TextureId) -> GResult<f32> {
         unimplemented!("No backend chosen")
     }
