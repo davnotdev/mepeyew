@@ -119,7 +119,7 @@ impl Extensions {
 
     /// Rendering to the screen.
     /// Enable this unless you plan to run headlessly.
-    /// Be sure to invoke [`crate::prelude::Context::set_surface_size`] properly.
+    /// Be sure to invoke [`Context::set_surface_size`] properly.
     /// Requires that the `surface_extension` feature is enabled for you project.
     #[cfg(feature = "surface_extension")]
     pub fn surface_extension(&mut self, cfg: SurfaceConfiguration) -> &mut Self {

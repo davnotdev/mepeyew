@@ -1,4 +1,4 @@
-use mepeyew::prelude::*;
+use mepeyew::*;
 use nalgebra_glm as glm;
 use raw_window_handle::{HasRawDisplayHandle, HasRawWindowHandle};
 use stb_image_rust::*;

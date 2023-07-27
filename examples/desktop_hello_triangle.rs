@@ -1,4 +1,4 @@
-use mepeyew::prelude::*;
+use mepeyew::*;
 use raw_window_handle::{HasRawDisplayHandle, HasRawWindowHandle};
 use winit::{
     event::{Event, WindowEvent},

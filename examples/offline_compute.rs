@@ -1,4 +1,4 @@
-use mepeyew::prelude::*;
+use mepeyew::*;
 
 fn main() {
     let mut extensions = Extensions::new();

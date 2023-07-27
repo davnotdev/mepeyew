@@ -112,5 +112,5 @@ The API is designed to be stable, but I can't guarantee anything of course.
 - [x] Cubemaps
 - [x] Async / Await
 - [x] WebGpu Resizing
-- [ ] Remove `prelude`
+- [x] Remove `prelude`
 - [ ] v0.3 Release!

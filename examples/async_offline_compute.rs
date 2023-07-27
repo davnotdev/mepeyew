@@ -1,4 +1,4 @@
-use mepeyew::prelude::*;
+use mepeyew::*;
 
 fn main() {
     #[cfg(not(all(target_arch = "wasm32", target_os = "unknown")))]
