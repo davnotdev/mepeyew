@@ -29,7 +29,88 @@ impl VkContext {
         let texture_image = texture.image.image;
         let texture_mip_level = texture.mip_levels;
 
-        texture.upload(&self.core, data, ext.clone())?;
+        let image_subresource_layers = vk::ImageSubresourceLayers::builder()
+            .aspect_mask(vk::ImageAspectFlags::COLOR)
+            .mip_level(0)
+            .base_array_layer(0)
+            .layer_count(1)
+            .build();
+        let copy_region = vk::BufferImageCopy::builder()
+            .buffer_offset(0)
+            .buffer_row_length(0)
+            .buffer_image_height(0)
+            .image_extent(vk::Extent3D {
+                width: texture.width as u32,
+                height: texture.height as u32,
+                depth: 1,
+            })
+            .image_subresource(image_subresource_layers)
+            .build();
+        texture.upload(&self.core, &[data], &[copy_region], ext.clone())?;
+
+        if ext.generate_mipmaps.is_some() {
+            unsafe {
+                generate_mipmaps(
+                    self,
+                    texture_width,
+                    texture_height,
+                    texture_image,
+                    texture_mip_level,
+                )?;
+            }
+        }
+
+        Ok(())
+    }
+
+    pub fn upload_cubemap_texture(
+        &mut self,
+        texture: TextureId,
+        upload: CubemapTextureUpload,
+        ext: Option<UploadTextureExt>,
+    ) -> GResult<()> {
+        let ext = ext.unwrap_or_default();
+        let texture = self.textures.get_mut(texture.id()).ok_or(gpu_api_err!(
+            "vulkan upload cubemap texture {:?} doesn't exist",
+            texture
+        ))?;
+        let texture_width = texture.width;
+        let texture_height = texture.height;
+        let texture_image = texture.image.image;
+        let texture_mip_level = texture.mip_levels;
+
+        let datas = [
+            upload.posx,
+            upload.negx,
+            upload.posy,
+            upload.negy,
+            upload.posz,
+            upload.negz,
+        ];
+        let mut copy_regions = vec![];
+        let mut offset = 0;
+        for (idx, data) in datas.iter().enumerate() {
+            let image_subresource_layers = vk::ImageSubresourceLayers::builder()
+                .aspect_mask(vk::ImageAspectFlags::COLOR)
+                .mip_level(0)
+                .base_array_layer(idx as u32)
+                .layer_count(1)
+                .build();
+            let copy_region = vk::BufferImageCopy::builder()
+                .buffer_offset(offset as u64)
+                .buffer_row_length(0)
+                .buffer_image_height(0)
+                .image_extent(vk::Extent3D {
+                    width: texture.width as u32,
+                    height: texture.height as u32,
+                    depth: 1,
+                })
+                .image_subresource(image_subresource_layers)
+                .build();
+            offset += data.len();
+            copy_regions.push(copy_region);
+        }
+        texture.upload(&self.core, &datas, &copy_regions, ext.clone())?;
 
         if ext.generate_mipmaps.is_some() {
             unsafe {
@@ -63,6 +144,7 @@ pub struct VkTexture {
     pub image: VkImage,
     staging: VkBuffer,
     pub image_view: vk::ImageView,
+    is_cubemap_texture: bool,
 
     drop_queue_ref: VkDropQueueRef,
 }
@@ -81,6 +163,7 @@ impl VkTexture {
         } else {
             1
         };
+        let enable_cubemap = ext.enable_cubemap.is_some();
 
         let vkformat = match format {
             // TextureFormat::Rgb => vk::Format::R8G8B8_UNORM,
@@ -102,6 +185,7 @@ impl VkTexture {
             aspect,
             vk::SampleCountFlags::TYPE_1,
             mip_levels,
+            enable_cubemap,
             vk::Extent3D {
                 width: width as u32,
                 height: height as u32,
@@ -109,8 +193,14 @@ impl VkTexture {
             },
         )?;
 
-        let image_view =
-            new_image_view(&context.core.dev, image.image, vkformat, aspect, mip_levels)?;
+        let image_view = new_image_view(
+            &context.core.dev,
+            image.image,
+            vkformat,
+            aspect,
+            mip_levels,
+            enable_cubemap,
+        )?;
 
         let per_pixel_byte_size = match format {
             // TextureFormat::Rgb => 3,
@@ -121,7 +211,7 @@ impl VkTexture {
             &context.core.dev,
             &context.drop_queue,
             &mut context.alloc,
-            per_pixel_byte_size * width * height,
+            per_pixel_byte_size * width * height * if enable_cubemap { 6 } else { 1 },
             vk::BufferUsageFlags::TRANSFER_SRC,
             MemoryLocation::CpuToGpu,
         )?;
@@ -134,13 +224,31 @@ impl VkTexture {
             image,
             staging,
             image_view,
+            is_cubemap_texture: enable_cubemap,
             drop_queue_ref: Arc::clone(&context.drop_queue),
         })
     }
 
-    fn upload(&mut self, core: &VkCore, data: &[u8], ext: UploadTextureExt) -> GResult<()> {
-        self.staging
-            .map_copy_data(data.as_ptr() as *const u8, data.len(), 0)?;
+    fn upload(
+        &mut self,
+        core: &VkCore,
+        datas: &[&[u8]],
+        regions: &[vk::BufferImageCopy],
+        ext: UploadTextureExt,
+    ) -> GResult<()> {
+        if self.is_cubemap_texture && datas.len() == 1 {
+            Err(gpu_api_err!("vulkan called upload_texture on a cubemap texture, use upload_cubemap_texture instead"))?;
+        }
+        if !self.is_cubemap_texture && datas.len() != 1 {
+            Err(gpu_api_err!("vulkan called upload_cubemap_texture on a non-cubemap texture, use upload_texture instead"))?;
+        }
+
+        let mut offset = 0;
+        for data in datas.iter() {
+            self.staging
+                .map_copy_data(data.as_ptr() as *const u8, data.len(), offset)?;
+            offset += data.len();
+        }
 
         let _misc_command = core.misc_command();
 
@@ -148,8 +256,7 @@ impl VkTexture {
             .aspect_mask(vk::ImageAspectFlags::COLOR)
             .base_mip_level(0)
             .level_count(1)
-            .base_array_layer(0)
-            .layer_count(1)
+            .layer_count(if self.is_cubemap_texture { 6 } else { 1 })
             .build();
 
         let image_transfer_barrier = vk::ImageMemoryBarrier::builder()
@@ -173,31 +280,13 @@ impl VkTexture {
             );
         }
 
-        let image_subresource_layers = vk::ImageSubresourceLayers::builder()
-            .aspect_mask(vk::ImageAspectFlags::COLOR)
-            .mip_level(0)
-            .base_array_layer(0)
-            .layer_count(1)
-            .build();
-        let copy_region = vk::BufferImageCopy::builder()
-            .buffer_offset(0)
-            .buffer_row_length(0)
-            .buffer_image_height(0)
-            .image_extent(vk::Extent3D {
-                width: self.width as u32,
-                height: self.height as u32,
-                depth: 1,
-            })
-            .image_subresource(image_subresource_layers)
-            .build();
-
         unsafe {
             core.dev.cmd_copy_buffer_to_image(
                 core.misc_command_buffer,
                 self.staging.buffer,
                 self.image.image,
                 vk::ImageLayout::TRANSFER_DST_OPTIMAL,
-                &[copy_region],
+                regions,
             );
         }
 

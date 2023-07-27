@@ -23,6 +23,7 @@ impl VkImage {
         view_aspect: vk::ImageAspectFlags,
         samples: vk::SampleCountFlags,
         mip_levels: u32,
+        is_cubemap: bool,
         extent: vk::Extent3D,
     ) -> GResult<Self> {
         let image_create = vk::ImageCreateInfo::builder()
@@ -31,7 +32,12 @@ impl VkImage {
             .extent(extent)
             .image_type(vk::ImageType::TYPE_2D)
             .mip_levels(mip_levels)
-            .array_layers(1)
+            .array_layers(if is_cubemap { 6 } else { 1 })
+            .flags(if is_cubemap {
+                vk::ImageCreateFlags::CUBE_COMPATIBLE
+            } else {
+                vk::ImageCreateFlags::empty()
+            })
             .samples(samples)
             .tiling(vk::ImageTiling::OPTIMAL)
             .build();
@@ -85,6 +91,7 @@ pub fn new_image_view(
     format: vk::Format,
     aspect: vk::ImageAspectFlags,
     mip_level: u32,
+    is_cubemap: bool,
 ) -> GResult<vk::ImageView> {
     let image_view_create = vk::ImageViewCreateInfo::builder()
         .image(image)
@@ -103,10 +110,14 @@ pub fn new_image_view(
                 .base_mip_level(0)
                 .level_count(mip_level)
                 .base_array_layer(0)
-                .layer_count(1)
+                .layer_count(if is_cubemap { 6 } else { 1 })
                 .build(),
         )
-        .view_type(vk::ImageViewType::TYPE_2D)
+        .view_type(if is_cubemap {
+            vk::ImageViewType::CUBE
+        } else {
+            vk::ImageViewType::TYPE_2D
+        })
         .build();
     unsafe { dev.create_image_view(&image_view_create, None) }
         .map_err(|e| gpu_api_err!("vulkan image view init {}", e))

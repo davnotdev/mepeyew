@@ -89,6 +89,7 @@ impl VkAttachmentImage {
                 MsaaSampleCount::Sample64 => vk::SampleCountFlags::TYPE_64,
             },
             1,
+            false,
             vk::Extent3D {
                 width: width as u32,
                 height: height as u32,
@@ -96,7 +97,7 @@ impl VkAttachmentImage {
             },
         )?;
 
-        let image_view = new_image_view(dev, image.image, format, aspect, 1)?;
+        let image_view = new_image_view(dev, image.image, format, aspect, 1, false)?;
 
         Ok(VkAttachmentImage {
             ext,

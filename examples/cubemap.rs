@@ -270,7 +270,7 @@ fn main() {
                 let window_size = get_window_size(&window);
 
                 #[cfg(not(any(target_arch = "wasm32", target_os = "unknown")))]
-                let elapsed = start.elapsed().as_millis() as f32;
+                let elapsed = start.elapsed().as_millis() as f32 / 100.0;
                 #[cfg(all(feature = "webgpu", target_arch = "wasm32", target_os = "unknown"))]
                 let elapsed = {
                     start += 0.1;
