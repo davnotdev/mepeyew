@@ -13,6 +13,7 @@ MacOS, etc), where said platform has its own little quirks and tricks.
 
 Built in rust, `mepeyew` is meant to hide away these quirks in a nice and neat package while
 trying to give you as much power as possible!
+`mepeyew` wraps multiple graphics APIs like `wgpu`, but has an very explicit API similar to Vulkan's.
 
 |       Hello Triangle       |          Outlined Cube          |      PBR Spheres      |
 | :------------------------: | :-----------------------------: | :-------------------: |
