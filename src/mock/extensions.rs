@@ -47,4 +47,12 @@ impl MockContext {
     ) -> GResult<T> {
         unimplemented!("No backend chosen")
     }
+
+    pub async fn async_read_synced_shader_storage_buffer<T: Copy>(
+        &self,
+        _ssbo: context::extensions::ShaderStorageBufferId,
+        _ext: Option<context::extensions::ReadSyncedShaderStorageBufferExt>,
+    ) -> GResult<T> {
+        unimplemented!("No backend chosen")
+    }
 }

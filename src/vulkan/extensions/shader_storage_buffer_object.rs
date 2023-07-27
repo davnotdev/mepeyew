@@ -33,4 +33,12 @@ impl VkContext {
             std::ptr::read(ssbo.staging.as_ref().unwrap().mapped_ptr.unwrap() as *const T)
         })
     }
+
+    pub async fn async_read_synced_shader_storage_buffer<T: Copy>(
+        &self,
+        ssbo: ShaderStorageBufferId,
+        ext: Option<ReadSyncedShaderStorageBufferExt>,
+    ) -> GResult<T> {
+        self.read_synced_shader_storage_buffer(ssbo, ext)
+    }
 }

@@ -20,7 +20,7 @@
 //! | `webgpu_init`                     | 🆗        | ✅        |
 //! | `surface_extension`               | ✅        | ✅        |
 //! | `compute`                         | ✅        | ✅        |
-//! | `shader_storage_buffer_object`    | ✅        | ❌        |
+//! | `shader_storage_buffer_object`    | ✅        | ✅        |
 //!
 
 pub mod compute;
@@ -103,13 +103,15 @@ impl Extensions {
         self
     }
 
-    /// Initialize the WebGpu Context using async.
+    /// Initialize the WebGpu Context.
+    /// You will need to use [`Context::async_new`] to use this.
     pub fn webgpu_init(&mut self, init: WebGpuInit) -> &mut Self {
         self.extensions.push(Extension::WebGpuInit(init));
         self
     }
 
-    /// Current workaround required to initialize the WebGpu Context.
+    /// Workaround required to initialize the WebGpu Context without async.
+    /// This extension is not compatible to [`Context::new`].
     pub fn webgpu_init_from_window(&mut self, init: WebGpuInitFromWindow) -> &mut Self {
         self.extensions.push(Extension::WebGpuInitFromWindow(init));
         self
@@ -117,7 +119,7 @@ impl Extensions {
 
     /// Rendering to the screen.
     /// Enable this unless you plan to run headlessly.
-    /// Be sure to invoke [`crate::prelude::Context::set_surface_size`] properly.
+    /// Be sure to invoke [`Context::set_surface_size`] properly.
     /// Requires that the `surface_extension` feature is enabled for you project.
     #[cfg(feature = "surface_extension")]
     pub fn surface_extension(&mut self, cfg: SurfaceConfiguration) -> &mut Self {

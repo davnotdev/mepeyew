@@ -105,6 +105,12 @@ impl VkDescriptors {
                     .descriptor_type(vk::DescriptorType::SAMPLED_IMAGE)
                     .descriptor_count(1)
                     .build(),
+                ShaderUniformType::CubemapTexture(_) => vk::DescriptorSetLayoutBinding::builder()
+                    .binding(uniform.binding as u32)
+                    .stage_flags(vk::ShaderStageFlags::FRAGMENT | vk::ShaderStageFlags::COMPUTE)
+                    .descriptor_type(vk::DescriptorType::SAMPLED_IMAGE)
+                    .descriptor_count(1)
+                    .build(),
                 ShaderUniformType::Sampler(_) => vk::DescriptorSetLayoutBinding::builder()
                     .binding(uniform.binding as u32)
                     .stage_flags(vk::ShaderStageFlags::FRAGMENT | vk::ShaderStageFlags::COMPUTE)
@@ -257,6 +263,30 @@ impl VkDescriptors {
                 ShaderUniformType::Texture(texture_id) => {
                     let texture = context.textures.get(texture_id.id()).ok_or(gpu_api_err!(
                         "vulkan uniform texture id {:?} does not exist",
+                        texture_id
+                    ))?;
+                    let image_info = vk::DescriptorImageInfo::builder()
+                        .image_view(texture.image_view)
+                        .image_layout(vk::ImageLayout::SHADER_READ_ONLY_OPTIMAL)
+                        .build();
+
+                    let image_info_list = vec![image_info];
+
+                    let ret = vk::WriteDescriptorSet::builder()
+                        .dst_set(self.descriptor_sets[uniform.set])
+                        .dst_binding(uniform.binding as u32)
+                        .dst_array_element(0)
+                        .descriptor_type(vk::DescriptorType::SAMPLED_IMAGE)
+                        .image_info(&image_info_list)
+                        .build();
+
+                    image_infos.push(image_info_list);
+
+                    Ok(ret)
+                }
+                ShaderUniformType::CubemapTexture(texture_id) => {
+                    let texture = context.textures.get(texture_id.id()).ok_or(gpu_api_err!(
+                        "vulkan uniform cubemap texture id {:?} does not exist",
                         texture_id
                     ))?;
                     let image_info = vk::DescriptorImageInfo::builder()

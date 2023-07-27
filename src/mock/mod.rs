@@ -12,6 +12,10 @@ impl MockContext {
         unimplemented!("No backend chosen")
     }
 
+    pub async fn async_new(_extensions: &Extensions) -> GResult<Self> {
+        unimplemented!("No backend chosen")
+    }
+
     pub fn new_vertex_buffer(
         &mut self,
         _data: &[VertexBufferElement],
@@ -64,6 +68,15 @@ impl MockContext {
         &mut self,
         _texture: TextureId,
         _data: &[u8],
+        _ext: Option<UploadTextureExt>,
+    ) -> GResult<()> {
+        unimplemented!("No backend chosen")
+    }
+
+    pub fn upload_cubemap_texture(
+        &mut self,
+        _texture: TextureId,
+        _upload: CubemapTextureUpload,
         _ext: Option<UploadTextureExt>,
     ) -> GResult<()> {
         unimplemented!("No backend chosen")

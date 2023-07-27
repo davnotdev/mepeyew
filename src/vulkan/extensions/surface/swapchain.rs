@@ -88,6 +88,7 @@ impl VkSwapchain {
                     format.format,
                     vk::ImageAspectFlags::COLOR,
                     1,
+                    false,
                 )
             })
             .collect::<GResult<_>>()?;

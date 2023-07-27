@@ -30,13 +30,11 @@
 //!
 //! ### Step Dependencies
 //!
-//! Certain methods such as [`prelude::PassStep::set_wait_for_depth_from_step`]
+//! Certain methods such as [`PassStep::set_wait_for_depth_from_step`]
 //! don't have an effect on all APIs.
 //! However, on backends that do utilize these methods, they are indispensable.
 //! For this reason, you should always use these methods even if you code appears
 //! to work without it.
-
-pub mod prelude;
 
 pub(crate) mod alignment;
 pub mod context;
@@ -50,3 +48,19 @@ mod mock;
 mod vulkan;
 #[cfg(all(feature = "webgpu", target_arch = "wasm32", target_os = "unknown"))]
 mod webgpu;
+
+pub use context::{
+    extensions, extensions::*, Api, AttachmentImageColorFormat, AttachmentImageUsage,
+    BufferStorageType, ClearColor, ClearDepthStencil, CompilePassExt, CompiledComputePassId,
+    CompiledPassId, ComputeProgramId, Context, CubemapTextureUpload, Draw, DrawScissor,
+    DrawViewport, DynamicUniformBufferTypeGuard, GetSamplerExt, IndexBufferElement, IndexBufferId,
+    MipSamplerFilter, MsaaSampleCount, NewAttachmentImageExt, NewIndexBufferExt, NewPassExt,
+    NewProgramExt, NewTextureExt, NewVertexBufferExt, Pass, PassInputLoadOpColorType,
+    PassInputLoadOpDepthStencilType, PassStep, PassSubmitData, ProgramId, SamplerFilter, SamplerId,
+    SamplerMode, ShaderBlendFactor, ShaderBlendOperation, ShaderCompareOp, ShaderCullFrontFace,
+    ShaderCullMode, ShaderPrimitiveTopology, ShaderSet, ShaderStage, ShaderStencilOp, ShaderType,
+    ShaderUniform, ShaderUniformType, StepSubmitData, Submit, SubmitExt, TextureFormat,
+    UniformBufferId, UniformBufferTypeGuard, UploadCubemapTextureExt, UploadTextureExt,
+    VertexBufferElement, VertexBufferId, VertexBufferInput,
+};
+pub use error::{GResult, GpuError};

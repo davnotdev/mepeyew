@@ -120,6 +120,6 @@ pub use submit::{
     DynamicGenericBufferId, PassSubmitData, StepSubmitData, Submit, SubmitExt, SubmitPassType,
 };
 pub use texture::{
-    AttachmentImageColorFormat, AttachmentImageUsage, NewAttachmentImageExt, NewTextureExt,
-    TextureFormat, UploadTextureExt,
+    AttachmentImageColorFormat, AttachmentImageUsage, CubemapTextureUpload, NewAttachmentImageExt,
+    NewTextureExt, TextureFormat, UploadCubemapTextureExt, UploadTextureExt,
 };

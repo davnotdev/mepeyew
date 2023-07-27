@@ -11,10 +11,11 @@ fn main() {
     let event_loop = EventLoop::new();
     let window = WindowBuilder::new().build(&event_loop).unwrap();
 
-    let _window_size = get_window_size(&window);
+    let window_size = get_window_size(&window);
 
     //  Setup Code.
 
+    let mut last_window_size = window_size;
     event_loop.run(move |event, _, control_flow| {
         control_flow.set_poll();
 
@@ -27,10 +28,14 @@ fn main() {
                 event: WindowEvent::Resized(_),
                 window_id,
             } if window_id == window.id() => {
-                //  Resize Code.
+                //  Resize Code (for non-Web).
             }
             Event::MainEventsCleared => {
-                let _window_size = get_window_size(&window);
+                let window_size = get_window_size(&window);
+                if last_window_size.0 != window_size.0 || last_window_size.1 != window_size.1 {
+                    //  Resize Code (for Web).
+                }
+                last_window_size = window_size;
                 //  Render Code.
             }
             _ => (),

@@ -19,6 +19,8 @@ pub struct WebGpuProgram {
     pub bind_groups: WebGpuBindGroups,
     pub vertex_buffer_layout: GpuVertexBufferLayout,
     pub ext: NewProgramExt,
+
+    pub original_uniforms: Vec<ShaderUniform>,
 }
 
 impl WebGpuProgram {
@@ -81,7 +83,14 @@ impl WebGpuProgram {
             bind_groups,
             vertex_buffer_layout,
             ext: ext.unwrap_or_default(),
+
+            original_uniforms: uniforms.to_vec(),
         })
+    }
+
+    pub fn recreate_bind_groups(&mut self, context: &WebGpuContext) -> GResult<()> {
+        self.bind_groups = WebGpuBindGroups::new(context, &self.original_uniforms, false)?;
+        Ok(())
     }
 }
 

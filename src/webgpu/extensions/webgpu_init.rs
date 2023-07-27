@@ -8,7 +8,7 @@ impl WebGpuContext {
             .await
             .map_err(|e| {
                 gpu_api_err!(
-                    "webgpu: cannot request adapter (webgpu may not be supported): {:?}",
+                    "webgpu cannot request adapter (webgpu may not be supported): {:?}",
                     e
                 )
             })?
@@ -17,7 +17,7 @@ impl WebGpuContext {
             .await
             .map_err(|e| {
                 gpu_api_err!(
-                    "webgpu: cannot request device (webgpu may not be supported):{:?}",
+                    "webgpu cannot request device (webgpu may not be supported):{:?}",
                     e
                 )
             })?

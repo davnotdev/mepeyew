@@ -29,7 +29,7 @@ In terms of shading languages, we support [Glsl](<https://www.khronos.org/opengl
 Add this to your `Cargo.toml`:
 
 ```
-mepeyew = "0.2"
+mepeyew = "0.3"
 ```
 
 This enables `mepeyew` with the following features:
@@ -41,16 +41,13 @@ This enables `mepeyew` with the following features:
 
 If you do not plan on using these features, disabling them will decrease your dependency count.
 
-## Examples
-
-Hey, welcome to the world of graphics programming.
-I'm deeply sorry, but in this strange world, there is no such thing as "basic usage".
-I'd like to put the classic triangle example code, but that would completely fill your screen.
-Instead, I'd recommend checking [out the examples here on Github](https://github.com/davnotdev/mepeyew/tree/main/examples).
+To get started with using `mepeyew`, check out
+[the examples here on Github](https://github.com/davnotdev/mepeyew/tree/main/examples).
+They assume that you already understand graphics programming.
 
 ## Platform Dependent Nastiness
 
-Unfortunately, not everything can be fully abstracted!
+Unfortunately, not everything can be fully abstracted away!
 Please read the [docs](https://docs.rs/mepeyew) before continuing!
 
 ## Using on MacOS
@@ -67,9 +64,7 @@ VK_LAYER_PATH=$VULKAN_SDK/share/vulkan/explicit_layer.d
 
 ## Using on the Web
 
-Currently, initializing WebGpu requires async which is currently not supported.
-Because of this, we use the `WebGpuInitFromWindow` extension as a workaround.
-You can see its use in the examples.
+> Be sure to see the documentation regarding `WebGpuInit` and `WebGpuInitFromWindow`.
 
 The easiest way to get setup is to create an extra workspace member in your
 `Cargo.toml`.
@@ -85,9 +80,11 @@ Then, implement `run_wasm` exactly as shown in this repo.
 This is very important as this project depends on my fork of `run_wasm` and
 NOT the original crate.
 
+Of course, you can use `wasm-pack`, `trunk`, or whatever else you'd like.
+
 ## Road Map
 
-This project is a work in progress!
+This project is mostly complete, but there are still bugs and changes that may come.
 The API is designed to be stable, but I can't guarantee anything of course.
 
 - [x] Basic Uniforms
@@ -112,9 +109,8 @@ The API is designed to be stable, but I can't guarantee anything of course.
 - [x] More Documentation
 - [x] (Debug, Clone, Copy, Hash, PartialEq, Eq)-ify Everything
 - [x] v0.2 Release!
-- [ ] Cubemaps
-- [ ] MacOS Build Script
-- [ ] Async / Await Extension
-- [ ] Buffer Naming Extension
-- [ ] Step Numbering
-- [ ] v0.3 Release?
+- [x] Cubemaps
+- [x] Async / Await
+- [x] WebGpu Resizing
+- [x] Remove `prelude`
+- [x] v0.3 Release!

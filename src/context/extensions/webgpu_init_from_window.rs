@@ -1,3 +1,4 @@
+/// Overall, you should prefer [`super::WebGpuInit`] if async is avaliable.
 #[derive(Debug, Clone)]
 pub struct WebGpuInitFromWindow {
     /// Created using these lines in javascript land.

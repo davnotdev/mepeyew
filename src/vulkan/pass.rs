@@ -299,6 +299,7 @@ fn new_render_pass(
                     resolve_image.format,
                     resolve_image.view_aspect,
                     1,
+                    false,
                 )?;
 
                 resolve_image_offsets.insert(idx, i_pass_resolve_attachments);
@@ -493,6 +494,7 @@ fn new_resolve_image(
         aspect,
         sample_count,
         1,
+        false,
         extent,
     )
 }

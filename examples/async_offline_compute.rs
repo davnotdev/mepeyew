@@ -1,19 +1,31 @@
 use mepeyew::*;
 
 fn main() {
+    #[cfg(not(all(target_arch = "wasm32", target_os = "unknown")))]
+    {
+        use pollster::FutureExt;
+        async { run().await }.block_on();
+    }
+
+    #[cfg(all(feature = "webgpu", target_arch = "wasm32", target_os = "unknown"))]
+    wasm_bindgen_futures::spawn_local(async {
+        std::panic::set_hook(Box::new(console_error_panic_hook::hook));
+        run().await
+    });
+}
+
+async fn run() {
     let mut extensions = Extensions::new();
     extensions
         .native_debug(NativeDebugConfiguration::default())
         .naga_translation()
-        .webgpu_init_from_window(WebGpuInitFromWindow {
-            adapter: String::from("mepeyewAdapter"),
-            device: String::from("mepeyewDevice"),
+        .webgpu_init(WebGpuInit {
             canvas_id: Some(String::from("canvas")),
         })
         .compute()
         .shader_storage_buffer_object();
 
-    let mut context = Context::new(extensions, None).unwrap();
+    let mut context = Context::async_new(extensions, None).await.unwrap();
 
     let code = include_bytes!("./shaders/offline_compute/compute.comp");
 
@@ -59,8 +71,23 @@ fn main() {
         .unwrap();
 
     let out: [u32; 1024] = context
-        .read_synced_shader_storage_buffer(ssbo_guard, None)
+        .async_read_synced_shader_storage_buffer(ssbo_guard, None)
+        .await
         .unwrap();
 
+    #[cfg(not(all(target_arch = "wasm32", target_os = "unknown")))]
     eprintln!("{:?}", out);
+
+    #[cfg(all(feature = "webgpu", target_arch = "wasm32", target_os = "unknown"))]
+    {
+        use js_sys::*;
+        use wasm_bindgen::*;
+        use web_sys::*;
+
+        let array = Array::new();
+        for val in out {
+            array.push(&JsValue::from(val));
+        }
+        console::log_1(&array);
+    }
 }

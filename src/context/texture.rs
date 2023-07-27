@@ -28,18 +28,38 @@ pub enum AttachmentImageUsage {
     DepthAttachment,
 }
 
+pub struct CubemapTextureUpload<'a> {
+    pub posx: &'a [u8],
+    pub negx: &'a [u8],
+    pub posy: &'a [u8],
+    pub negy: &'a [u8],
+    pub posz: &'a [u8],
+    pub negz: &'a [u8],
+}
+
 /// Allows for the configuration of:
 /// - Mipmaps
+/// - Cubemap
 #[derive(Default, Debug)]
 pub struct NewTextureExt {
     pub enable_mipmaps: Option<()>,
     pub mip_levels: Option<u32>,
+    pub enable_cubemap: Option<()>,
 }
 
 /// Allows for the configuration of:
 /// - Whether to generate mipmaps
 #[derive(Default, Debug, Clone)]
 pub struct UploadTextureExt {
+    /// Generate mipmips.
+    /// The mipmap count can be obtained with [`Context::get_texture_max_lod`].
+    pub generate_mipmaps: Option<()>,
+}
+
+/// Allows for the configuration of:
+/// - Whether to generate mipmaps
+#[derive(Default, Debug, Clone)]
+pub struct UploadCubemapTextureExt {
     /// Generate mipmips.
     /// The mipmap count can be obtained with [`Context::get_texture_max_lod`].
     pub generate_mipmaps: Option<()>,
@@ -81,6 +101,18 @@ impl Context {
         match self {
             Self::Vulkan(vk) => vk.upload_texture(texture, data, ext),
             Self::WebGpu(wgpu) => wgpu.upload_texture(texture, data, ext),
+        }
+    }
+
+    pub fn upload_cubemap_texture(
+        &mut self,
+        texture: TextureId,
+        upload: CubemapTextureUpload,
+        ext: Option<UploadTextureExt>,
+    ) -> GResult<()> {
+        match self {
+            Self::Vulkan(vk) => vk.upload_cubemap_texture(texture, upload, ext),
+            Self::WebGpu(wgpu) => wgpu.upload_cubemap_texture(texture, upload, ext),
         }
     }
 

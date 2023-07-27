@@ -22,13 +22,18 @@ pub fn check_extensions(extensions: &Extensions, is_async: bool) -> GResult<()> 
                     Ok(())
                 } else {
                     Err(gpu_api_err!(
-                        "webgpu: WebGpuInit is only supported in an async context, use WebGpuInitFromWindow if async cannot be used")
+                        "webgpu WebGpuInit is only supported in an async context, use WebGpuInitFromWindow if async cannot be used")
                     )
                 },
             Extension::Surface(_) => Ok(()),
             Extension::Compute => Ok(()),
-            Extension::ShaderStorageBufferObject => Err(gpu_api_err!(
-                "webgpu: shader storage buffer objects are not fully supported"
-            )),
+            Extension::ShaderStorageBufferObject => 
+                if is_async {
+                    Ok(())
+                } else {
+                    Err(gpu_api_err!(
+                        "webgpu shader storage buffer objects are not fully supported")
+                    )
+                }
         })
 }

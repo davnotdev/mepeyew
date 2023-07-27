@@ -71,6 +71,12 @@ impl WebGpuBindGroups {
                     entry.texture(&layout);
                     GpuShaderStageFlags::Fragment as u8 | GpuShaderStageFlags::Compute as u8
                 }
+                ShaderUniformType::CubemapTexture(_) => {
+                    let mut layout = GpuTextureBindingLayout::new();
+                    layout.view_dimension(GpuTextureViewDimension::Cube);
+                    entry.texture(&layout);
+                    GpuShaderStageFlags::Fragment as u8 | GpuShaderStageFlags::Compute as u8
+                }
                 ShaderUniformType::Sampler(_) => {
                     let layout = GpuSamplerBindingLayout::new();
                     entry.sampler(&layout);
@@ -140,6 +146,13 @@ impl WebGpuBindGroups {
                 ShaderUniformType::Texture(texture_id) => {
                     let texture = context.textures.get(texture_id.id()).ok_or(gpu_api_err!(
                         "program uniform texture id {:?} does not exist",
+                        texture_id
+                    ))?;
+                    entry.resource(&texture.texture_view);
+                }
+                ShaderUniformType::CubemapTexture(texture_id) => {
+                    let texture = context.textures.get(texture_id.id()).ok_or(gpu_api_err!(
+                        "program uniform cubemap texture id {:?} does not exist",
                         texture_id
                     ))?;
                     entry.resource(&texture.texture_view);

@@ -11,7 +11,7 @@ use web_sys::*;
 use attachment_image::WebGpuAttachmentImage;
 use bind_groups::WebGpuBindGroups;
 use buffer::{WebGpuBuffer, WebGpuDynamicBuffer};
-use flags::{GpuBufferUsageFlags, GpuShaderStageFlags, GpuTextureUsageFlags};
+use flags::{GpuBufferUsageFlags, GpuMapModeFlags, GpuShaderStageFlags, GpuTextureUsageFlags};
 use pass::WebGpuCompiledPass;
 use program::WebGpuProgram;
 use sampler::WebGpuSamplerCache;
