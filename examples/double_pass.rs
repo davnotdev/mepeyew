@@ -80,7 +80,10 @@ fn main() {
             window_size.0,
             window_size.1,
             AttachmentImageUsage::ColorAttachment,
-            None,
+            Some(NewAttachmentImageExt {
+                depends_on_surface_size: Some(()),
+                ..Default::default()
+            }),
         )
         .unwrap();
 

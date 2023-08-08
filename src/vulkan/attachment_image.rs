@@ -24,7 +24,7 @@ impl VkContext {
 }
 
 pub struct VkAttachmentImage {
-    ext: NewAttachmentImageExt,
+    pub ext: NewAttachmentImageExt,
 
     pub image: VkImage,
     pub format: vk::Format,
@@ -60,7 +60,7 @@ impl VkAttachmentImage {
                 .unwrap_or(VK_COLOR_ATTACHMENT_FORMAT),
             AttachmentImageUsage::DepthAttachment => VK_DEPTH_ATTACHMENT_FORMAT,
         };
-        let usages = vk::ImageUsageFlags::INPUT_ATTACHMENT
+        let usages = vk::ImageUsageFlags::INPUT_ATTACHMENT | vk::ImageUsageFlags::TRANSFER_SRC
             | match attachment_usage {
                 AttachmentImageUsage::ColorAttachment => vk::ImageUsageFlags::COLOR_ATTACHMENT,
                 AttachmentImageUsage::DepthAttachment => {

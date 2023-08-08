@@ -23,7 +23,7 @@ use framebuffer::VkFramebuffer;
 use image::{new_image_view, VkImage, VK_COLOR_ATTACHMENT_FORMAT, VK_DEPTH_ATTACHMENT_FORMAT};
 use pass::VkCompiledPass;
 use program::{new_pipeline_layout, VkProgram};
-use sampler::VkSamplerCache;
+use sampler::{filter_into_vk, VkSamplerCache};
 use shader::VkShader;
 use submit::VkSubmitData;
 use texture::VkTexture;

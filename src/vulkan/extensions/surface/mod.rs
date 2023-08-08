@@ -70,7 +70,11 @@ impl VkContext {
         unsafe { self.core.dev.device_wait_idle() }.unwrap();
 
         //  Resize Attachment Images.
-        for attachment_image in self.attachment_images.iter_mut() {
+        for attachment_image in self
+            .attachment_images
+            .iter_mut()
+            .filter(|image| image.ext.depends_on_surface_size.is_some())
+        {
             attachment_image.resize(
                 &self.core.dev,
                 &self.drop_queue,

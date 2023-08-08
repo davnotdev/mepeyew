@@ -116,7 +116,7 @@ pub use program::{
 };
 pub use sampler::{GetSamplerExt, MipSamplerFilter, SamplerFilter, SamplerMode};
 pub use submit::{
-    ClearColor, ClearDepthStencil, Draw, DrawScissor, DrawType, DrawViewport,
+    BlitToSurface, ClearColor, ClearDepthStencil, Draw, DrawScissor, DrawType, DrawViewport,
     DynamicGenericBufferId, PassSubmitData, StepSubmitData, Submit, SubmitExt, SubmitPassType,
 };
 pub use texture::{

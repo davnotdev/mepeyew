@@ -68,6 +68,7 @@ pub struct UploadCubemapTextureExt {
 /// Allows for the configuration of:
 /// - MSAA samples
 /// - (Color) attachment image format.
+/// - Surface dependence.
 #[derive(Default, Debug, Clone)]
 pub struct NewAttachmentImageExt {
     /// Should match the mssa samples used in [`CompilePassExt`].
@@ -76,6 +77,8 @@ pub struct NewAttachmentImageExt {
     /// Optionaly specify the format used by the attachment image if the image is used as a color
     /// attachment.
     pub color_format: Option<AttachmentImageColorFormat>,
+    /// Does this attachment image maintain its own size, or should it resize with the surface?
+    pub depends_on_surface_size: Option<()>,
 }
 
 impl Context {

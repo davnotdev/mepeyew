@@ -82,7 +82,7 @@ impl VkSamplerCache {
     }
 }
 
-fn filter_into_vk(filter: SamplerFilter) -> vk::Filter {
+pub fn filter_into_vk(filter: SamplerFilter) -> vk::Filter {
     match filter {
         SamplerFilter::Linear => vk::Filter::LINEAR,
         SamplerFilter::Nearest => vk::Filter::NEAREST,

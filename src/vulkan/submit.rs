@@ -466,6 +466,144 @@ impl VkContext {
                     }
                 }
             }
+
+            //  Blit to Surface
+            if let Some(blit) = submit.blit_to_surface.as_ref() {
+                let src = self
+                    .attachment_images
+                    .get(blit.src.id())
+                    .ok_or(gpu_api_err!(
+                        "vulkan blit to surface src {:?} does not exist",
+                        blit.src
+                    ))?;
+                let Some(surface) = self.surface_ext.as_ref() else {
+                    Err(gpu_api_err!("vulkan blit_to_surface without surface"))?
+                };
+                let dst = surface.swapchain.swapchain_images[swapchain_image_index as usize];
+
+                let src_x = blit.src_x.unwrap_or(0);
+                let src_y = blit.src_x.unwrap_or(0);
+                let dst_x = blit.src_x.unwrap_or(0);
+                let dst_y = blit.src_x.unwrap_or(0);
+
+                let src_width = blit.src_width.unwrap_or(src.image.extent.width as usize);
+                let src_height = blit.src_height.unwrap_or(src.image.extent.height as usize);
+                let dst_width = blit
+                    .dst_width
+                    .unwrap_or(surface.swapchain.extent.width as usize);
+                let dst_height = blit
+                    .dst_height
+                    .unwrap_or(surface.swapchain.extent.height as usize);
+
+                let range = vk::ImageSubresourceRange::builder()
+                    .aspect_mask(vk::ImageAspectFlags::COLOR)
+                    .base_mip_level(0)
+                    .level_count(1)
+                    .layer_count(1)
+                    .build();
+
+                let src_image_transfer_barrier = vk::ImageMemoryBarrier::builder()
+                    .old_layout(vk::ImageLayout::COLOR_ATTACHMENT_OPTIMAL)
+                    .new_layout(vk::ImageLayout::TRANSFER_SRC_OPTIMAL)
+                    .image(src.image.image)
+                    .subresource_range(range)
+                    .src_access_mask(vk::AccessFlags::COLOR_ATTACHMENT_WRITE)
+                    .dst_access_mask(vk::AccessFlags::TRANSFER_WRITE)
+                    .build();
+
+                let dst_image_transfer_barrier = vk::ImageMemoryBarrier::builder()
+                    .old_layout(vk::ImageLayout::PRESENT_SRC_KHR)
+                    .new_layout(vk::ImageLayout::TRANSFER_DST_OPTIMAL)
+                    .image(dst)
+                    .subresource_range(range)
+                    .src_access_mask(vk::AccessFlags::COLOR_ATTACHMENT_WRITE)
+                    .dst_access_mask(vk::AccessFlags::TRANSFER_WRITE)
+                    .build();
+
+                self.core.dev.cmd_pipeline_barrier(
+                    graphics_command_buffer,
+                    vk::PipelineStageFlags::COLOR_ATTACHMENT_OUTPUT,
+                    vk::PipelineStageFlags::TRANSFER,
+                    vk::DependencyFlags::empty(),
+                    &[],
+                    &[],
+                    &[src_image_transfer_barrier, dst_image_transfer_barrier],
+                );
+
+                let subresource_range_layers = vk::ImageSubresourceLayers::builder()
+                    .aspect_mask(vk::ImageAspectFlags::COLOR)
+                    .mip_level(0)
+                    .layer_count(1)
+                    .base_array_layer(0)
+                    .build();
+                let region = vk::ImageBlit::builder()
+                    .src_offsets([
+                        vk::Offset3D::builder()
+                            .x(src_x as i32)
+                            .y(src_y as i32)
+                            .z(0)
+                            .build(),
+                        vk::Offset3D::builder()
+                            .x((src_x + src_width) as i32)
+                            .y((src_y + src_height) as i32)
+                            .z(1)
+                            .build(),
+                    ])
+                    .dst_offsets([
+                        vk::Offset3D::builder()
+                            .x(dst_x as i32)
+                            .y(dst_y as i32)
+                            .z(0)
+                            .build(),
+                        vk::Offset3D::builder()
+                            .x((dst_x + dst_width) as i32)
+                            .y((dst_y + dst_height) as i32)
+                            .z(1)
+                            .build(),
+                    ])
+                    .src_subresource(subresource_range_layers)
+                    .dst_subresource(subresource_range_layers)
+                    .build();
+
+                self.core.dev.cmd_blit_image(
+                    graphics_command_buffer,
+                    src.image.image,
+                    vk::ImageLayout::TRANSFER_SRC_OPTIMAL,
+                    dst,
+                    vk::ImageLayout::TRANSFER_DST_OPTIMAL,
+                    &[region],
+                    filter_into_vk(blit.filter),
+                );
+
+                let src_image_transfer_barrier = vk::ImageMemoryBarrier::builder()
+                    .old_layout(vk::ImageLayout::TRANSFER_SRC_OPTIMAL)
+                    .new_layout(vk::ImageLayout::COLOR_ATTACHMENT_OPTIMAL)
+                    .image(src.image.image)
+                    .subresource_range(range)
+                    .src_access_mask(vk::AccessFlags::TRANSFER_WRITE)
+                    .dst_access_mask(vk::AccessFlags::empty())
+                    .build();
+
+                let dst_image_transfer_barrier = vk::ImageMemoryBarrier::builder()
+                    .old_layout(vk::ImageLayout::TRANSFER_DST_OPTIMAL)
+                    .new_layout(vk::ImageLayout::PRESENT_SRC_KHR)
+                    .image(dst)
+                    .subresource_range(range)
+                    .src_access_mask(vk::AccessFlags::TRANSFER_WRITE)
+                    .dst_access_mask(vk::AccessFlags::empty())
+                    .build();
+
+                self.core.dev.cmd_pipeline_barrier(
+                    graphics_command_buffer,
+                    vk::PipelineStageFlags::TRANSFER,
+                    vk::PipelineStageFlags::BOTTOM_OF_PIPE,
+                    vk::DependencyFlags::empty(),
+                    &[],
+                    &[],
+                    &[src_image_transfer_barrier, dst_image_transfer_barrier],
+                );
+            }
+
             //  SSBO Copy Backs
             submit.ssbo_copy_backs.iter().try_for_each(|ssbo_id| {
                 let ssbo = self.ssbos.get(ssbo_id.id()).ok_or(gpu_api_err!(
@@ -545,7 +683,7 @@ impl VkContext {
                     _ => false,
 
                 }
-            }) /* && self.surface_ext.is_some() */;
+            }) || submit.blit_to_surface.is_some() /* && self.surface_ext.is_some() */;
             //  Purposely don't check for surface_ext.
 
             if should_present {
@@ -605,6 +743,4 @@ impl VkContext {
 
         Ok(())
     }
-
-    pub fn sync_submit() {}
 }

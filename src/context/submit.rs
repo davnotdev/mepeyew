@@ -179,6 +179,60 @@ pub enum SubmitPassType {
     Compute(extensions::ComputePassSubmitData),
 }
 
+#[derive(Debug, Clone)]
+pub struct BlitToSurface {
+    pub(crate) src: AttachmentImageId,
+    pub(crate) src_x: Option<usize>,
+    pub(crate) src_y: Option<usize>,
+    pub(crate) dst_x: Option<usize>,
+    pub(crate) dst_y: Option<usize>,
+    pub(crate) src_width: Option<usize>,
+    pub(crate) src_height: Option<usize>,
+    pub(crate) dst_width: Option<usize>,
+    pub(crate) dst_height: Option<usize>,
+    pub(crate) filter: SamplerFilter,
+}
+
+impl BlitToSurface {
+    /// The x and y offset on the source attachment when copying to the destination attachment.
+    /// This defaults to 0.
+    pub fn set_src_offset(&mut self, src_x: usize, src_y: usize) -> &mut Self {
+        self.src_x = Some(src_x);
+        self.src_y = Some(src_y);
+        self
+    }
+
+    /// The width and height of the region of the source attachment to copy to the destination attachment.
+    /// By default, this will be the width and height of the source attachment.
+    pub fn set_src_size(&mut self, src_width: usize, src_height: usize) -> &mut Self {
+        self.src_width = Some(src_width);
+        self.src_height = Some(src_height);
+        self
+    }
+
+    /// The x and y offset on the destination attachment to be copied into by the source attachment.
+    /// This defaults to 0.
+    pub fn set_dst_offset(&mut self, dst_x: usize, dst_y: usize) -> &mut Self {
+        self.dst_x = Some(dst_x);
+        self.dst_y = Some(dst_y);
+        self
+    }
+
+    /// The width and height of the region of the destination attachment to be copied onto.
+    /// By default, this will be the width and height of the destination attachment.
+    pub fn set_dst_size(&mut self, dst_width: usize, dst_height: usize) -> &mut Self {
+        self.dst_width = Some(dst_width);
+        self.dst_height = Some(dst_height);
+        self
+    }
+
+    /// If the attachment needs to be scaled up or down, specify the sampling filter to use.
+    pub fn set_sampler_filter(&mut self, filter: SamplerFilter) -> &mut Self {
+        self.filter = filter;
+        self
+    }
+}
+
 #[derive(Default, Debug, Clone)]
 pub struct Submit<'transfer> {
     pub(crate) passes: Vec<SubmitPassType>,
@@ -187,6 +241,7 @@ pub struct Submit<'transfer> {
     pub(crate) ubo_transfers: Vec<(UniformBufferId, &'transfer [u8])>,
     pub(crate) dyn_ubo_transfers: Vec<(DynamicUniformBufferId, &'transfer [u8], usize)>,
     pub(crate) ssbo_copy_backs: Vec<extensions::ShaderStorageBufferId>,
+    pub(crate) blit_to_surface: Option<BlitToSurface>,
 }
 
 impl<'transfer> Submit<'transfer> {
@@ -198,6 +253,7 @@ impl<'transfer> Submit<'transfer> {
             ubo_transfers: vec![],
             dyn_ubo_transfers: vec![],
             ssbo_copy_backs: vec![],
+            blit_to_surface: None,
         }
     }
 
@@ -289,6 +345,27 @@ impl<'transfer> Submit<'transfer> {
     ) -> &mut Self {
         self.ssbo_copy_backs.push(ssbo);
         self
+    }
+
+    /// At the end of the pass, copy the `src` attachment image onto the surface.
+    /// You can then use [`BlitToSurface`] to control various copying options.
+    pub fn blit_to_surface(&mut self, src: AttachmentImageId) -> &mut BlitToSurface {
+        #[cfg(all(feature = "webgpu", target_arch = "wasm32", target_os = "unknown"))]
+        unimplemented!("webgpu StepSubmitData::blit_to_surface is not implemented");
+
+        self.blit_to_surface = Some(BlitToSurface {
+            src,
+            src_x: None,
+            src_y: None,
+            dst_x: None,
+            dst_y: None,
+            src_width: None,
+            src_height: None,
+            dst_width: None,
+            dst_height: None,
+            filter: SamplerFilter::default(),
+        });
+        self.blit_to_surface.as_mut().unwrap()
     }
 }
 

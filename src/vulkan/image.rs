@@ -9,6 +9,7 @@ pub struct VkImage {
     pub format: vk::Format,
     pub view_aspect: vk::ImageAspectFlags,
     pub allocation: ManuallyDrop<Allocation>,
+    pub extent: vk::Extent3D,
 
     drop_queue_ref: VkDropQueueRef,
 }
@@ -64,6 +65,7 @@ impl VkImage {
             image,
             format,
             allocation: ManuallyDrop::new(allocation),
+            extent,
             view_aspect,
 
             drop_queue_ref: Arc::clone(drop_queue_ref),

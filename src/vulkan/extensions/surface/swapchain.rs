@@ -5,6 +5,7 @@ pub struct VkSwapchain {
     pub extent: vk::Extent2D,
     pub swapchain_ext: vk_extensions::khr::Swapchain,
     pub swapchain: vk::SwapchainKHR,
+    pub swapchain_images: Vec<vk::Image>,
     pub swapchain_image_views: Vec<vk::ImageView>,
 
     drop_queue_ref: VkDropQueueRef,
@@ -70,7 +71,7 @@ impl VkSwapchain {
             .min_image_count(surface_capablitites.min_image_count)
             .pre_transform(surface_capablitites.current_transform)
             .image_array_layers(1)
-            .image_usage(vk::ImageUsageFlags::COLOR_ATTACHMENT)
+            .image_usage(vk::ImageUsageFlags::COLOR_ATTACHMENT | vk::ImageUsageFlags::TRANSFER_DST)
             .composite_alpha(vk::CompositeAlphaFlagsKHR::OPAQUE)
             .clipped(true)
             .build();
@@ -80,8 +81,8 @@ impl VkSwapchain {
             .map_err(|e| gpu_api_err!("vulkan swapchain images obtain {}", e))?;
 
         let swapchain_image_views: Vec<vk::ImageView> = swapchain_images
-            .into_iter()
-            .map(|img| {
+            .iter()
+            .map(|&img| {
                 new_image_view(
                     &core.dev,
                     img,
@@ -93,11 +94,45 @@ impl VkSwapchain {
             })
             .collect::<GResult<_>>()?;
 
+        //  Transition swapchain images from UNDEFINED to PRESENT_SRC_KHR
+        {
+            let _misc = core.misc_command();
+            for &image in swapchain_images.iter() {
+                let range = vk::ImageSubresourceRange::builder()
+                    .aspect_mask(vk::ImageAspectFlags::COLOR)
+                    .base_mip_level(0)
+                    .level_count(1)
+                    .layer_count(1)
+                    .build();
+                let src_image_transfer_barrier = vk::ImageMemoryBarrier::builder()
+                    .old_layout(vk::ImageLayout::UNDEFINED)
+                    .new_layout(vk::ImageLayout::PRESENT_SRC_KHR)
+                    .image(image)
+                    .subresource_range(range)
+                    .src_access_mask(vk::AccessFlags::empty())
+                    .dst_access_mask(vk::AccessFlags::COLOR_ATTACHMENT_WRITE)
+                    .build();
+
+                unsafe {
+                    core.dev.cmd_pipeline_barrier(
+                        core.misc_command_buffer,
+                        vk::PipelineStageFlags::TOP_OF_PIPE,
+                        vk::PipelineStageFlags::COLOR_ATTACHMENT_OUTPUT,
+                        vk::DependencyFlags::empty(),
+                        &[],
+                        &[],
+                        &[src_image_transfer_barrier],
+                    );
+                }
+            }
+        }
+
         Ok(VkSwapchain {
             format: format.format,
             extent,
             swapchain_ext,
             swapchain,
+            swapchain_images,
             swapchain_image_views,
 
             drop_queue_ref: Arc::clone(drop_queue_ref),

@@ -47,10 +47,8 @@ fn main() {
 
     let mut context = Context::new(extensions, None).unwrap();
 
-    let vs = include_bytes!("shaders/outlined_cube/vs.wgsl");
-    let fs = include_bytes!("shaders/outlined_cube/fs.wgsl");
-    let outline_vs = include_bytes!("shaders/outlined_cube/outline_vs.wgsl");
-    let outline_fs = include_bytes!("shaders/outlined_cube/outline_fs.wgsl");
+    let vs = include_bytes!("shaders/rotating_cube/vs.wgsl");
+    let fs = include_bytes!("shaders/rotating_cube/fs.wgsl");
 
     let vs = context
         .naga_translate_shader_code(
@@ -68,37 +66,14 @@ fn main() {
             naga_translation::NagaTranslationExtensionTranslateShaderCodeExt::default(),
         )
         .unwrap();
-    let outline_vs = context
-        .naga_translate_shader_code(
-            naga_translation::NagaTranslationStage::Vertex,
-            naga_translation::NagaTranslationInput::Wgsl,
-            outline_vs,
-            naga_translation::NagaTranslationExtensionTranslateShaderCodeExt::default(),
-        )
-        .unwrap();
-    let outline_fs = context
-        .naga_translate_shader_code(
-            naga_translation::NagaTranslationStage::Fragment,
-            naga_translation::NagaTranslationInput::Wgsl,
-            outline_fs,
-            naga_translation::NagaTranslationExtensionTranslateShaderCodeExt::default(),
-        )
-        .unwrap();
 
-    let (dynamic_uniform_buffer, dynamic_uniform_buffer_guard) = context
-        .new_dynamic_uniform_buffer(
-            &[
-                UniformBuffer {
-                    model: glm::identity(),
-                    view: glm::identity(),
-                    projection: glm::identity(),
-                },
-                UniformBuffer {
-                    model: glm::identity(),
-                    view: glm::identity(),
-                    projection: glm::identity(),
-                },
-            ],
+    let (uniform_buffer, uniform_buffer_guard) = context
+        .new_uniform_buffer(
+            &UniformBuffer {
+                model: glm::identity(),
+                view: glm::identity(),
+                projection: glm::identity(),
+            },
             None,
         )
         .unwrap();
@@ -106,7 +81,7 @@ fn main() {
     let data_uniform = ShaderUniform {
         set: 0,
         binding: 0,
-        ty: ShaderUniformType::DynamicUniformBuffer(dynamic_uniform_buffer),
+        ty: ShaderUniformType::UniformBuffer(uniform_buffer),
     };
 
     let image_bytes = include_bytes!("resources/marble.jpg");
@@ -162,40 +137,10 @@ fn main() {
                 ),
                 (ShaderType::Fragment, &fs),
             ]),
-            &[data_uniform.clone(), texture_uniform, sampler_uniform],
+            &[data_uniform, texture_uniform, sampler_uniform],
             Some(NewProgramExt {
                 enable_depth_test: Some(()),
                 enable_depth_write: Some(()),
-                enable_stencil_test: Some(()),
-                stencil_compare_op: Some(ShaderCompareOp::Always),
-                stencil_pass: Some(ShaderStencilOp::Replace),
-                stencil_fail: Some(ShaderStencilOp::Replace),
-                stencil_depth_fail: Some(ShaderStencilOp::Replace),
-                stencil_compare_mask: Some(0xFF),
-                stencil_write_mask: Some(0xFF),
-                stencil_reference: Some(1),
-                ..Default::default()
-            }),
-        )
-        .unwrap();
-
-    let outline_program = context
-        .new_program(
-            &ShaderSet::shaders(&[
-                (
-                    ShaderType::Vertex(VertexBufferInput { args: vec![3, 2] }),
-                    &outline_vs,
-                ),
-                (ShaderType::Fragment, &outline_fs),
-            ]),
-            &[data_uniform],
-            Some(NewProgramExt {
-                enable_depth_test: None,
-                enable_depth_write: None,
-                enable_stencil_test: Some(()),
-                stencil_compare_op: Some(ShaderCompareOp::NotEqual),
-                stencil_compare_mask: Some(0xFF),
-                stencil_reference: Some(1),
                 ..Default::default()
             }),
         )
@@ -252,42 +197,39 @@ fn main() {
         .unwrap();
 
     let mut pass = Pass::new(
-        window_size.0,
-        window_size.1,
+        64,
+        64,
         Some(NewPassExt {
-            depends_on_surface_size: Some(()),
-            surface_attachment_load_op: Some(PassInputLoadOpColorType::Clear),
+            depends_on_surface_size: None,
+            surface_attachment_load_op: None,
             ..Default::default()
         }),
     );
 
-    let depth_attachment_image = context
-        .new_attachment_image(
-            window_size.0,
-            window_size.1,
-            AttachmentImageUsage::DepthAttachment,
-            Some(NewAttachmentImageExt {
-                depends_on_surface_size: Some(()),
-                ..Default::default()
-            }),
-        )
+    let color_attachment_image = context
+        .new_attachment_image(64, 64, AttachmentImageUsage::ColorAttachment, None)
         .unwrap();
+
+    let depth_attachment_image = context
+        .new_attachment_image(64, 64, AttachmentImageUsage::DepthAttachment, None)
+        .unwrap();
+
+    let color_attachment =
+        pass.add_attachment_color_image(color_attachment_image, PassInputLoadOpColorType::Clear);
 
     let depth_attachment = pass.add_attachment_depth_image(
         depth_attachment_image,
         PassInputLoadOpDepthStencilType::Clear,
     );
 
-    let output_attachment = pass.get_surface_local_attachment();
     {
         let pass_step = pass.add_step();
         pass_step
             .add_vertex_buffer(vbo)
             .set_index_buffer(ibo)
             .add_program(program)
-            .add_program(outline_program)
             .set_write_depth(depth_attachment)
-            .add_write_color(output_attachment);
+            .add_write_color(color_attachment);
     }
 
     let compiled_pass = context.compile_pass(&pass, None).unwrap();
@@ -321,7 +263,6 @@ fn main() {
             }
             Event::MainEventsCleared => {
                 let window_size = get_window_size(&window);
-                //  For the sake of the Web.
                 if last_window_size.0 != window_size.0 || last_window_size.1 != window_size.1 {
                     context
                         .set_surface_size(window_size.0, window_size.1)
@@ -366,24 +307,10 @@ fn main() {
                     projection,
                 };
 
-                submit.transfer_into_dynamic_uniform_buffer(
-                    dynamic_uniform_buffer_guard,
-                    &uniform_data,
-                    0,
-                );
-
-                let model = glm::scale(&model, &glm::vec3(1.4, 1.4, 1.4));
-                let uniform_data = UniformBuffer {
-                    model,
-                    view,
-                    projection,
-                };
-
-                submit.transfer_into_dynamic_uniform_buffer(
-                    dynamic_uniform_buffer_guard,
-                    &uniform_data,
-                    1,
-                );
+                submit.transfer_into_uniform_buffer(uniform_buffer_guard, &uniform_data);
+                submit
+                    .blit_to_surface(color_attachment_image)
+                    .set_sampler_filter(SamplerFilter::Nearest);
 
                 let mut pass_submit = PassSubmitData::new(compiled_pass);
 
@@ -392,26 +319,15 @@ fn main() {
 
                     step_submit
                         .draw_indexed(program, 0, index_data.len())
-                        .set_dynamic_uniform_buffer_index(dynamic_uniform_buffer, 0)
                         .set_viewport(DrawViewport {
                             x: 0.0,
                             y: 0.0,
-                            width: window_size.0 as f32,
-                            height: window_size.1 as f32,
-                        });
-
-                    step_submit
-                        .draw_indexed(outline_program, 0, index_data.len())
-                        .set_dynamic_uniform_buffer_index(dynamic_uniform_buffer, 1)
-                        .set_viewport(DrawViewport {
-                            x: 0.0,
-                            y: 0.0,
-                            width: window_size.0 as f32,
-                            height: window_size.1 as f32,
+                            width: 64.0,
+                            height: 64.0,
                         });
 
                     pass_submit.set_attachment_clear_color(
-                        output_attachment,
+                        color_attachment,
                         ClearColor {
                             r: 0.0,
                             g: 0.2,
