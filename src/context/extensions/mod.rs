@@ -148,11 +148,9 @@ pub enum Extension {
     GpuPowerLevel(GpuPowerLevel),
     NativeDebug(NativeDebugConfiguration),
     MemoryFlush,
-    #[cfg(feature = "naga_translation")]
     NagaTranslation,
     WebGpuInitFromWindow(WebGpuInitFromWindow),
     WebGpuInit(WebGpuInit),
-    #[cfg(feature = "surface_extension")]
     Surface(SurfaceConfiguration),
     Compute,
     ShaderStorageBufferObject,
