@@ -89,6 +89,18 @@ pub enum ShaderPrimitiveTopology {
 
 #[derive(Debug, Clone, Copy, Hash, PartialEq, Eq)]
 pub enum ShaderUniformType {
+    Sampler,
+    Texture,
+    CubemapTexture,
+    UniformBuffer,
+    DynamicUniformBuffer,
+    InputAttachment,
+    ShaderStorageBuffer,
+    ShaderStorageBufferReadOnly,
+}
+
+#[derive(Debug, Clone, Copy, Hash, PartialEq, Eq)]
+pub enum ShaderUniformData {
     Sampler(SamplerId),
     Texture(TextureId),
     CubemapTexture(TextureId),
@@ -97,6 +109,23 @@ pub enum ShaderUniformType {
     InputAttachment(AttachmentImageId),
     ShaderStorageBuffer(extensions::ShaderStorageBufferId),
     ShaderStorageBufferReadOnly(extensions::ShaderStorageBufferId),
+}
+
+impl ShaderUniformData {
+    pub fn into_type(&self) -> ShaderUniformType {
+        match self {
+            ShaderUniformData::Sampler(_) => ShaderUniformType::Sampler,
+            ShaderUniformData::Texture(_) => ShaderUniformType::Texture,
+            ShaderUniformData::CubemapTexture(_) => ShaderUniformType::CubemapTexture,
+            ShaderUniformData::UniformBuffer(_) => ShaderUniformType::UniformBuffer,
+            ShaderUniformData::DynamicUniformBuffer(_) => ShaderUniformType::DynamicUniformBuffer,
+            ShaderUniformData::InputAttachment(_) => ShaderUniformType::InputAttachment,
+            ShaderUniformData::ShaderStorageBuffer(_) => ShaderUniformType::ShaderStorageBuffer,
+            ShaderUniformData::ShaderStorageBufferReadOnly(_) => {
+                ShaderUniformType::ShaderStorageBufferReadOnly
+            }
+        }
+    }
 }
 
 #[derive(Debug, Clone, Hash, PartialEq, Eq)]
@@ -176,5 +205,54 @@ impl Context {
             Context::Vulkan(vk) => vk.new_program(shaders, uniforms, ext),
             Context::WebGpu(wgpu) => wgpu.new_program(shaders, uniforms, ext),
         }
+    }
+
+    //  TODO IMP: Impl webgpu
+    //  TODO DOC: Document
+    pub fn update_program_uniform(
+        &mut self,
+        program: ProgramId,
+        uniform_index: usize,
+        uniform: ShaderUniformData,
+    ) -> GResult<()> {
+        let mut partial = vec![None; uniform_index + 1];
+        partial[uniform_index] = Some(uniform);
+
+        match self {
+            Context::Vulkan(vk) => vk.update_program_uniforms_partial(program, &partial),
+            Context::WebGpu(wgpu) => unimplemented!(),
+        }
+    }
+
+    //  TODO IMP: Impl webgpu
+    //  TODO DOC: Document
+    pub fn update_program_uniforms(
+        &mut self,
+        program: ProgramId,
+        uniforms: &[ShaderUniformData],
+    ) -> GResult<()> {
+        let partial = uniforms.iter().map(|u| Some(*u)).collect::<Vec<_>>();
+
+        match self {
+            Context::Vulkan(vk) => vk.update_program_uniforms_partial(program, &partial)?,
+            Context::WebGpu(wgpu) => unimplemented!(),
+        }
+
+        Ok(())
+    }
+
+    //  TODO IMP: Impl webgpu
+    //  TODO DOC: Document
+    pub fn update_program_uniforms_partial(
+        &mut self,
+        program: ProgramId,
+        partial: &[Option<ShaderUniformData>],
+    ) -> GResult<()> {
+        match self {
+            Context::Vulkan(vk) => vk.update_program_uniforms_partial(program, partial)?,
+            Context::WebGpu(wgpu) => unimplemented!(),
+        }
+
+        Ok(())
     }
 }

@@ -10,9 +10,12 @@ pub struct VkDescriptors {
     pub descriptor_sets: [vk::DescriptorSet; DESCRIPTOR_SET_COUNT],
     pub descriptor_set_layouts: [vk::DescriptorSetLayout; DESCRIPTOR_SET_COUNT],
 
+    //  This gets searched when we bind, so order doesn't matter.
     dynamic_indices: Vec<DynamicGenericBufferId>,
-
     shader_uniforms: Vec<ShaderUniform>,
+    initialized_uniforms: Vec<bool>,
+
+    uniform_datas: Vec<Option<ShaderUniformData>>,
 
     drop_queue_ref: VkDropQueueRef,
 }
@@ -57,13 +60,10 @@ impl VkDescriptors {
             .map(|_| vec![])
             .collect::<Vec<_>>();
 
-        //  For Binding Dynamic Offsets Layer
-        let mut dynamic_indices = vec![];
-
         //  Descriptor Layouts
         uniforms.iter().for_each(|uniform| {
             let binding_info = match uniform.ty {
-                ShaderUniformType::UniformBuffer(_) => vk::DescriptorSetLayoutBinding::builder()
+                ShaderUniformType::UniformBuffer => vk::DescriptorSetLayoutBinding::builder()
                     .binding(uniform.binding as u32)
                     .stage_flags(
                         vk::ShaderStageFlags::VERTEX
@@ -73,8 +73,7 @@ impl VkDescriptors {
                     .descriptor_type(vk::DescriptorType::UNIFORM_BUFFER)
                     .descriptor_count(1)
                     .build(),
-                ShaderUniformType::DynamicUniformBuffer(id) => {
-                    dynamic_indices.push(DynamicGenericBufferId::Uniform(id));
+                ShaderUniformType::DynamicUniformBuffer => {
                     vk::DescriptorSetLayoutBinding::builder()
                         .binding(uniform.binding as u32)
                         .stage_flags(
@@ -86,8 +85,8 @@ impl VkDescriptors {
                         .descriptor_count(1)
                         .build()
                 }
-                ShaderUniformType::ShaderStorageBuffer(_)
-                | ShaderUniformType::ShaderStorageBufferReadOnly(_) => {
+                ShaderUniformType::ShaderStorageBuffer
+                | ShaderUniformType::ShaderStorageBufferReadOnly => {
                     vk::DescriptorSetLayoutBinding::builder()
                         .binding(uniform.binding as u32)
                         .stage_flags(
@@ -99,25 +98,25 @@ impl VkDescriptors {
                         .descriptor_count(1)
                         .build()
                 }
-                ShaderUniformType::Texture(_) => vk::DescriptorSetLayoutBinding::builder()
+                ShaderUniformType::Texture => vk::DescriptorSetLayoutBinding::builder()
                     .binding(uniform.binding as u32)
                     .stage_flags(vk::ShaderStageFlags::FRAGMENT | vk::ShaderStageFlags::COMPUTE)
                     .descriptor_type(vk::DescriptorType::SAMPLED_IMAGE)
                     .descriptor_count(1)
                     .build(),
-                ShaderUniformType::CubemapTexture(_) => vk::DescriptorSetLayoutBinding::builder()
+                ShaderUniformType::CubemapTexture => vk::DescriptorSetLayoutBinding::builder()
                     .binding(uniform.binding as u32)
                     .stage_flags(vk::ShaderStageFlags::FRAGMENT | vk::ShaderStageFlags::COMPUTE)
                     .descriptor_type(vk::DescriptorType::SAMPLED_IMAGE)
                     .descriptor_count(1)
                     .build(),
-                ShaderUniformType::Sampler(_) => vk::DescriptorSetLayoutBinding::builder()
+                ShaderUniformType::Sampler => vk::DescriptorSetLayoutBinding::builder()
                     .binding(uniform.binding as u32)
                     .stage_flags(vk::ShaderStageFlags::FRAGMENT | vk::ShaderStageFlags::COMPUTE)
                     .descriptor_type(vk::DescriptorType::SAMPLER)
                     .descriptor_count(1)
                     .build(),
-                ShaderUniformType::InputAttachment(_) => vk::DescriptorSetLayoutBinding::builder()
+                ShaderUniformType::InputAttachment => vk::DescriptorSetLayoutBinding::builder()
                     .binding(uniform.binding as u32)
                     .stage_flags(vk::ShaderStageFlags::FRAGMENT)
                     .descriptor_type(vk::DescriptorType::INPUT_ATTACHMENT)
@@ -159,32 +158,48 @@ impl VkDescriptors {
         .try_into()
         .unwrap();
 
-        let mut descriptors = VkDescriptors {
+        let descriptors = VkDescriptors {
             descriptor_pool,
             descriptor_sets,
             descriptor_set_layouts,
 
+            dynamic_indices: vec![],
+            uniform_datas: vec![None; uniforms.len()],
             shader_uniforms: uniforms.to_vec(),
 
-            dynamic_indices,
+            initialized_uniforms: vec![false; uniforms.len()],
 
             drop_queue_ref: Arc::clone(&context.drop_queue),
         };
 
-        descriptors.update(context)?;
-
         Ok(descriptors)
     }
 
-    pub fn update(&mut self, context: &VkContext) -> GResult<()> {
+    pub fn set_partial_uniform_datas(&mut self, partials: &[Option<ShaderUniformData>]) {
+        for (idx, data) in partials.iter().enumerate() {
+            if let Some(data) = data {
+                self.uniform_datas[idx] = Some(*data);
+                self.initialized_uniforms[idx] = true;
+            }
+        }
+    }
+
+    pub fn update_all(&mut self, context: &VkContext) -> GResult<()> {
         //  Update Descriptor Sets
-        let mut buffer_infos = vec![];
-        let mut image_infos = vec![];
+        let mut lifetime_buffer_infos = vec![];
+        let mut lifetime_image_infos = vec![];
+
+        let mut dynamic_indices = self.dynamic_indices.clone();
+
         let writes = self
-            .shader_uniforms
+            .uniform_datas
             .iter()
-            .map(|uniform| match uniform.ty {
-                ShaderUniformType::UniformBuffer(ubo_id) => {
+            .zip(self.shader_uniforms.iter())
+            .filter_map(|(uniform_data, uniform)| {
+                uniform_data.and_then(|uniform_data| Some((uniform_data, uniform)))
+            })
+            .map(|(uniform_data, uniform)| match uniform_data {
+                ShaderUniformData::UniformBuffer(ubo_id) => {
                     let ubo = context.ubos.get(ubo_id.id()).ok_or(gpu_api_err!(
                         "vulkan uniform buffer id {:?} does not exist",
                         ubo_id
@@ -205,11 +220,12 @@ impl VkDescriptors {
                         .buffer_info(&buffer_info_list)
                         .build();
 
-                    buffer_infos.push(buffer_info_list);
+                    lifetime_buffer_infos.push(buffer_info_list);
 
                     Ok(ret)
                 }
-                ShaderUniformType::DynamicUniformBuffer(ubo_id) => {
+                ShaderUniformData::DynamicUniformBuffer(ubo_id) => {
+                    dynamic_indices.push(DynamicGenericBufferId::Uniform(ubo_id));
                     let ubo = context.dyn_ubos.get(ubo_id.id()).ok_or(gpu_api_err!(
                         "vulkan dynamic uniform buffer id {:?} does not exist",
                         ubo_id
@@ -230,12 +246,12 @@ impl VkDescriptors {
                         .buffer_info(&buffer_info_list)
                         .build();
 
-                    buffer_infos.push(buffer_info_list);
+                    lifetime_buffer_infos.push(buffer_info_list);
 
                     Ok(ret)
                 }
-                ShaderUniformType::ShaderStorageBuffer(ssbo_id)
-                | ShaderUniformType::ShaderStorageBufferReadOnly(ssbo_id) => {
+                ShaderUniformData::ShaderStorageBuffer(ssbo_id)
+                | ShaderUniformData::ShaderStorageBufferReadOnly(ssbo_id) => {
                     let ssbo = context.ssbos.get(ssbo_id.id()).ok_or(gpu_api_err!(
                         "vulkan shader storage buffer id {:?} does not exist",
                         ssbo_id
@@ -256,11 +272,11 @@ impl VkDescriptors {
                         .buffer_info(&buffer_info_list)
                         .build();
 
-                    buffer_infos.push(buffer_info_list);
+                    lifetime_buffer_infos.push(buffer_info_list);
 
                     Ok(ret)
                 }
-                ShaderUniformType::Texture(texture_id) => {
+                ShaderUniformData::Texture(texture_id) => {
                     let texture = context.textures.get(texture_id.id()).ok_or(gpu_api_err!(
                         "vulkan uniform texture id {:?} does not exist",
                         texture_id
@@ -280,11 +296,11 @@ impl VkDescriptors {
                         .image_info(&image_info_list)
                         .build();
 
-                    image_infos.push(image_info_list);
+                    lifetime_image_infos.push(image_info_list);
 
                     Ok(ret)
                 }
-                ShaderUniformType::CubemapTexture(texture_id) => {
+                ShaderUniformData::CubemapTexture(texture_id) => {
                     let texture = context.textures.get(texture_id.id()).ok_or(gpu_api_err!(
                         "vulkan uniform cubemap texture id {:?} does not exist",
                         texture_id
@@ -304,11 +320,11 @@ impl VkDescriptors {
                         .image_info(&image_info_list)
                         .build();
 
-                    image_infos.push(image_info_list);
+                    lifetime_image_infos.push(image_info_list);
 
                     Ok(ret)
                 }
-                ShaderUniformType::Sampler(sampler_id) => {
+                ShaderUniformData::Sampler(sampler_id) => {
                     let sampler = context.sampler_cache.get(sampler_id).ok_or(gpu_api_err!(
                         "vulkan uniform sampler id {:?} does not exist",
                         sampler_id
@@ -325,11 +341,11 @@ impl VkDescriptors {
                         .image_info(&image_info_list)
                         .build();
 
-                    image_infos.push(image_info_list);
+                    lifetime_image_infos.push(image_info_list);
 
                     Ok(ret)
                 }
-                ShaderUniformType::InputAttachment(attachment_image_id) => {
+                ShaderUniformData::InputAttachment(attachment_image_id) => {
                     let attachment_image = context
                         .attachment_images
                         .get(attachment_image_id.id())
@@ -352,15 +368,21 @@ impl VkDescriptors {
                         .image_info(&image_info_list)
                         .build();
 
-                    image_infos.push(image_info_list);
+                    lifetime_image_infos.push(image_info_list);
 
                     Ok(ret)
                 }
             })
             .collect::<GResult<Vec<_>>>()?;
 
+        self.dynamic_indices = dynamic_indices;
+
         unsafe { context.core.dev.update_descriptor_sets(&writes, &[]) };
         Ok(())
+    }
+
+    fn is_initialized(&self) -> bool {
+        self.initialized_uniforms.iter().all(|i| *i)
     }
 
     pub unsafe fn cmd_bind(
@@ -371,6 +393,10 @@ impl VkDescriptors {
         layout: vk::PipelineLayout,
         dynamic_indices: &HashMap<DynamicGenericBufferId, usize>,
     ) -> GResult<()> {
+        if !self.is_initialized() {
+            Err(gpu_api_err!("vulkan not all uniforms updated"))?
+        }
+
         let mut offsets = vec![0; self.dynamic_indices.len()];
 
         (self.dynamic_indices.len() == dynamic_indices.len())
@@ -430,11 +456,11 @@ impl Drop for VkDescriptors {
 }
 
 impl VkContext {
-    pub fn update_descriptors(&mut self) -> GResult<()> {
+    pub fn update_all_descriptors(&mut self) -> GResult<()> {
         let p = unsafe { &*(self as *const Self) };
         for program in self.programs.iter_mut() {
             //  TODO FIX: I pinky promise that this won't break.
-            program.descriptors.update(p)?;
+            program.descriptors.update_all(p)?;
         }
         Ok(())
     }

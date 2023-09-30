@@ -27,6 +27,27 @@ impl VkContext {
 
         Ok(ProgramId::from_id(self.programs.len() - 1))
     }
+
+    pub fn update_program_uniforms_partial(
+        &mut self,
+        program: ProgramId,
+        partials: &[Option<ShaderUniformData>],
+    ) -> GResult<()> {
+        //  TODO FIX: I pinky promise that this won't break.
+        let p = unsafe { &*(self as *const Self) };
+
+        let program = self.programs.get_mut(program.id()).ok_or(gpu_api_err!(
+            "vulkan update program {:?} does not exist",
+            program
+        ))?;
+
+        program.descriptors.set_partial_uniform_datas(partials);
+
+        //  `p` used here.
+        program.descriptors.update_all(p)?;
+
+        Ok(())
+    }
 }
 
 pub fn new_pipeline_layout(

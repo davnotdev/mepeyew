@@ -84,7 +84,7 @@ impl VkContext {
             )?;
         }
 
-        self.update_descriptors()?;
+        self.update_all_descriptors()?;
 
         //  Resize Surface.
         let old_surface = unsafe { ManuallyDrop::take(&mut self.surface_ext) }.ok_or(

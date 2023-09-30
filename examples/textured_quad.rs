@@ -94,12 +94,12 @@ fn main() {
     let texture_uniform = ShaderUniform {
         set: 0,
         binding: 0,
-        ty: ShaderUniformType::Texture(texture),
+        ty: ShaderUniformType::Texture,
     };
     let sampler_uniform = ShaderUniform {
         set: 0,
         binding: 1,
-        ty: ShaderUniformType::Sampler(sampler),
+        ty: ShaderUniformType::Sampler,
     };
 
     let program = context
@@ -113,6 +113,16 @@ fn main() {
             ]),
             &[texture_uniform, sampler_uniform],
             None,
+        )
+        .unwrap();
+
+    context
+        .update_program_uniforms(
+            program,
+            &[
+                ShaderUniformData::Texture(texture),
+                ShaderUniformData::Sampler(sampler),
+            ],
         )
         .unwrap();
 
