@@ -401,11 +401,12 @@ impl VkDescriptors {
 
         let mut offsets = vec![0; self.dynamic_indices.len()];
 
-        (self.dynamic_indices.len() == dynamic_indices.len())
-            .then_some(())
-            .ok_or(gpu_api_err!(
-                "vulkan not all dynamic indices provided for draw"
-            ))?;
+        // TODO FIX
+        // (self.dynamic_indices.len() == dynamic_indices.len())
+        //     .then_some(())
+        //     .ok_or(gpu_api_err!(
+        //         "vulkan not all dynamic indices provided for draw"
+        //     ))?;
 
         dynamic_indices
             .iter()
