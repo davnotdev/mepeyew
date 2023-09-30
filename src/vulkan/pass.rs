@@ -495,6 +495,7 @@ fn new_resolve_image(
         sample_count,
         1,
         false,
+        1,
         extent,
     )
 }

@@ -25,6 +25,7 @@ impl VkImage {
         samples: vk::SampleCountFlags,
         mip_levels: u32,
         is_cubemap: bool,
+        array_layers: u32,
         extent: vk::Extent3D,
     ) -> GResult<Self> {
         let image_create = vk::ImageCreateInfo::builder()
@@ -33,7 +34,7 @@ impl VkImage {
             .extent(extent)
             .image_type(vk::ImageType::TYPE_2D)
             .mip_levels(mip_levels)
-            .array_layers(if is_cubemap { 6 } else { 1 })
+            .array_layers(if is_cubemap { 6 } else { array_layers })
             .flags(if is_cubemap {
                 vk::ImageCreateFlags::CUBE_COMPATIBLE
             } else {

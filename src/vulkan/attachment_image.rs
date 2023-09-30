@@ -60,7 +60,8 @@ impl VkAttachmentImage {
                 .unwrap_or(VK_COLOR_ATTACHMENT_FORMAT),
             AttachmentImageUsage::DepthAttachment => VK_DEPTH_ATTACHMENT_FORMAT,
         };
-        let usages = vk::ImageUsageFlags::INPUT_ATTACHMENT | vk::ImageUsageFlags::TRANSFER_SRC
+        let usages = vk::ImageUsageFlags::INPUT_ATTACHMENT
+            | vk::ImageUsageFlags::TRANSFER_SRC
             | match attachment_usage {
                 AttachmentImageUsage::ColorAttachment => vk::ImageUsageFlags::COLOR_ATTACHMENT,
                 AttachmentImageUsage::DepthAttachment => {
@@ -90,6 +91,7 @@ impl VkAttachmentImage {
             },
             1,
             false,
+            1,
             vk::Extent3D {
                 width: width as u32,
                 height: height as u32,

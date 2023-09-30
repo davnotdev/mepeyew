@@ -45,6 +45,9 @@ pub struct NewTextureExt {
     pub enable_mipmaps: Option<()>,
     pub mip_levels: Option<u32>,
     pub enable_cubemap: Option<()>,
+
+    //  TODO DOC
+    pub layer_count: Option<usize>,
 }
 
 /// Allows for the configuration of:
@@ -54,6 +57,9 @@ pub struct UploadTextureExt {
     /// Generate mipmips.
     /// The mipmap count can be obtained with [`Context::get_texture_max_lod`].
     pub generate_mipmaps: Option<()>,
+
+    //  TODO DOC
+    pub layer: Option<usize>,
 }
 
 /// Allows for the configuration of:

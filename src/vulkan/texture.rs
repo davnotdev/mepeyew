@@ -32,7 +32,7 @@ impl VkContext {
         let image_subresource_layers = vk::ImageSubresourceLayers::builder()
             .aspect_mask(vk::ImageAspectFlags::COLOR)
             .mip_level(0)
-            .base_array_layer(0)
+            .base_array_layer(ext.layer.unwrap_or(0) as u32)
             .layer_count(1)
             .build();
         let copy_region = vk::BufferImageCopy::builder()
@@ -186,6 +186,7 @@ impl VkTexture {
             vk::SampleCountFlags::TYPE_1,
             mip_levels,
             enable_cubemap,
+            ext.layer_count.unwrap_or(1) as u32,
             vk::Extent3D {
                 width: width as u32,
                 height: height as u32,
@@ -246,7 +247,7 @@ impl VkTexture {
         let mut offset = 0;
         for data in datas.iter() {
             self.staging
-                .map_copy_data(data.as_ptr() as *const u8, data.len(), offset)?;
+                .map_copy_data(data.as_ptr(), data.len(), offset)?;
             offset += data.len();
         }
 
