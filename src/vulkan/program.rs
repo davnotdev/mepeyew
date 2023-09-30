@@ -31,7 +31,7 @@ impl VkContext {
     pub fn update_program_uniforms_partial(
         &mut self,
         program: ProgramId,
-        partials: &[Option<ShaderUniformData>],
+        partials: &[Option<ShaderUniformUpdateData>],
     ) -> GResult<()> {
         //  TODO FIX: I pinky promise that this won't break.
         let p = unsafe { &*(self as *const Self) };

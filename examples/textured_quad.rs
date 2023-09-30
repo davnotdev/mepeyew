@@ -120,8 +120,8 @@ fn main() {
         .update_program_uniforms(
             program,
             &[
-                ShaderUniformData::Texture(texture),
-                ShaderUniformData::Sampler(sampler),
+                ShaderUniformUpdateData::Texture(0, texture),
+                ShaderUniformUpdateData::Sampler(0, sampler),
             ],
         )
         .unwrap();

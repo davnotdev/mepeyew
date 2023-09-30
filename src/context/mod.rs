@@ -112,7 +112,7 @@ pub use pass_step::PassStep;
 pub use program::{
     NewProgramExt, ShaderBlendFactor, ShaderBlendOperation, ShaderCompareOp, ShaderCullFrontFace,
     ShaderCullMode, ShaderPrimitiveTopology, ShaderSet, ShaderStage, ShaderStencilOp, ShaderType,
-    ShaderUniform, ShaderUniformData, ShaderUniformType,
+    ShaderUniform, ShaderUniformUpdateData, ShaderUniformType,
 };
 pub use sampler::{GetSamplerExt, MipSamplerFilter, SamplerFilter, SamplerMode};
 pub use submit::{

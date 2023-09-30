@@ -100,32 +100,15 @@ pub enum ShaderUniformType {
 }
 
 #[derive(Debug, Clone, Copy, Hash, PartialEq, Eq)]
-pub enum ShaderUniformData {
-    Sampler(SamplerId),
-    Texture(TextureId),
+pub enum ShaderUniformUpdateData {
+    Sampler(usize, SamplerId),
+    Texture(usize, TextureId),
     CubemapTexture(TextureId),
     UniformBuffer(UniformBufferId),
     DynamicUniformBuffer(DynamicUniformBufferId),
     InputAttachment(AttachmentImageId),
     ShaderStorageBuffer(extensions::ShaderStorageBufferId),
     ShaderStorageBufferReadOnly(extensions::ShaderStorageBufferId),
-}
-
-impl ShaderUniformData {
-    pub fn into_type(&self) -> ShaderUniformType {
-        match self {
-            ShaderUniformData::Sampler(_) => ShaderUniformType::Sampler,
-            ShaderUniformData::Texture(_) => ShaderUniformType::Texture,
-            ShaderUniformData::CubemapTexture(_) => ShaderUniformType::CubemapTexture,
-            ShaderUniformData::UniformBuffer(_) => ShaderUniformType::UniformBuffer,
-            ShaderUniformData::DynamicUniformBuffer(_) => ShaderUniformType::DynamicUniformBuffer,
-            ShaderUniformData::InputAttachment(_) => ShaderUniformType::InputAttachment,
-            ShaderUniformData::ShaderStorageBuffer(_) => ShaderUniformType::ShaderStorageBuffer,
-            ShaderUniformData::ShaderStorageBufferReadOnly(_) => {
-                ShaderUniformType::ShaderStorageBufferReadOnly
-            }
-        }
-    }
 }
 
 #[derive(Debug, Clone, Hash, PartialEq, Eq)]
@@ -213,7 +196,7 @@ impl Context {
         &mut self,
         program: ProgramId,
         uniform_index: usize,
-        uniform: ShaderUniformData,
+        uniform: ShaderUniformUpdateData,
     ) -> GResult<()> {
         let mut partial = vec![None; uniform_index + 1];
         partial[uniform_index] = Some(uniform);
@@ -229,7 +212,7 @@ impl Context {
     pub fn update_program_uniforms(
         &mut self,
         program: ProgramId,
-        uniforms: &[ShaderUniformData],
+        uniforms: &[ShaderUniformUpdateData],
     ) -> GResult<()> {
         let partial = uniforms.iter().map(|u| Some(*u)).collect::<Vec<_>>();
 
@@ -246,7 +229,7 @@ impl Context {
     pub fn update_program_uniforms_partial(
         &mut self,
         program: ProgramId,
-        partial: &[Option<ShaderUniformData>],
+        partial: &[Option<ShaderUniformUpdateData>],
     ) -> GResult<()> {
         match self {
             Context::Vulkan(vk) => vk.update_program_uniforms_partial(program, partial)?,
