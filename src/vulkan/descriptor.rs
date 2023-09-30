@@ -1,5 +1,5 @@
 use super::*;
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 
 const DESCRIPTOR_SET_COUNT: usize = 8;
 
@@ -11,7 +11,7 @@ pub struct VkDescriptors {
     pub descriptor_set_layouts: [vk::DescriptorSetLayout; DESCRIPTOR_SET_COUNT],
 
     //  This gets searched when we bind, so order doesn't matter.
-    dynamic_indices: Vec<DynamicGenericBufferId>,
+    dynamic_indices: HashSet<DynamicGenericBufferId>,
     shader_uniforms: Vec<ShaderUniform>,
     initialized_uniforms: Vec<bool>,
 
@@ -164,7 +164,7 @@ impl VkDescriptors {
             descriptor_sets,
             descriptor_set_layouts,
 
-            dynamic_indices: vec![],
+            dynamic_indices: HashSet::new(),
             uniform_datas: vec![],
             shader_uniforms: uniforms.to_vec(),
 
@@ -224,7 +224,7 @@ impl VkDescriptors {
                         Ok(ret)
                     }
                     ShaderUniformUpdateData::DynamicUniformBuffer(ubo_id) => {
-                        dynamic_indices.push(DynamicGenericBufferId::Uniform(*ubo_id));
+                        dynamic_indices.insert(DynamicGenericBufferId::Uniform(*ubo_id));
                         let ubo = context.dyn_ubos.get(ubo_id.id()).ok_or(gpu_api_err!(
                             "vulkan dynamic uniform buffer id {:?} does not exist",
                             ubo_id
@@ -401,12 +401,11 @@ impl VkDescriptors {
 
         let mut offsets = vec![0; self.dynamic_indices.len()];
 
-        // TODO FIX
-        // (self.dynamic_indices.len() == dynamic_indices.len())
-        //     .then_some(())
-        //     .ok_or(gpu_api_err!(
-        //         "vulkan not all dynamic indices provided for draw"
-        //     ))?;
+        (self.dynamic_indices.len() == dynamic_indices.len())
+            .then_some(())
+            .ok_or(gpu_api_err!(
+                "vulkan not all dynamic indices provided for draw"
+            ))?;
 
         dynamic_indices
             .iter()
