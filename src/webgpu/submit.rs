@@ -235,7 +235,7 @@ fn submit_pass(
                         "webgpu submit vertex buffer id {:?} does not exist",
                         vbo
                     ))?;
-                    pass_encoder.set_vertex_buffer(slot_idx as u32, &vbo.buffer);
+                    pass_encoder.set_vertex_buffer(slot_idx as u32, Some(&vbo.buffer));
                     Ok(())
                 })?;
 

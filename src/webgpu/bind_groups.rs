@@ -215,7 +215,7 @@ impl WebGpuBindGroups {
                 let offsets = self.cmd_bind_generic(context, dynamic_indices, slot_idx)?;
                 pass_encoder.set_bind_group_with_u32_sequence(
                     slot_idx as u32,
-                    bind_group,
+                    Some(bind_group),
                     &offsets,
                 );
 
@@ -236,7 +236,7 @@ impl WebGpuBindGroups {
                 let offsets = self.cmd_bind_generic(context, dynamic_indices, slot_idx)?;
                 pass_encoder.set_bind_group_with_u32_sequence(
                     slot_idx as u32,
-                    bind_group,
+                    Some(bind_group),
                     &offsets,
                 );
 

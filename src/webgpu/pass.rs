@@ -95,7 +95,7 @@ impl WebGpuCompiledPass {
                         .primitive(&primitive);
 
                     if program.ext.enable_depth_write.is_some() || program.ext.enable_stencil_test.is_some() {
-                        let mut depth_stencil = GpuDepthStencilState::new(WEBGPU_DEPTH_ATTACHMENT_FORMAT);
+                        let mut depth_stencil = GpuDepthStencilState::new(GpuCompareFunction::Less, true, WEBGPU_DEPTH_ATTACHMENT_FORMAT);
                         fn compare_op_into_webgpu(compare_op: ShaderCompareOp) -> GpuCompareFunction {
                             match compare_op {
                                 ShaderCompareOp::Never => GpuCompareFunction::Never,

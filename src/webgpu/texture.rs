@@ -319,7 +319,7 @@ impl WebGpuMipmapStateCache {
             ));
 
             pass_encoder.set_pipeline(&pipeline);
-            pass_encoder.set_bind_group(0, &bind_group);
+            pass_encoder.set_bind_group(0, Some(&bind_group));
             pass_encoder.draw(4);
             pass_encoder.end();
         }
