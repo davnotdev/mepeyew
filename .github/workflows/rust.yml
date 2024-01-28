@@ -38,7 +38,6 @@ jobs:
     runs-on: ${{ matrix.os }}
     env:
       DEVELOPER_DIR: /Applications/Xcode_14.2.app/Contents/Developer
-      CARGO_INCREMENTAL: 0
       CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER: aarch64-linux-gnu-gcc
       RUST_BACKTRACE: short
     steps:
