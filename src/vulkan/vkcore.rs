@@ -1,5 +1,5 @@
 use super::{debug::VkDebug, *};
-use std::ffi::CString;
+use std::ffi::{c_char, CString};
 
 pub struct VkCore {
     pub instance: Instance,
@@ -36,7 +36,7 @@ pub struct VkCoreConfiguration {
 
 impl VkCore {
     pub fn new(config: VkCoreConfiguration) -> GResult<Self> {
-        let Ok(entry) = (unsafe {Entry::load()}) else {
+        let Ok(entry) = (unsafe { Entry::load() }) else {
             Err(gpu_api_err!("vulkan not found"))?
         };
 
@@ -70,11 +70,11 @@ impl VkCore {
         let instance_extensions = instance_extensions_owned
             .iter()
             .map(|s| s.as_ptr())
-            .collect::<Vec<*const i8>>();
+            .collect::<Vec<*const c_char>>();
         let layers = layers_owned
             .iter()
             .map(|s| s.as_ptr())
-            .collect::<Vec<*const i8>>();
+            .collect::<Vec<*const c_char>>();
 
         //  # Make Instance
         let instance_create = vk::InstanceCreateInfo::builder()
@@ -83,9 +83,9 @@ impl VkCore {
             .flags(vk::InstanceCreateFlags::ENUMERATE_PORTABILITY_KHR)
             .push_next(&mut VkDebug::get_debug_create())
             .build();
-        let Ok(instance) = (unsafe { entry.create_instance(&instance_create, None)}) else {
-                Err(gpu_api_err!("vulkan not supported"))?
-            };
+        let Ok(instance) = (unsafe { entry.create_instance(&instance_create, None) }) else {
+            Err(gpu_api_err!("vulkan not supported"))?
+        };
 
         //  # Make Debug
         let debug = if config.use_debug {
@@ -201,7 +201,7 @@ impl VkCore {
         if config.use_surface {
             dev_extensions_owned.push(extensions::VkSurfaceExt::get_additional_device_extension());
         }
-        let dev_extensions: Vec<*const i8> =
+        let dev_extensions: Vec<*const c_char> =
             dev_extensions_owned.iter().map(|s| s.as_ptr()).collect();
 
         //  ## The Lazy Way of Creating Queues
@@ -225,9 +225,7 @@ impl VkCore {
             .enabled_features(&features)
             .queue_create_infos(&queues_create)
             .build();
-        let Ok(dev) = (unsafe {
-            instance.create_device(physical_dev, &dev_create, None)
-        }) else {
+        let Ok(dev) = (unsafe { instance.create_device(physical_dev, &dev_create, None) }) else {
             Err(gpu_api_err!("vulkan device init"))?
         };
 
