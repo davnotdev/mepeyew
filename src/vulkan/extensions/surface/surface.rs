@@ -129,7 +129,6 @@ fn new_unix_macos_surface(
         };
         let layer = match unsafe { appkit::metal_layer_from_handle(native_window.clone()) } {
             Layer::Existing(layer) | Layer::Allocated(layer) => layer.cast(),
-            Layer::None => None?,
         };
 
         let native_surface_create =
