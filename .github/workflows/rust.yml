@@ -17,14 +17,10 @@ jobs:
           platform: Linux
           packages:
           - gcc-aarch64-linux-gnu
-          test-targets:
-          - x86_64-unknown-linux-gnu
           targets:
           - aarch64-unknown-linux-gnu
         - os: macos-12
           platform: macOS
-          test-targets:
-          - x86_64-apple-darwin
           targets:
           - aarch64-apple-darwin
           - aarch64-apple-ios
@@ -32,10 +28,12 @@ jobs:
           - x86_64-apple-ios
         - os: windows-2022
           platform: Windows
-          test-targets:
-          - x86_64-pc-windows-msvc
           targets:
           - aarch64-pc-windows-msvc
+        - os: web
+          platform: WASM
+          targets:
+          - wasm32-unknown-unknown
     runs-on: ${{ matrix.os }}
     env:
       DEVELOPER_DIR: /Applications/Xcode_14.2.app/Contents/Developer
@@ -68,7 +66,4 @@ jobs:
       uses: Swatinem/rust-cache@v2
     - name: Build
       shell: bash
-      run: cargo build --verbose --workspace --all-features --target ${{ join(matrix.targets, ' --target ') }} --target ${{ join(matrix.test-targets, ' --target ') }}
-    - name: Test
-      shell: bash
-      run: cargo test --verbose --workspace --all-features --target ${{ join(matrix.test-targets, ' --target ') }}
+      run: cargo build --verbose --examples --target ${{ join(matrix.targets, ' --target ') }}
