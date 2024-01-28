@@ -41,7 +41,7 @@ gpu-allocator = { version = "0.21.0", optional = true }
 
 [target.'cfg(any(target_os = "macos", target_os = "ios"))'.dependencies]
 #  vulkan
-raw-window-metal = { version = "0.3", optional = true }
+raw-window-metal = { version = "0.4", optional = true }
 
 [target.'cfg(all(target_arch = "wasm32", target_os = "unknown"))'.dependencies]
 #  webgpu
