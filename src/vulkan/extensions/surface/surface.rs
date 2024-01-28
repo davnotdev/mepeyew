@@ -1,4 +1,5 @@
 use super::*;
+use std::ffi::c_void;
 
 pub struct VkSurface {
     pub surface: vk::SurfaceKHR,
@@ -62,8 +63,8 @@ fn new_windows_surface(
         None?
     };
     let native_surface_create = vk::Win32SurfaceCreateInfoKHR::builder()
-        .hinstance(native_window.hinstance)
-        .hwnd(native_window.hwnd)
+        .hinstance(native_window.hinstance.unwrap().get() as *const c_void)
+        .hwnd(native_window.hwnd.get() as *const c_void)
         .build();
     let native_surface = vk_extensions::khr::Win32Surface::new(entry, instance);
     unsafe { native_surface.create_win32_surface(&native_surface_create, None) }.ok()
@@ -82,7 +83,7 @@ fn new_unix_xlib_surface(
         None?
     };
     let native_surface_create = vk::XlibSurfaceCreateInfoKHR::builder()
-        .dpy(native_display.display as *mut *const std::ffi::c_void)
+        .dpy(native_display.display.unwrap().as_ptr() as *mut *const std::ffi::c_void)
         .window(native_window.window)
         .build();
     let native_surface = ash::extensions::khr::XlibSurface::new(entry, instance);
@@ -102,8 +103,8 @@ fn new_unix_wayland_surface(
         None?
     };
     let native_surface_create = vk::WaylandSurfaceCreateInfoKHR::builder()
-        .display(native_display.display)
-        .surface(native_window.surface)
+        .display(native_display.display.as_ptr())
+        .surface(native_window.surface.as_ptr())
         .build();
     let native_surface = ash::extensions::khr::WaylandSurface::new(entry, instance);
     unsafe { native_surface.create_wayland_surface(&native_surface_create, None) }.ok()

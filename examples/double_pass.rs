@@ -1,8 +1,8 @@
 use mepeyew::*;
-use raw_window_handle::{HasRawDisplayHandle, HasRawWindowHandle};
+use raw_window_handle::{HasDisplayHandle, HasWindowHandle};
 use winit::{
     event::{Event, WindowEvent},
-    event_loop::EventLoop,
+    event_loop::{ControlFlow, EventLoop},
     window::{Window, WindowBuilder},
 };
 
@@ -10,7 +10,7 @@ fn main() {
     #[cfg(all(feature = "webgpu", target_arch = "wasm32", target_os = "unknown"))]
     wasm::init();
 
-    let event_loop = EventLoop::new();
+    let event_loop = EventLoop::new().unwrap();
     let window = WindowBuilder::new().build(&event_loop).unwrap();
 
     let window_size = get_window_size(&window);
@@ -26,8 +26,8 @@ fn main() {
         .surface_extension(SurfaceConfiguration {
             width: window_size.0,
             height: window_size.1,
-            display: window.raw_display_handle(),
-            window: window.raw_window_handle(),
+            display: window.display_handle().unwrap().as_raw(),
+            window: window.window_handle().unwrap().as_raw(),
         })
         .webgpu_init_from_window(WebGpuInitFromWindow {
             adapter: String::from("mepeyewAdapter"),
@@ -193,93 +193,100 @@ fn main() {
     //
 
     let mut last_window_size = window_size;
-    event_loop.run(move |event, _, control_flow| {
-        control_flow.set_poll();
+    event_loop
+        .run(move |event, elwt| {
+            elwt.set_control_flow(ControlFlow::wait_duration(
+                std::time::Duration::from_millis(16),
+            ));
 
-        match event {
-            Event::WindowEvent {
-                event: WindowEvent::CloseRequested,
-                window_id,
-            } if window_id == window.id() => control_flow.set_exit(),
-            Event::WindowEvent {
-                event: WindowEvent::Resized(size),
-                window_id,
-            } if window_id == window.id() => {
-                context
-                    .set_surface_size(size.width as usize, size.height as usize)
-                    .unwrap();
-            }
-            Event::MainEventsCleared => {
-                let window_size = get_window_size(&window);
-                if last_window_size.0 != window_size.0 || last_window_size.1 != window_size.1 {
+            match event {
+                Event::WindowEvent {
+                    event: WindowEvent::CloseRequested,
+                    window_id,
+                } if window_id == window.id() => elwt.exit(),
+                Event::WindowEvent {
+                    event: WindowEvent::Resized(size),
+                    window_id,
+                } if window_id == window.id() => {
                     context
-                        .set_surface_size(window_size.0, window_size.1)
+                        .set_surface_size(size.width as usize, size.height as usize)
                         .unwrap();
                 }
-                last_window_size = window_size;
+                Event::WindowEvent {
+                    event: WindowEvent::RedrawRequested,
+                    window_id,
+                } if window_id == window.id() => {
+                    let window_size = get_window_size(&window);
+                    if last_window_size.0 != window_size.0 || last_window_size.1 != window_size.1 {
+                        context
+                            .set_surface_size(window_size.0, window_size.1)
+                            .unwrap();
+                    }
+                    last_window_size = window_size;
 
-                //
-                //  --- Begin Render Code ---
-                //
+                    //
+                    //  --- Begin Render Code ---
+                    //
 
-                let mut submit = Submit::new();
+                    let mut submit = Submit::new();
 
-                let mut pass_submit = PassSubmitData::new(compiled_pass);
+                    let mut pass_submit = PassSubmitData::new(compiled_pass);
 
-                {
-                    let mut step_submit = StepSubmitData::new();
-                    step_submit
-                        .draw_indexed(program_pass_1, 0, index_data.len())
-                        .set_viewport(DrawViewport {
-                            x: 0.0,
-                            y: 0.0,
-                            width: window_size.0 as f32,
-                            height: window_size.1 as f32,
-                        });
+                    {
+                        let mut step_submit = StepSubmitData::new();
+                        step_submit
+                            .draw_indexed(program_pass_1, 0, index_data.len())
+                            .set_viewport(DrawViewport {
+                                x: 0.0,
+                                y: 0.0,
+                                width: window_size.0 as f32,
+                                height: window_size.1 as f32,
+                            });
 
-                    pass_submit.set_attachment_clear_color(
-                        pass_1_output,
-                        ClearColor {
-                            r: 0.0,
-                            g: 0.4,
-                            b: 0.0,
-                            a: 1.0,
-                        },
-                    );
-                    pass_submit.step(step_submit);
+                        pass_submit.set_attachment_clear_color(
+                            pass_1_output,
+                            ClearColor {
+                                r: 0.0,
+                                g: 0.4,
+                                b: 0.0,
+                                a: 1.0,
+                            },
+                        );
+                        pass_submit.step(step_submit);
+                    }
+                    {
+                        let mut step_submit = StepSubmitData::new();
+                        step_submit
+                            .draw_indexed(program_pass_2, 0, index_data.len())
+                            .set_viewport(DrawViewport {
+                                x: 0.0,
+                                y: 0.0,
+                                width: window_size.0 as f32,
+                                height: window_size.1 as f32,
+                            });
+
+                        pass_submit.set_attachment_clear_color(
+                            surface_attachment,
+                            ClearColor {
+                                r: 0.0,
+                                g: 0.2,
+                                b: 0.2,
+                                a: 1.0,
+                            },
+                        );
+                        pass_submit.step(step_submit);
+                    }
+                    submit.pass(pass_submit);
+                    context.submit(submit, None).unwrap();
+
+                    //
+                    //  --- End Render Code ---
+                    //
                 }
-                {
-                    let mut step_submit = StepSubmitData::new();
-                    step_submit
-                        .draw_indexed(program_pass_2, 0, index_data.len())
-                        .set_viewport(DrawViewport {
-                            x: 0.0,
-                            y: 0.0,
-                            width: window_size.0 as f32,
-                            height: window_size.1 as f32,
-                        });
-
-                    pass_submit.set_attachment_clear_color(
-                        surface_attachment,
-                        ClearColor {
-                            r: 0.0,
-                            g: 0.2,
-                            b: 0.2,
-                            a: 1.0,
-                        },
-                    );
-                    pass_submit.step(step_submit);
-                }
-                submit.pass(pass_submit);
-                context.submit(submit, None).unwrap();
-
-                //
-                //  --- End Render Code ---
-                //
+                _ => (),
             }
-            _ => (),
-        }
-    });
+        })
+        .unwrap();
 }
 
 #[allow(unused_variables)]

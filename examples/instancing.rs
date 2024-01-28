@@ -1,9 +1,9 @@
 use mepeyew::*;
 use nalgebra_glm as glm;
-use raw_window_handle::{HasRawDisplayHandle, HasRawWindowHandle};
+use raw_window_handle::{HasDisplayHandle, HasWindowHandle};
 use winit::{
     event::{Event, WindowEvent},
-    event_loop::EventLoop,
+    event_loop::{ControlFlow, EventLoop},
     window::{Window, WindowBuilder},
 };
 
@@ -11,7 +11,7 @@ fn main() {
     #[cfg(all(feature = "webgpu", target_arch = "wasm32", target_os = "unknown"))]
     wasm::init();
 
-    let event_loop = EventLoop::new();
+    let event_loop = EventLoop::new().unwrap();
     let window = WindowBuilder::new().build(&event_loop).unwrap();
 
     let window_size = get_window_size(&window);
@@ -27,8 +27,8 @@ fn main() {
         .surface_extension(SurfaceConfiguration {
             width: window_size.0,
             height: window_size.1,
-            display: window.raw_display_handle(),
-            window: window.raw_window_handle(),
+            display: window.display_handle().unwrap().as_raw(),
+            window: window.window_handle().unwrap().as_raw(),
         })
         .webgpu_init_from_window(WebGpuInitFromWindow {
             adapter: String::from("mepeyewAdapter"),
@@ -133,102 +133,109 @@ fn main() {
     //
 
     let mut last_window_size = window_size;
-    event_loop.run(move |event, _, control_flow| {
-        control_flow.set_poll();
+    event_loop
+        .run(move |event, elwt| {
+            elwt.set_control_flow(ControlFlow::wait_duration(
+                std::time::Duration::from_millis(16),
+            ));
 
-        match event {
-            Event::WindowEvent {
-                event: WindowEvent::CloseRequested,
-                window_id,
-            } if window_id == window.id() => control_flow.set_exit(),
-            Event::WindowEvent {
-                event: WindowEvent::Resized(size),
-                window_id,
-            } if window_id == window.id() => {
-                context
-                    .set_surface_size(size.width as usize, size.height as usize)
-                    .unwrap();
-            }
-            Event::MainEventsCleared => {
-                let window_size = get_window_size(&window);
-                //  For the sake of the Web.
-                if last_window_size.0 != window_size.0 || last_window_size.1 != window_size.1 {
+            match event {
+                Event::WindowEvent {
+                    event: WindowEvent::CloseRequested,
+                    window_id,
+                } if window_id == window.id() => elwt.exit(),
+                Event::WindowEvent {
+                    event: WindowEvent::Resized(size),
+                    window_id,
+                } if window_id == window.id() => {
                     context
-                        .set_surface_size(window_size.0, window_size.1)
+                        .set_surface_size(size.width as usize, size.height as usize)
                         .unwrap();
                 }
-                last_window_size = window_size;
-
-                //
-                //  --- Begin Render Code ---
-                //
-
-                let mut submit = Submit::new();
-
-                let projection = glm::perspective(
-                    window_size.0 as f32 / window_size.1 as f32,
-                    90.0 * (glm::pi::<f32>() / 180.0),
-                    0.1,
-                    100.0,
-                );
-
-                let view = glm::identity();
-                let view = glm::translate(&view, &glm::vec3(0.0, 0.0, -4.0));
-
-                let mut data = UniformData {
-                    view,
-                    projection,
-                    ..Default::default()
-                };
-
-                for j in 0..5 {
-                    for k in 0..5 {
-                        let model = glm::identity();
-                        let position = glm::vec3(j as f32 - 2.0, k as f32 - 2.0, 0.0);
-                        let model = glm::translate(&model, &position);
-                        data.model[k * 5 + j] = model;
+                Event::WindowEvent {
+                    event: WindowEvent::RedrawRequested,
+                    window_id,
+                } if window_id == window.id() => {
+                    let window_size = get_window_size(&window);
+                    //  For the sake of the Web.
+                    if last_window_size.0 != window_size.0 || last_window_size.1 != window_size.1 {
+                        context
+                            .set_surface_size(window_size.0, window_size.1)
+                            .unwrap();
                     }
-                }
+                    last_window_size = window_size;
 
-                submit.transfer_into_uniform_buffer(ubo_guard, &data);
+                    //
+                    //  --- Begin Render Code ---
+                    //
 
-                let mut pass_submit = PassSubmitData::new(compiled_pass);
+                    let mut submit = Submit::new();
 
-                {
-                    let mut step_submit = StepSubmitData::new();
-                    step_submit
-                        .draw_indexed(program, 0, index_data.len())
-                        .set_instance(0, 25)
-                        .set_viewport(DrawViewport {
-                            x: 0.0,
-                            y: 0.0,
-                            width: window_size.0 as f32,
-                            height: window_size.1 as f32,
-                        });
-
-                    pass_submit.set_attachment_clear_color(
-                        output_attachment,
-                        ClearColor {
-                            r: 0.0,
-                            g: 0.2,
-                            b: 0.2,
-                            a: 1.0,
-                        },
+                    let projection = glm::perspective(
+                        window_size.0 as f32 / window_size.1 as f32,
+                        90.0 * (glm::pi::<f32>() / 180.0),
+                        0.1,
+                        100.0,
                     );
-                    pass_submit.step(step_submit);
+
+                    let view = glm::identity();
+                    let view = glm::translate(&view, &glm::vec3(0.0, 0.0, -4.0));
+
+                    let mut data = UniformData {
+                        view,
+                        projection,
+                        ..Default::default()
+                    };
+
+                    for j in 0..5 {
+                        for k in 0..5 {
+                            let model = glm::identity();
+                            let position = glm::vec3(j as f32 - 2.0, k as f32 - 2.0, 0.0);
+                            let model = glm::translate(&model, &position);
+                            data.model[k * 5 + j] = model;
+                        }
+                    }
+
+                    submit.transfer_into_uniform_buffer(ubo_guard, &data);
+
+                    let mut pass_submit = PassSubmitData::new(compiled_pass);
+
+                    {
+                        let mut step_submit = StepSubmitData::new();
+                        step_submit
+                            .draw_indexed(program, 0, index_data.len())
+                            .set_instance(0, 25)
+                            .set_viewport(DrawViewport {
+                                x: 0.0,
+                                y: 0.0,
+                                width: window_size.0 as f32,
+                                height: window_size.1 as f32,
+                            });
+
+                        pass_submit.set_attachment_clear_color(
+                            output_attachment,
+                            ClearColor {
+                                r: 0.0,
+                                g: 0.2,
+                                b: 0.2,
+                                a: 1.0,
+                            },
+                        );
+                        pass_submit.step(step_submit);
+                    }
+
+                    submit.pass(pass_submit);
+                    context.submit(submit, None).unwrap();
+
+                    //
+                    //  --- End Render Code ---
+                    //
+                    window.request_redraw();
                 }
-
-                submit.pass(pass_submit);
-                context.submit(submit, None).unwrap();
-
-                //
-                //  --- End Render Code ---
-                //
-                window.request_redraw();
+                _ => (),
             }
-            _ => (),
-        }
-    });
+        })
+        .unwrap();
 }
 
 #[allow(unused_variables)]

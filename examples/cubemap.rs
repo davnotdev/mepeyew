@@ -1,10 +1,10 @@
 use mepeyew::*;
 use nalgebra_glm as glm;
-use raw_window_handle::{HasRawDisplayHandle, HasRawWindowHandle};
+use raw_window_handle::{HasDisplayHandle, HasWindowHandle};
 use stb_image_rust::*;
 use winit::{
     event::{Event, WindowEvent},
-    event_loop::EventLoop,
+    event_loop::{ControlFlow, EventLoop},
     window::{Window, WindowBuilder},
 };
 
@@ -20,7 +20,7 @@ fn main() {
     #[cfg(all(feature = "webgpu", target_arch = "wasm32", target_os = "unknown"))]
     wasm::init();
 
-    let event_loop = EventLoop::new();
+    let event_loop = EventLoop::new().unwrap();
     let window = WindowBuilder::new().build(&event_loop).unwrap();
 
     let window_size = get_window_size(&window);
@@ -36,8 +36,8 @@ fn main() {
         .surface_extension(SurfaceConfiguration {
             width: window_size.0,
             height: window_size.1,
-            display: window.raw_display_handle(),
-            window: window.raw_window_handle(),
+            display: window.display_handle().unwrap().as_raw(),
+            window: window.window_handle().unwrap().as_raw(),
         })
         .webgpu_init_from_window(WebGpuInitFromWindow {
             adapter: String::from("mepeyewAdapter"),
@@ -251,106 +251,113 @@ fn main() {
     let mut start: f32 = 0.0;
 
     let mut last_window_size = window_size;
-    event_loop.run(move |event, _, control_flow| {
-        control_flow.set_poll();
+    event_loop
+        .run(move |event, elwt| {
+            elwt.set_control_flow(ControlFlow::wait_duration(
+                std::time::Duration::from_millis(16),
+            ));
 
-        match event {
-            Event::WindowEvent {
-                event: WindowEvent::CloseRequested,
-                window_id,
-            } if window_id == window.id() => control_flow.set_exit(),
-            Event::WindowEvent {
-                event: WindowEvent::Resized(size),
-                window_id,
-            } if window_id == window.id() => {
-                context
-                    .set_surface_size(size.width as usize, size.height as usize)
-                    .unwrap();
-            }
-            Event::MainEventsCleared => {
-                let window_size = get_window_size(&window);
-                if last_window_size.0 != window_size.0 || last_window_size.1 != window_size.1 {
+            match event {
+                Event::WindowEvent {
+                    event: WindowEvent::CloseRequested,
+                    window_id,
+                } if window_id == window.id() => elwt.exit(),
+                Event::WindowEvent {
+                    event: WindowEvent::Resized(size),
+                    window_id,
+                } if window_id == window.id() => {
                     context
-                        .set_surface_size(window_size.0, window_size.1)
+                        .set_surface_size(size.width as usize, size.height as usize)
                         .unwrap();
                 }
-                last_window_size = window_size;
+                Event::WindowEvent {
+                    event: WindowEvent::RedrawRequested,
+                    window_id,
+                } if window_id == window.id() => {
+                    let window_size = get_window_size(&window);
+                    if last_window_size.0 != window_size.0 || last_window_size.1 != window_size.1 {
+                        context
+                            .set_surface_size(window_size.0, window_size.1)
+                            .unwrap();
+                    }
+                    last_window_size = window_size;
 
-                #[cfg(not(any(target_arch = "wasm32", target_os = "unknown")))]
-                let elapsed = start.elapsed().as_millis() as f32 / 100.0;
-                #[cfg(all(feature = "webgpu", target_arch = "wasm32", target_os = "unknown"))]
-                let elapsed = {
-                    start += 0.1;
-                    start
-                };
+                    #[cfg(not(any(target_arch = "wasm32", target_os = "unknown")))]
+                    let elapsed = start.elapsed().as_millis() as f32 / 100.0;
+                    #[cfg(all(feature = "webgpu", target_arch = "wasm32", target_os = "unknown"))]
+                    let elapsed = {
+                        start += 0.1;
+                        start
+                    };
 
-                //
-                //  --- Begin Render Code ---
-                //
+                    //
+                    //  --- Begin Render Code ---
+                    //
 
-                let mut submit = Submit::new();
+                    let mut submit = Submit::new();
 
-                let projection = glm::perspective(
-                    window_size.0 as f32 / window_size.1 as f32,
-                    90.0 * (glm::pi::<f32>() / 180.0),
-                    0.1,
-                    100.0,
-                );
+                    let projection = glm::perspective(
+                        window_size.0 as f32 / window_size.1 as f32,
+                        90.0 * (glm::pi::<f32>() / 180.0),
+                        0.1,
+                        100.0,
+                    );
 
-                //  Typically, you would also want to cancel out the translation of the view
-                //  matrix, but we don't move anywhere anyway.
-                let view = glm::identity();
-                let view = glm::rotate(&view, elapsed / 20.0, &glm::vec3(0.0, 1.0, 0.0));
+                    //  Typically, you would also want to cancel out the translation of the view
+                    //  matrix, but we don't move anywhere anyway.
+                    let view = glm::identity();
+                    let view = glm::rotate(&view, elapsed / 20.0, &glm::vec3(0.0, 1.0, 0.0));
 
-                let model = glm::identity();
-                let model = glm::scale(&model, &glm::vec3(100.0, 100.0, 100.0));
+                    let model = glm::identity();
+                    let model = glm::scale(&model, &glm::vec3(100.0, 100.0, 100.0));
 
-                let uniform_data = UniformBuffer {
-                    model,
-                    view,
-                    projection,
-                };
+                    let uniform_data = UniformBuffer {
+                        model,
+                        view,
+                        projection,
+                    };
 
-                submit.transfer_into_uniform_buffer(uniform_buffer_guard, &uniform_data);
+                    submit.transfer_into_uniform_buffer(uniform_buffer_guard, &uniform_data);
 
-                let mut pass_submit = PassSubmitData::new(compiled_pass);
+                    let mut pass_submit = PassSubmitData::new(compiled_pass);
 
-                {
-                    let mut step_submit = StepSubmitData::new();
+                    {
+                        let mut step_submit = StepSubmitData::new();
 
-                    step_submit
-                        .draw_indexed(program, 0, index_data.len())
-                        .set_viewport(DrawViewport {
-                            x: 0.0,
-                            y: 0.0,
-                            width: window_size.0 as f32,
-                            height: window_size.1 as f32,
-                        });
+                        step_submit
+                            .draw_indexed(program, 0, index_data.len())
+                            .set_viewport(DrawViewport {
+                                x: 0.0,
+                                y: 0.0,
+                                width: window_size.0 as f32,
+                                height: window_size.1 as f32,
+                            });
 
-                    pass_submit.step(step_submit);
+                        pass_submit.step(step_submit);
+                    }
+
+                    pass_submit.set_attachment_clear_color(
+                        output_attachment,
+                        ClearColor {
+                            r: 0.0,
+                            g: 0.0,
+                            b: 0.0,
+                            a: 1.0,
+                        },
+                    );
+
+                    submit.pass(pass_submit);
+                    context.submit(submit, None).unwrap();
+
+                    //
+                    //  --- End Render Code ---
+                    //
+                    window.request_redraw();
                 }
-
-                pass_submit.set_attachment_clear_color(
-                    output_attachment,
-                    ClearColor {
-                        r: 0.0,
-                        g: 0.0,
-                        b: 0.0,
-                        a: 1.0,
-                    },
-                );
-
-                submit.pass(pass_submit);
-                context.submit(submit, None).unwrap();
-
-                //
-                //  --- End Render Code ---
-                //
-                window.request_redraw();
+                _ => {}
             }
-            _ => (),
-        }
-    });
+        })
+        .unwrap();
 }
 
 #[allow(unused_variables)]

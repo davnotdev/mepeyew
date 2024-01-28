@@ -1,6 +1,6 @@
 use winit::{
     event::{Event, WindowEvent},
-    event_loop::EventLoop,
+    event_loop::{ControlFlow, EventLoop},
     window::{Window, WindowBuilder},
 };
 
@@ -8,7 +8,7 @@ fn main() {
     #[cfg(all(feature = "webgpu", target_arch = "wasm32", target_os = "unknown"))]
     wasm::init();
 
-    let event_loop = EventLoop::new();
+    let event_loop = EventLoop::new().unwrap();
     let window = WindowBuilder::new().build(&event_loop).unwrap();
 
     let window_size = get_window_size(&window);
@@ -16,31 +16,38 @@ fn main() {
     //  Setup Code.
 
     let mut last_window_size = window_size;
-    event_loop.run(move |event, _, control_flow| {
-        control_flow.set_poll();
+    event_loop
+        .run(move |event, elwt| {
+            elwt.set_control_flow(ControlFlow::wait_duration(
+                std::time::Duration::from_millis(16),
+            ));
 
-        match event {
-            Event::WindowEvent {
-                event: WindowEvent::CloseRequested,
-                window_id,
-            } if window_id == window.id() => control_flow.set_exit(),
-            Event::WindowEvent {
-                event: WindowEvent::Resized(_),
-                window_id,
-            } if window_id == window.id() => {
-                //  Resize Code (for non-Web).
-            }
-            Event::MainEventsCleared => {
-                let window_size = get_window_size(&window);
-                if last_window_size.0 != window_size.0 || last_window_size.1 != window_size.1 {
-                    //  Resize Code (for Web).
+            match event {
+                Event::WindowEvent {
+                    event: WindowEvent::CloseRequested,
+                    window_id,
+                } if window_id == window.id() => elwt.exit(),
+                Event::WindowEvent {
+                    event: WindowEvent::Resized(_),
+                    window_id,
+                } if window_id == window.id() => {
+                    //  Resize Code (for non-Web).
                 }
-                last_window_size = window_size;
-                //  Render Code.
+                Event::WindowEvent {
+                    event: WindowEvent::RedrawRequested,
+                    window_id,
+                } if window_id == window.id() => {
+                    let window_size = get_window_size(&window);
+                    if last_window_size.0 != window_size.0 || last_window_size.1 != window_size.1 {
+                        //  Resize Code (for Web).
+                    }
+                    last_window_size = window_size;
+                    //  Render Code.
+                }
+                _ => (),
             }
-            _ => (),
-        }
-    });
+        })
+        .unwrap();
 }
 
 #[allow(unused_variables)]
