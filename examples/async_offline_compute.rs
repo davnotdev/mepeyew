@@ -17,7 +17,7 @@ fn main() {
 async fn run() {
     let mut extensions = Extensions::new();
     extensions
-        .native_debug(NativeDebugConfiguration::default())
+        .native_debug(Default::default())
         .naga_translation()
         .webgpu_init(WebGpuInit {
             canvas_id: Some(String::from("canvas")),
@@ -34,7 +34,7 @@ async fn run() {
             naga_translation::NagaTranslationStage::Compute,
             naga_translation::NagaTranslationInput::Glsl,
             code,
-            naga_translation::NagaTranslationExtensionTranslateShaderCodeExt::default(),
+            Default::default(),
         )
         .unwrap();
 

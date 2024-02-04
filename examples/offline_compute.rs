@@ -3,7 +3,7 @@ use mepeyew::*;
 fn main() {
     let mut extensions = Extensions::new();
     extensions
-        .native_debug(NativeDebugConfiguration::default())
+        .native_debug(Default::default())
         .naga_translation()
         .webgpu_init_from_window(WebGpuInitFromWindow {
             adapter: String::from("mepeyewAdapter"),
@@ -22,7 +22,7 @@ fn main() {
             naga_translation::NagaTranslationStage::Compute,
             naga_translation::NagaTranslationInput::Glsl,
             code,
-            naga_translation::NagaTranslationExtensionTranslateShaderCodeExt::default(),
+            Default::default(),
         )
         .unwrap();
 

@@ -22,7 +22,7 @@ fn main() {
 
     let mut extensions = Extensions::new();
     extensions
-        .native_debug(NativeDebugConfiguration::default())
+        .native_debug(Default::default())
         .naga_translation()
         .surface_extension(SurfaceConfiguration {
             width: window_size.0,
@@ -46,7 +46,7 @@ fn main() {
             naga_translation::NagaTranslationStage::Vertex,
             naga_translation::NagaTranslationInput::Wgsl,
             vs,
-            naga_translation::NagaTranslationExtensionTranslateShaderCodeExt::default(),
+            Default::default(),
         )
         .unwrap();
     let fs = context
@@ -54,7 +54,7 @@ fn main() {
             naga_translation::NagaTranslationStage::Fragment,
             naga_translation::NagaTranslationInput::Wgsl,
             fs,
-            naga_translation::NagaTranslationExtensionTranslateShaderCodeExt::default(),
+            Default::default(),
         )
         .unwrap();
 
