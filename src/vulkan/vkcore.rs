@@ -221,7 +221,6 @@ impl VkCore {
         //  ## Actually Make It
         let dev_create = vk::DeviceCreateInfo::builder()
             .enabled_extension_names(&dev_extensions)
-            .enabled_layer_names(&layers)
             .enabled_features(&features)
             .queue_create_infos(&queues_create)
             .build();

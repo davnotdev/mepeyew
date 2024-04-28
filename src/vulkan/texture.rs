@@ -246,7 +246,7 @@ impl VkTexture {
         let mut offset = 0;
         for data in datas.iter() {
             self.staging
-                .map_copy_data(data.as_ptr() as *const u8, data.len(), offset)?;
+                .map_copy_data(data.as_ptr(), data.len(), offset)?;
             offset += data.len();
         }
 

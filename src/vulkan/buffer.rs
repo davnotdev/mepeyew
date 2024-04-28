@@ -72,7 +72,7 @@ impl VkContext {
 
         let each_size = std::mem::size_of::<T>();
         let byte_slice = unsafe {
-            std::slice::from_raw_parts(data.as_ptr() as *const u8, each_size * data.len())
+            std::slice::from_raw_parts(data.as_ptr() as *const u8, std::mem::size_of_val(data))
         };
         let padded_buf =
             unsafe { pad_raw_slice(byte_slice, min_ubo_alignment, each_size, data.len()) };
@@ -231,7 +231,7 @@ impl VkContext {
         storage_type: BufferStorageType,
         additional_buffer_usage: vk::BufferUsageFlags,
     ) -> GResult<(VkBuffer, Option<VkBuffer>)> {
-        let buf_size = std::mem::size_of::<T>() * data.len();
+        let buf_size = std::mem::size_of_val(data);
 
         let mut staging = VkBuffer::new(
             &self.core.dev,
@@ -300,6 +300,7 @@ impl VkBuffer {
                 requirements,
                 location: mem_usage,
                 linear: true,
+                allocation_scheme: AllocationScheme::GpuAllocatorManaged
             })
             .unwrap();
 

@@ -2,7 +2,7 @@ use super::context::{self, *};
 use super::error::{gpu_api_err, GResult, GpuError};
 use ash::{extensions as vk_extensions, vk, Entry, *};
 use gpu_allocator::{
-    vulkan::{Allocation, AllocationCreateDesc, Allocator, AllocatorCreateDesc},
+    vulkan::{Allocation, AllocationCreateDesc, AllocationScheme, Allocator, AllocatorCreateDesc},
     MemoryLocation,
 };
 use raw_window_handle::{RawDisplayHandle, RawWindowHandle};
@@ -148,6 +148,7 @@ impl VkContext {
             debug_settings: Default::default(),
             //  TODO OPT: We should enable this perhaps?
             buffer_device_address: false,
+            allocation_sizes: Default::default(),
         })
         .map_err(|e| gpu_api_err!("vulkan gpu_allocator {}", e))?;
 

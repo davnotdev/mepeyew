@@ -52,6 +52,7 @@ impl VkImage {
                 requirements,
                 location: MemoryLocation::GpuOnly,
                 linear: true,
+                allocation_scheme: AllocationScheme::GpuAllocatorManaged
             })
             .unwrap();
 
