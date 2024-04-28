@@ -92,6 +92,12 @@ impl VkContext {
 
         //  TODO FIX: Replace unwraps.
         unsafe {
+            self.core
+                .dev
+                .wait_for_fences(&[frame_fence], true, std::u64::MAX)
+                .unwrap();
+            self.core.dev.reset_fences(&[frame_fence]).unwrap();
+
             let (swapchain_image_index, _suboptimal) = if let Some(surface) = &*self.surface_ext {
                 match surface.swapchain.swapchain_ext.acquire_next_image(
                     surface.swapchain.swapchain,
@@ -112,12 +118,6 @@ impl VkContext {
             } else {
                 (0, false)
             };
-
-            self.core
-                .dev
-                .wait_for_fences(&[frame_fence], true, std::u64::MAX)
-                .unwrap();
-            self.core.dev.reset_fences(&[frame_fence]).unwrap();
 
             self.core
                 .dev
