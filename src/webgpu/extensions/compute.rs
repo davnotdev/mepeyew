@@ -59,7 +59,8 @@ impl WebGpuComputeProgram {
             layout = pipeline_layout.into();
         }
 
-        let pipeline_programmable_stage = GpuProgrammableStage::new("main", &module);
+        let mut pipeline_programmable_stage = GpuProgrammableStage::new(&module);
+        pipeline_programmable_stage.entry_point("main");
 
         let pipeline = context
             .device

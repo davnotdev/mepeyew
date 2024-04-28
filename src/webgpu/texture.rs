@@ -265,21 +265,20 @@ impl WebGpuMipmapStateCache {
             let fragment_targets = Array::new();
             fragment_targets.push(&GpuColorTargetState::new(texture.format));
 
+            let mut fragment_state = GpuFragmentState::new(&self.module, &fragment_targets);
+            fragment_state.entry_point("fragmentMain");
+
             let pipeline = device.create_render_pipeline(
                 GpuRenderPipelineDescriptor::new(
                     &self.pipeline_layout,
-                    &GpuVertexState::new("vertexMain", &self.module),
+                    &GpuVertexState::new(&self.module),
                 )
                 .primitive(
                     GpuPrimitiveState::new()
                         .topology(GpuPrimitiveTopology::TriangleStrip)
                         .strip_index_format(GpuIndexFormat::Uint32),
                 )
-                .fragment(&GpuFragmentState::new(
-                    "fragmentMain",
-                    &self.module,
-                    &fragment_targets,
-                )),
+                .fragment(&fragment_state),
             );
             self.pipelines
                 .insert(texture.original_format, pipeline.clone());

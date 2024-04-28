@@ -45,7 +45,8 @@ impl WebGpuCompiledPass {
                         ))?;
                     let vertex_buffers = Array::new();
                     vertex_buffers.push(&program.vertex_buffer_layout);
-                    let mut vertex = GpuVertexState::new("main", &program.vertex_module);
+                    let mut vertex = GpuVertexState::new(&program.vertex_module);
+                    vertex.entry_point("main");
                     vertex.buffers(&vertex_buffers);
 
                     let mut layout = JsValue::from_str("auto");
@@ -95,7 +96,10 @@ impl WebGpuCompiledPass {
                         .primitive(&primitive);
 
                     if program.ext.enable_depth_write.is_some() || program.ext.enable_stencil_test.is_some() {
-                        let mut depth_stencil = GpuDepthStencilState::new(GpuCompareFunction::Less, true, WEBGPU_DEPTH_ATTACHMENT_FORMAT);
+                        let mut depth_stencil = GpuDepthStencilState::new(WEBGPU_DEPTH_ATTACHMENT_FORMAT);
+                        depth_stencil.depth_compare(GpuCompareFunction::Less);
+                        depth_stencil.depth_write_enabled(true);
+
                         fn compare_op_into_webgpu(compare_op: ShaderCompareOp) -> GpuCompareFunction {
                             match compare_op {
                                 ShaderCompareOp::Never => GpuCompareFunction::Never,
@@ -249,7 +253,8 @@ impl WebGpuCompiledPass {
 
                             Ok(())
                         })?;
-                        let fragment = GpuFragmentState::new("main", fragment_module, &targets);
+                        let mut fragment = GpuFragmentState::new(fragment_module, &targets);
+                        fragment.entry_point("main");
                         pipeline_info.fragment(&fragment);
                     }
 
